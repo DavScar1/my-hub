@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary SEO -->
+    <title>CollegeROI Ireland | Compare Irish University Degree Returns</title>
+    <meta name="description" content="Calculate and compare the ROI, starting salaries and payback periods for 80+ Irish university courses. Make smarter CAO decisions with real data from UCD, Trinity, DCU, UCC and more.">
+    <meta name="keywords" content="college ROI Ireland, university degree worth it, Irish degree salary, CAO course comparison, UCD Trinity DCU UCC salary, leaving cert college choice">
+    <link rel="canonical" href="https://roicollege.ie/">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="CollegeROI Ireland — Is Your Degree Worth It?">
+    <meta property="og:description" content="Compare ROI, salaries and payback periods for 80+ Irish university courses. Free tool, real data.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://roicollege.ie/">
+    <meta property="og:site_name" content="CollegeROI Ireland">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CollegeROI Ireland — Is Your Degree Worth It?">
+    <meta name="twitter:description" content="Compare ROI, salaries and payback periods for 80+ Irish university courses.">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CollegeROI Ireland",
+        "url": "https://roicollege.ie",
+        "description": "Calculate and compare the return on investment for Irish university degrees. Covers 80+ courses across UCD, Trinity, DCU, UCC, Galway, UL and more.",
+        "applicationCategory": "EducationApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "CollegeROI Ireland",
+            "url": "https://roicollege.ie"
+        }
+    }
+    </script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZS6RZBFRHN"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-ZS6RZBFRHN');
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============================================================
+         Header
+    ============================================================ -->
+    <header class="header">
+        <div class="container-wide">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon-wrapper" aria-hidden="true">
+                        <svg class="logo-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 3L4 7.5V12C4 16.1 7.4 19.9 12 21C16.6 19.9 20 16.1 20 12V7.5L12 3Z" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+                            <path d="M8.5 12L11 14.5L15.5 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-title">CollegeROI</span>
+                        <span class="logo-subtitle">Ireland's Degree ROI Tool</span>
+                    </div>
+                </div>
+
+                <nav class="header-nav" aria-label="Main navigation">
+                    <button class="nav-link active" onclick="switchView('calculator')" aria-label="ROI Calculator">Calculator</button>
+                    <button class="nav-link" onclick="switchView('quiz')" aria-label="Course Quiz">Quiz</button>
+                    <button class="nav-link" onclick="switchView('compare')" aria-label="Compare Courses">Compare</button>
+                    <button class="nav-link" onclick="switchView('explore')" aria-label="Browse All Courses">Browse</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         Calculator View
+    ============================================================ -->
+    <div id="calculatorView" class="view active">
+
+        <!-- Hero Banner -->
+        <section class="hero-banner" aria-label="Page introduction">
+            <div class="container-wide">
+                <span class="hero-badge">Free Tool &middot; 80+ Courses &middot; Real Data</span>
+                <h1 class="hero-title">Is Your Degree <span class="hero-accent">Worth It?</span></h1>
+                <p class="hero-sub">Compare salaries, total costs &amp; payback periods for Irish university courses — and make a smarter CAO choice.</p>
+            </div>
+        </section>
+
+        <div class="container-wide">
+            <div class="grid-layout">
+
+                <!-- Left Column: Inputs -->
+                <aside class="left-column">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">Select a Course</h2>
+                                <p class="card-description">Choose a degree program to analyse</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+
+                            <!-- University filter pills (desktop only) -->
+                            <div class="form-group desktop-only-filters">
+                                <label class="form-label">Filter by University</label>
+                                <div class="filter-pills">
+                                    <button type="button" class="pill active" onclick="showAllCourses()">All</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('UCD')">UCD</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('TCD')">Trinity</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('DCU')">DCU</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('UCC')">UCC</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('Galway')">Galway</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('UL')">UL</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('Maynooth')">Maynooth</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('TU Dublin')">TU Dublin</button>
+                                    <button type="button" class="pill" onclick="filterByUniversity('RCSI')">RCSI</button>
+                                </div>
+                            </div>
+
+                            <!-- Search (desktop only) -->
+                            <div class="form-group desktop-only-filters">
+                                <label class="form-label" for="courseSearch">Search Courses</label>
+                                <div class="search-wrapper">
+                                    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                        <path d="M7 13A6 6 0 1 0 7 1a6 6 0 0 0 0 12zM13 13l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <input type="text" id="courseSearch" class="form-input search-input" placeholder="Type to search..." autocomplete="off" aria-label="Search courses">
+                                    <button type="button" class="clear-search-btn" id="clearSearch" style="display:none;" aria-label="Clear search">&times;</button>
+                                </div>
+                                <div id="searchResults" class="search-dropdown" style="display:none;" role="listbox"></div>
+                            </div>
+
+                            <!-- Course dropdown -->
+                            <div class="form-group">
+                                <label class="form-label" for="course">Available Courses</label>
+                                <select id="course" class="form-select" size="6" aria-label="Select a course"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-primary" onclick="calculateROI()">Calculate ROI</button>
+
+                    <div class="course-disclaimer" style="margin-top:12px;">
+                        <strong>Can't find your course?</strong> Use <strong>Browse</strong> to explore all 80+ programs.
+                    </div>
+
+                    <!-- Advanced Options -->
+                    <div class="card" style="margin-top:16px;">
+                        <div class="card-header collapsible" onclick="toggleSection('advancedOptions')">
+                            <h3 class="card-title">Advanced Options</h3>
+                            <svg class="expand-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div id="advancedOptions" class="card-body collapsible-content">
+
+                            <!-- Custom Tuition -->
+                            <div class="form-group">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="useCustomTuition" class="checkbox">
+                                    <span class="checkbox-label">Custom tuition amount</span>
+                                </label>
+                                <div id="customTuitionFields" class="input-reveal" style="display:none;">
+                                    <div class="input-group">
+                                        <span class="input-prefix">&euro;</span>
+                                        <input type="number" id="customTuition" class="form-input" placeholder="7,000" min="0" step="100" aria-label="Custom tuition per year">
+                                        <span class="input-suffix">per year</span>
+                                    </div>
+                                    <span class="form-hint">Enter amount after scholarships / grants</span>
+                                </div>
+                            </div>
+
+                            <!-- Part-time Work -->
+                            <div class="form-group">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="enablePartTime" class="checkbox">
+                                    <span class="checkbox-label">Part-time employment</span>
+                                </label>
+                                <div id="partTimeFields" class="input-reveal" style="display:none;">
+                                    <div class="slider-group">
+                                        <div class="slider-header">
+                                            <span class="slider-label">Hours per week</span>
+                                            <span class="slider-value" id="hoursDisplay">10</span>
+                                        </div>
+                                        <input type="range" id="partTimeHours" class="range-slider" min="5" max="25" value="10" step="5" aria-label="Hours per week">
+                                        <div class="slider-labels"><span>5</span><span>25</span></div>
+                                    </div>
+                                    <div class="slider-group">
+                                        <div class="slider-header">
+                                            <span class="slider-label">Hourly rate</span>
+                                            <span class="slider-value">&euro;<span id="rateDisplay">12.70</span></span>
+                                        </div>
+                                        <input type="range" id="hourlyRate" class="range-slider" min="12.70" max="25" value="12.70" step="0.50" aria-label="Hourly rate">
+                                        <div class="slider-labels"><span>&euro;12.70</span><span>&euro;25</span></div>
+                                    </div>
+                                    <div class="info-box">
+                                        <div class="info-row">
+                                            <span class="info-label">Weekly income</span>
+                                            <span class="info-value" id="weeklyIncome">&euro;0</span>
+                                        </div>
+                                        <div class="info-row">
+                                            <span class="info-label">Annual income</span>
+                                            <span class="info-value" id="partTimeIncome">&euro;0</span>
+                                        </div>
+                                        <div class="info-row">
+                                            <span class="info-label">Total over course</span>
+                                            <span class="info-value" id="partTimeTotal">&euro;0</span>
+                                        </div>
+                                        <div class="info-highlight">Cost reduction: <strong id="costReduction">&euro;0</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="savedPreferencesNotice" class="notice" style="display:none;">
+                        <span>Previous calculation restored</span>
+                        <button type="button" class="link-btn" onclick="clearSavedPreferences()">Clear</button>
+                    </div>
+                </aside>
+
+                <!-- Right Column: Results -->
+                <main class="right-column" aria-live="polite">
+                    <div id="resultsPlaceholder" class="placeholder-state">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                            <rect x="8" y="16" width="48" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
+                            <line x1="16" y1="28" x2="32" y2="28" stroke="currentColor" stroke-width="2"/>
+                            <line x1="16" y1="36" x2="48" y2="36" stroke="currentColor" stroke-width="2"/>
+                            <line x1="16" y1="44" x2="40" y2="44" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <h3>Select a course above</h3>
+                        <p>Choose a course and click Calculate ROI to see detailed analysis, salary projections and investment data.</p>
+                    </div>
+                    <div id="results" style="display:none;"></div>
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         Quiz View
+    ============================================================ -->
+    <div id="quizView" class="view">
+        <iframe id="quizFrame" src="/quiz" title="Course Recommendation Quiz" style="width:100%;height:90vh;border:none;border-radius:12px;"></iframe>
+    </div>
+
+    <!-- ============================================================
+         Compare View
+    ============================================================ -->
+    <div id="compareView" class="view">
+        <div class="container-wide">
+            <div class="page-header">
+                <h1>Compare Courses Side by Side</h1>
+                <p class="page-description">Select 2–5 courses to compare ROI, salary and career metrics</p>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label" for="coursesMultiple">Select Courses (2–5)</label>
+                        <p class="form-hint" style="margin-bottom:10px;">Hold Ctrl / Cmd and click to select multiple</p>
+                        <select id="coursesMultiple" class="form-select" multiple style="min-height:280px;" aria-label="Select courses to compare"></select>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="compareMultipleCourses()">Compare Selected Courses</button>
+                </div>
+            </div>
+
+            <div id="comparisonResults" style="display:none;margin-top:28px;" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         Explore (Browse) View
+    ============================================================ -->
+    <div id="exploreView" class="view">
+        <div class="container-wide">
+            <div class="page-header">
+                <h1>Browse All Courses</h1>
+                <p class="page-description">Filter and sort all 80+ courses by university, field and performance metrics</p>
+            </div>
+
+            <!-- Quick stats -->
+            <div class="stats-grid" role="list">
+                <div class="stat-card" role="listitem" onclick="showTop5('roi')" tabindex="0" aria-label="View top 5 ROI courses">
+                    <div class="stat-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Best Returns</div>
+                        <div class="stat-title">Top 5 ROI</div>
+                    </div>
+                </div>
+                <div class="stat-card" role="listitem" onclick="showTop5('payback')" tabindex="0" aria-label="View courses with fastest payback">
+                    <div class="stat-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Quick Recovery</div>
+                        <div class="stat-title">Fastest Payback</div>
+                    </div>
+                </div>
+                <div class="stat-card" role="listitem" onclick="showTop5('cost')" tabindex="0" aria-label="View most affordable courses">
+                    <div class="stat-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h6M9 15h6" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Budget Friendly</div>
+                        <div class="stat-title">Lowest Cost</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-bar">
+                <div class="filter-section">
+                    <label class="filter-label">University</label>
+                    <div class="filter-chips">
+                        <label class="chip-checkbox"><input type="checkbox" value="UCD" onchange="applyFilters()"><span>UCD</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="TCD" onchange="applyFilters()"><span>Trinity</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="DCU" onchange="applyFilters()"><span>DCU</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="UCC" onchange="applyFilters()"><span>UCC</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="Galway" onchange="applyFilters()"><span>Galway</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="UL" onchange="applyFilters()"><span>UL</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="Maynooth" onchange="applyFilters()"><span>Maynooth</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="TU Dublin" onchange="applyFilters()"><span>TU Dublin</span></label>
+                        <label class="chip-checkbox"><input type="checkbox" value="RCSI" onchange="applyFilters()"><span>RCSI</span></label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <label class="filter-label">Field of Study</label>
+                    <div class="filter-chips">
+                        <button type="button" class="chip-btn" data-field="Computer Science" onclick="toggleFieldFilter(this)">Computer Science</button>
+                        <button type="button" class="chip-btn" data-field="Engineering" onclick="toggleFieldFilter(this)">Engineering</button>
+                        <button type="button" class="chip-btn" data-field="Business" onclick="toggleFieldFilter(this)">Business</button>
+                        <button type="button" class="chip-btn" data-field="Law" onclick="toggleFieldFilter(this)">Law</button>
+                        <button type="button" class="chip-btn" data-field="Medicine" onclick="toggleFieldFilter(this)">Medicine</button>
+                        <button type="button" class="chip-btn" data-field="Data" onclick="toggleFieldFilter(this)">Data Science</button>
+                        <button type="button" class="chip-btn" data-field="Cybersecurity" onclick="toggleFieldFilter(this)">Cybersecurity</button>
+                        <button type="button" class="chip-btn" data-field="Artificial Intelligence" onclick="toggleFieldFilter(this)">AI</button>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <label class="filter-label" for="sortBy">Sort by</label>
+                    <select id="sortBy" class="sort-select" onchange="applyFilters()">
+                        <option value="roi-desc">ROI: High to Low</option>
+                        <option value="roi-asc">ROI: Low to High</option>
+                        <option value="payback-asc">Payback: Fast to Slow</option>
+                        <option value="payback-desc">Payback: Slow to Fast</option>
+                        <option value="cost-asc">Cost: Low to High</option>
+                        <option value="cost-desc">Cost: High to Low</option>
+                        <option value="name">Name: A–Z</option>
+                    </select>
+                </div>
+
+                <button class="btn-secondary" onclick="resetFilters()">Reset Filters</button>
+            </div>
+
+            <!-- Course Grid -->
+            <div id="courseGrid" class="course-grid" role="list">
+                <div class="loading-text">
+                    <div class="loading-spinner"></div>
+                    Loading courses…
+                </div>
+            </div>
+
+            <div id="noResults" class="empty-state" style="display:none;">
+                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                    <circle cx="28" cy="28" r="16" stroke="currentColor" stroke-width="2"/>
+                    <path d="M40 40l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M28 20v16M28 36h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h3>No courses match your filters</h3>
+                <p>Try adjusting or resetting your filters</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error banner -->
+    <div id="error" style="display:none;">
+        <div class="container-wide">
+            <div class="alert alert-error">
+                <strong>Error:</strong> <span id="errorMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Press '/' to focus search
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                const s = document.getElementById('courseSearch');
+                if (s) s.focus();
+            }
+        });
+
+        // Quiz → Calculator bridge
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.action === 'selectCourse') {
+                document.querySelector('.nav-link[onclick*="calculator"]')?.click();
+                setTimeout(() => {
+                    const dd = document.getElementById('course');
+                    if (dd) {
+                        for (let i = 0; i < dd.options.length; i++) {
+                            if (dd.options[i].value === event.data.course) {
+                                dd.selectedIndex = i;
+                                calculateROI();
+                                break;
+                            }
+                        }
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                }, 500);
+            }
+        }, false);
+    </script>
+</body>
+</html>

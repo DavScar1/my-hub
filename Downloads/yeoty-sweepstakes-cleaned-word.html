@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YEOTY | Sweepstakes Casinos: An Economic Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface2: #f0f4f8;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent2: #1e40af;
+    --accent3: #dc2626;
+    --text: #0f172a;
+    --muted: #64748b;
+    --green: #16a34a;
+    --red: #dc2626;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    background: rgba(248,249,251,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .nav-links {
+    display: flex; gap: 0.25rem; list-style: none;
+    flex-wrap: wrap;
+  }
+  .nav-links a {
+    color: #64748b;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.7rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); background: rgba(37,99,235,0.06); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+    padding: 80px 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(37,99,235,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  }
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(37,99,235,0.05) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(37,99,235,0.2);
+    padding: 0.35rem 1rem;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    color: #0f172a;
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    line-height: 1.05;
+    max-width: 900px;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero-sub {
+    font-size: 1rem;
+    color: #64748b;
+    max-width: 600px;
+    margin-bottom: 3rem;
+    font-weight: 400;
+  }
+  .hero-quotes {
+    display: flex; flex-direction: column; gap: 0.6rem;
+    margin-bottom: 3rem;
+  }
+  .hero-quote {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: #64748b;
+    border-left: 2px solid var(--accent2);
+    padding-left: 1rem;
+    text-align: left;
+  }
+  .hero-stats {
+    display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 3rem;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem;
+    color: var(--accent);
+    display: block;
+  }
+  .hero-stat .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+  }
+  .scroll-hint {
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    color: var(--muted); font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: bounce 2s infinite;
+  }
+  .scroll-hint::after {
+    content: '↓';
+    font-size: 1.2rem;
+    color: var(--accent);
+  }
+  .workings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    text-decoration: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+    cursor: pointer;
+    z-index: 10;
+    position: relative;
+  }
+  .workings-btn:hover {
+    background: var(--accent);
+    color: #0f172a;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.25);
+    transform: translateY(-1px);
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 5rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  section.full { max-width: 100%; padding: 5rem 0; }
+  .section-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    color: #0f172a;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+  h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+  }
+  h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+    margin-top: 1.5rem;
+  }
+  p {
+    color: #334155;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+  strong { color: #0f172a; font-weight: 700; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin: 2rem 0;
+  }
+
+  /* ── STAT BOXES ── */
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .stat-box .big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .stat-box .desc {
+    color: #64748b;
+    font-size: 0.78rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  /* ── CHART CONTAINERS ── */
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  .chart-title {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+  }
+  canvas { max-height: 320px; }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 2rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    color: #334155;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(226,232,240,0.8);
+    color: #334155;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(248,250,252,0.7); }
+  .highlight-row td { color: var(--accent) !important; font-weight: 700; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(37,99,235,0.05);
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    color: #334155;
+  }
+  .callout.red { border-color: var(--red); background: rgba(220,38,38,0.07); }
+  .callout.purple { border-color: var(--accent); background: rgba(37,99,235,0.05); }
+  .callout.green { border-color: var(--green); background: rgba(22,163,74,0.08); }
+
+  /* ── CHAPTER HEADER ── */
+  .chapter-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3rem 2.5rem;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .chapter-header::before {
+    content: attr(data-num);
+    position: absolute;
+    right: 2rem; top: 50%; transform: translateY(-50%);
+    font-family: 'DM Serif Display', serif;
+    font-size: 8rem;
+    color: rgba(0,0,0,0.03);
+    line-height: 1;
+  }
+  .chapter-header .ch-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .chapter-header h2 { margin-bottom: 0.5rem; }
+  .chapter-header p { color: #64748b; margin: 0; font-size: 0.9rem; }
+
+  /* ── INDEX TABLE ── */
+  .index-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin: 2rem 0;
+  }
+  .index-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .index-item:hover { border-color: var(--accent); background: rgba(37,99,235,0.05); }
+  .index-item .idx-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    min-width: 28px;
+  }
+  .index-item .idx-title {
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ── GLOSSARY ── */
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .gloss-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+  }
+  .gloss-term {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+  .gloss-def {
+    color: #475569;
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  /* ── SDG CARDS ── */
+  .sdg-card {
+    display: flex; gap: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .sdg-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem;
+    color: var(--accent);
+    min-width: 60px;
+    line-height: 1;
+  }
+
+  /* ── INFLUENCER TABLE ── */
+  .influencer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .inf-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+  }
+  .inf-name {
+    color: #0f172a;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .inf-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .inf-desc {
+    color: #475569;
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  /* ── WELFARE TABLE ── */
+  .welfare-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .welfare-side {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .welfare-side.benefits { border-color: rgba(22,163,74,0.2); }
+  .welfare-side.costs { border-color: rgba(220,38,38,0.1); }
+  .welfare-side h4 { margin-top: 0; }
+  .welfare-side.benefits h4 { color: var(--green); }
+  .welfare-side.costs h4 { color: var(--red); }
+  .welfare-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(226,232,240,0.8);
+    font-size: 0.82rem;
+  }
+  .welfare-row:last-child { border-bottom: none; }
+  .welfare-row .wlabel { color: #64748b; }
+  .welfare-row .wval { font-weight: 700; color: #0f172a; font-family: 'DM Mono', monospace; }
+
+  /* ── POLICY COMPARISON ── */
+  .policy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  @media(max-width:768px){ .policy-grid { grid-template-columns: 1fr; } .welfare-comparison { grid-template-columns: 1fr; } }
+  .policy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .policy-card.recommended { border-color: var(--green); }
+  .policy-card.rejected { border-color: rgba(220,38,38,0.1); }
+  .policy-card h4 { margin-top: 0; }
+  .policy-badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+  }
+  .badge-rec { background: rgba(22,163,74,0.1); color: var(--green); }
+  .badge-rej { background: rgba(220,38,38,0.07); color: var(--red); }
+  .badge-neu { background: rgba(37,99,235,0.06); color: var(--accent); }
+
+  /* ── ACCORDION / TABS ── */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: #64748b;
+    padding: 0.5rem 1.1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover, .tab-btn.active {
+    background: var(--accent);
+    color: #0f172a;
+    border-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    color: #64748b;
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+  footer .notice {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    text-align: left;
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.7;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap { margin: 0.5rem 0 1rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-bottom: 0.3rem; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 1s ease; }
+  .progress-fill.purple { background: var(--accent); }
+  .progress-fill.red { background: var(--red); }
+  .progress-fill.green { background: var(--green); }
+
+  /* ── ANIMATION ── */
+  .fade-in {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── CITATION ── */
+  sup { color: var(--accent); font-size: 0.65em; }
+
+  /* ── LIST STYLES ── */
+  ul, ol { padding-left: 1.5rem; }
+  li { color: #334155; font-size: 0.92rem; line-height: 1.8; margin-bottom: 0.25rem; }
+
+  .bullet-styled { list-style: none; padding: 0; }
+  .bullet-styled li { padding-left: 1.2rem; position: relative; }
+  .bullet-styled li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">YEOTY</div>
+  <ul class="nav-links">
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+    <li><a href="#ch1">Ch. 1 — Industry</a></li>
+    <li><a href="#ch2">Ch. 2 — Marketing</a></li>
+    <li><a href="#ch3">Ch. 3 — Welfare</a></li>
+    <li><a href="#ch4">Ch. 4 — Regulation</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div id="hero" class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-tag">Young Economist of the Year · 2026</div>
+  <h1>The Economics of Sweepstakes Casinos:<br><em>Market Structure, Youth Exploitation, and Welfare Analysis</em></h1>
+  <p class="hero-sub">**This is a summary of the project. The project with complete workings, calculation and sources is linked below**</p>
+  <div class="hero-quotes">
+  <p>5th Year</p>
+  </div>
+  <div class="hero-stats">
+    
+  </div>
+  <a href="https://1drv.ms/w/c/59eeccebb1eba3b6/IQBFyAdle3XtR5VxSTpu_k8eAQBvyaa5xGgUy3bu7dlbREM?e=Ek5Mty" rel="noopener noreferrer" target="_blank" class="workings-btn">📄 Click here to view the full Project</a>
+  <div class="scroll-hint">Scroll to explore</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     INTRODUCTION
+════════════════════════════════════════════ -->
+<section id="intro">
+  <div class="section-label">Introduction</div>
+  <h2>A New Kind of Gambling</h2>
+  <p>In October 2024, popular Twitch streamer Adin Ross live-streamed himself winning $1.5 million on Stake.us in front of hundreds of thousands of viewers. Videos like this have become common across YouTube, TikTok, and Instagram, where gambling content has transformed into mainstream entertainment.</p>
+  <p>High-profile sponsorships amplify this visibility. Stake.us sponsored F1 team Kick Sauber, while streamers like Adin Ross & xQc regularly broadcast casino gameplay to massive audiences. They even got the largest music artist in the world (Drake) to stream himself gambling. This visibility reflects a broader phenomenon: the rapid rise of sweepstakes casinos.</p>
+  <p>As of 2026, 48 U.S. states permit some form of gambling, with only Utah and Hawaii maintaining complete bans. Within this market, sweepstakes casinos have emerged as one of the fastest-growing segments, yet they operate in a legal grey area that raises important questions about consumer protection and market fairness.</p>
+
+  <div class="callout">
+    <strong>What are Sweepstakes Casinos?</strong><br>
+    Sweepstakes casinos are online gambling platforms that exploit a legal loophole to operate without a gambling license. They use a <strong>dual-currency model</strong>. One currency labelled "Gold Coins" (for entertainment only), and another labelled "Sweepstakes Coins" which can be redeemed for real money. Since Sweepstakes Coins are given away for free when you purchase Gold Coins, platforms claim they fall under sweepstakes law rather than gambling regulation. This allows them to operate without a gambling license, avoid age verification, and skip consumer protections required of licensed casinos.
+  </div>
+
+  <p>But does this legal distinction reflect reality? When users pay money, play luck-based games, and win cash prizes, the experience looks and feels like gambling regardless of how platforms label their currencies.</p>
+
+  <h3>Aim</h3>
+  <p>This project examines sweepstakes casinos through an economic lens. We will analyse how these platforms compete, how they market to users, what costs and benefits they create, and what regulatory approaches would best balance innovation with consumer protection.</p>
+  <p>We selected this topic after observing the proliferation of Stake.us branding across sports, entertainment, and social media. Our social media feeds were filled with massive gambling wins and we wanted to find out who was behind it and how all of this was legal. The goal is to understand whether this industry serves the public interest in its current form, or whether policy intervention could improve outcomes for users and society.</p>
+
+  <h3>Sustainable Development Goals</h3>
+  <div class="sdg-card">
+    <div class="sdg-num">3</div>
+    <div>
+      <strong>Good Health and Well-being</strong>
+      <p>Sweepstakes casinos create significant mental health burdens through problem gambling, which leads to anxiety, depression, financial stress, and addictive behaviours. This project documents these health impacts, particularly among young users whose developing brains are more susceptible to addiction.</p>
+    </div>
+  </div>
+  <div class="sdg-card">
+    <div class="sdg-num">10</div>
+    <div>
+      <strong>Reduced Inequalities</strong>
+      <p>Sweepstakes casinos disproportionately harm vulnerable populations. Young people lose a far higher percentage of their income compared to older adults. Lower-income individuals may view gambling as a solution to financial difficulties, making them targets for aggressive marketing. Minors, who cannot legally consent, lose substantial sums through inadequate age verification.</p>
+    </div>
+  </div>
+  <div class="sdg-card">
+    <div class="sdg-num">16</div>
+    <div>
+      <strong>Peace, Justice and Strong Institutions</strong>
+      <p>The sweepstakes casino industry exploits a legal loophole to avoid gambling regulation while still functioning as gambling operations. This undermines institutional integrity and creates unequal enforcement where identical businesses face different standards based on legal labels rather than economic substance.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     GLOSSARY
+════════════════════════════════════════════ -->
+<section id="glossary">
+  <div class="section-label">Reference</div>
+  <h2>Glossary of Economic Terms</h2>
+  <p>Superscript numbers (e.g. ¹) in the text reference definitions below.</p>
+  <div class="glossary-grid">
+    <div class="gloss-item"><div class="gloss-term">¹ Market Structure</div><div class="gloss-def">The way a market is organised based on the number of firms, level of competition, and barriers to entry.</div></div>
+    <div class="gloss-item"><div class="gloss-term">² Dual-Currency Model</div><div class="gloss-def">A pricing system using two separate currencies, one for entertainment only and one redeemable for real money.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³ Sweepstakes Law</div><div class="gloss-def">Legal rules governing prize competitions where no purchase is required to enter.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴ Product Differentiation</div><div class="gloss-def">When firms make their products distinct from competitors to attract different customer segments.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵ Barriers to Entry</div><div class="gloss-def">Obstacles that prevent new firms from easily entering and competing in a market.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁶ iGaming</div><div class="gloss-def">Online gambling conducted over the internet, including casino games, poker, and sports betting for real money.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁷ CAGR</div><div class="gloss-def">Compound Annual Growth Rate. The average annual growth rate of a value over a set period, assuming growth compounds each year.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁸ Market Share</div><div class="gloss-def">The percentage of total industry sales or users controlled by a single firm.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁹ Winner-Takes-Most Dynamic</div><div class="gloss-def">A market pattern where one dominant firm captures a disproportionately large share, leaving little for competitors.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁰ Market Concentration</div><div class="gloss-def">The degree to which a small number of firms control the majority of a market.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹¹ HHI</div><div class="gloss-def">Herfindahl-Hirschman Index. Calculated by squaring each firm's market share and summing. Above 1,800 indicates high concentration.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹² Oligopoly</div><div class="gloss-def">A market dominated by a small number of large firms, each with significant market power.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹³ CR4</div><div class="gloss-def">Four-Firm Concentration Ratio. The combined market share of the four largest firms. Above 60% signals a highly concentrated market.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁴ GGR</div><div class="gloss-def">Gross Gaming Revenue. Total money wagered minus total winnings paid out. The core revenue figure for gambling businesses.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁵ Positive Correlation</div><div class="gloss-def">A relationship where two variables move in the same direction — as one increases, so does the other.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁶ Market Penetration</div><div class="gloss-def">The degree to which a product or service has been adopted within its target market.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁷ Regulatory Arbitrage</div><div class="gloss-def">Exploiting gaps or differences in regulations to avoid compliance costs that competitors must pay.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁸ Nash Equilibrium</div><div class="gloss-def">A situation where no player can improve their outcome by changing strategy alone, so everyone stays put.</div></div>
+    <div class="gloss-item"><div class="gloss-term">¹⁹ Implicit Price Collusion</div><div class="gloss-def">When firms independently settle on the same price without formally agreeing to do so.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁰ Price Leadership</div><div class="gloss-def">When a dominant firm sets a price that other firms in the market follow.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²¹ House Edge</div><div class="gloss-def">The built-in mathematical advantage a gambling platform has over players, expressed as a percentage of each bet.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²² Price Discrimination</div><div class="gloss-def">Charging different prices to different customers for the same product based on their willingness to pay.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²³ Anchoring Effect</div><div class="gloss-def">Relying too heavily on the first piece of information encountered when making a decision.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁴ Loss Aversion</div><div class="gloss-def">The tendency for losses to feel more painful than equivalent gains feel rewarding.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁵ CAC</div><div class="gloss-def">Customer Acquisition Cost. The total cost of winning a new paying customer, including marketing and promotional spending.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁶ LTV</div><div class="gloss-def">Customer Lifetime Value. The total revenue a business expects to earn from a single customer over the entire relationship.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁷ Habit Formation</div><div class="gloss-def">The process by which repeated behaviours become automatic over time.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁸ Sunk Cost Fallacy</div><div class="gloss-def">Continuing to invest in something because of past spending, even when it is no longer rational to do so.</div></div>
+    <div class="gloss-item"><div class="gloss-term">²⁹ Endowment Effect</div><div class="gloss-def">The tendency to value something more highly simply because you already own or possess it.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁰ Non-Price Competition</div><div class="gloss-def">Competing through means other than price, such as product quality, features, or branding.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³¹ Market Segmentation</div><div class="gloss-def">Dividing a market into distinct groups of consumers with different needs or preferences.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³² Consumer Surplus</div><div class="gloss-def">The extra value consumers get when they pay less for something than they were willing to pay.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³³ Rational Choice Theory</div><div class="gloss-def">The assumption that individuals make decisions by logically weighing costs and benefits to maximise their own interest.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁴ Rakeback</div><div class="gloss-def">A rebate where a platform returns a percentage of a player's losses or wagers as a loyalty reward.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁵ Adverse Selection</div><div class="gloss-def">When a market attracts a disproportionate share of high-risk participants due to an information imbalance.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁶ Economies of Scale</div><div class="gloss-def">Cost advantages a firm gains as it grows larger and produces more.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁷ Vertical Integration</div><div class="gloss-def">When a company controls multiple stages of its own supply or distribution chain.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁸ Parasocial Relationship</div><div class="gloss-def">A one-sided emotional bond that an audience member develops with a media personality, such as a streamer or celebrity.</div></div>
+    <div class="gloss-item"><div class="gloss-term">³⁹ Social Proof</div><div class="gloss-def">The tendency to copy the actions of others, assuming those actions reflect correct behaviour.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁰ Opportunity Cost</div><div class="gloss-def">The value of the best alternative you give up when making a choice.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴¹ Compound Interest</div><div class="gloss-def">Interest calculated on both the original amount and any interest already earned, causing growth to accelerate over time.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴² Producer Surplus</div><div class="gloss-def">The extra value firms receive when they sell at a price higher than the minimum they would accept (essentially profit).</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴³ Payout Rate</div><div class="gloss-def">The proportion of money wagered that is returned to players as winnings.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁴ Externality</div><div class="gloss-def">A cost or benefit that falls on a third party not involved in the transaction.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁵ Net Social Welfare</div><div class="gloss-def">The total benefit to society after all costs have been subtracted from all benefits.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁶ Welfare Distribution</div><div class="gloss-def">How the benefits and costs of a market are spread across different groups in society.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁷ Rawlsian Justice</div><div class="gloss-def">A fairness framework arguing that a just society should prioritise improving the lives of its worst-off members.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁸ Utilitarianism</div><div class="gloss-def">An ethical framework that judges actions based on whether they produce the greatest well-being for the greatest number.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁴⁹ Diminishing Marginal Utility</div><div class="gloss-def">Each additional unit of a good provides less satisfaction than the one before it.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵⁰ Distributional Equity</div><div class="gloss-def">The fairness of how benefits and costs are shared across different groups in society.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵¹ Availability Bias</div><div class="gloss-def">Overestimating the likelihood of events that are easy to recall, often because they are vivid or recent.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵² Counterfactual Analysis</div><div class="gloss-def">Comparing what actually happened to what would have happened under different conditions.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵³ Information Asymmetry</div><div class="gloss-def">When one party in a transaction knows more than the other, creating an unequal relationship.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵⁴ Market Failure</div><div class="gloss-def">When the free market fails to allocate resources efficiently, often requiring intervention.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵⁵ Deadweight Loss</div><div class="gloss-def">Economic value that is lost when a market does not operate efficiently.</div></div>
+    <div class="gloss-item"><div class="gloss-term">⁵⁶ Cost-Benefit Analysis (CBA)</div><div class="gloss-def">Weighing the total expected costs of a decision against its total expected benefits to assess whether it is worthwhile.</div></div>
+  </div>
+</section>
+
+<hr class="divider" style="max-width:1100px;margin:0 auto;">
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER 1
+════════════════════════════════════════════ -->
+<section id="ch1">
+  <div class="chapter-header" data-num="1">
+    <div class="ch-num">Chapter 1</div>
+    <h2>An Industry Analysis</h2>
+    <p>Market structure, growth, pricing dynamics, product differentiation, and barriers to entry in the U.S. sweepstakes casino market.</p>
+  </div>
+
+  <!-- 1.1 Market Size -->
+  <div class="section-label">1.1</div>
+  <h3>Market Size & Growth</h3>
+  <p>The sweepstakes casino market is an industry that has seen exponential growth from 2022–2025. This growth is largely influenced by social media and streaming promotion. Our survey showed 77.1% of users discovered sweepstakes casinos through these platforms.</p>
+  <p>Of the 10 sources reviewed, 5 referenced a report by Eilers & Krejcik Gaming, which served as our most credible baseline. According to their research, the U.S. sweepstakes casino market generated:</p>
+
+  <div class="stat-row">
+    <div class="stat-box"><span class="big">$3.1B</span><span class="desc">2022 Revenue</span></div>
+    <div class="stat-box"><span class="big">$6.0B</span><span class="desc">2023 Revenue (+93.5%)</span></div>
+    <div class="stat-box"><span class="big">$10.6B</span><span class="desc">2024 Revenue (+76.7%)</span></div>
+    <div class="stat-box"><span class="big">$23.1B</span><span class="desc">2025 Revenue (+117.9%)</span></div>
+  </div>
+
+  <div class="callout purple">
+    <strong>2025 Methodology:</strong> No source directly reported 2025 revenue. Using Eilers & Krejcik Gaming's projection that California accounts for ~17.3% of total U.S. sweepstakes revenue, and California alone generating $4B in 2025: <strong>$4B ÷ 0.173 = $23.1 billion</strong>.
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">U.S. Sweepstakes Casino Market Revenue 2022–2025 (USD Billions)</div>
+    <canvas id="marketGrowthChart"></canvas>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Year-on-Year Revenue Growth (%)</div>
+    <canvas id="yoyChart"></canvas>
+  </div>
+
+  <p>In 2023, a 93.5% increase was driven by a stable legal framework. 2024 saw 76.7% growth, still showing rapid expansion. The 2025 spike (+117.9%) was driven by:</p>
+  <ul class="bullet-styled">
+    <li>35.8% of all players beginning to participate during 2025</li>
+    <li>Stake's estimated $100M annual sponsorship deal with Drake</li>
+    <li>High-profile partnerships with the UFC and Formula 1</li>
+    <li>Cryptocurrency adoption maturation</li>
+  </ul>
+
+  <h3>Number of Platforms & Market Shares</h3>
+  <p>Stake.us launched in August 2022. SimilarWeb data shows their monthly user figures alongside competitors in 2025:</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Monthly Users by Platform — 2025 (Millions)</div>
+    <canvas id="marketShareChart"></canvas>
+  </div>
+
+  <p>The top five platforms collectively attracted <strong>120.63 million</strong> monthly users, with Stake.us alone accounting for <strong>66%</strong>. This concentration is striking given that 202 verified sweepstakes sites operate in the market. If the top 5 control 90% of users, the remaining 197 platforms split just 10%, which is an average of 66,000 users each.</p>
+
+  <div class="callout">
+    <strong>Winner-Takes-Most⁹ Dynamic:</strong> This pattern is common in digital markets. Google dominates search with 90% market share while dozens of competitors split the remaining 10%. The sweepstakes casino market follows this pattern.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Monthly Users</th><th>Market Share</th><th>Est. Revenue (2025)</th></tr></thead>
+      <tbody>
+        <tr class="highlight-row"><td>Stake.us</td><td>79.89M</td><td>59.6%</td><td>~$13.8B</td></tr>
+        <tr><td>Chumba Casino</td><td>21.04M</td><td>15.7%</td><td>~$3.6B</td></tr>
+        <tr><td>Pulsz.com</td><td>8.2M</td><td>6.1%</td><td>~$1.4B</td></tr>
+        <tr><td>McLuck.com</td><td>6.1M</td><td>4.6%</td><td>~$1.1B</td></tr>
+        <tr><td>GlobalPoker.com</td><td>5.4M</td><td>4.0%</td><td>~$924M</td></tr>
+        <tr><td>Others (197 platforms)</td><td>~13.4M</td><td>10.0%</td><td>~$2.3B</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Market Concentration</h3>
+  <p>Using the <strong>Herfindahl-Hirschman Index (HHI)¹¹</strong>, calculated by squaring each firm's market share and summing:</p>
+  <div class="callout purple">
+    <strong>HHI = 59.6² + 15.7² + 6.1² + 4.6² + 4.0² + 10.0² = 3,973.02</strong><br>
+    This significantly exceeds the 1,800 threshold for "highly concentrated" used by the Department of Justice. The CR4¹³ (top 4 firms) = <strong>86%</strong>, far above the 60% threshold for high concentration.
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">HHI Contribution by Platform</div>
+    <canvas id="hhiChart"></canvas>
+  </div>
+
+  <p>Stake.us's 59.6% market share alone contributes <strong>3,552.16</strong> — nearly 90% of the total HHI score. The U.S. sweepstakes casino industry is an <strong>oligopoly¹²</strong>, with Stake.us, Chumba Casino, and Pulsz as dominant players.</p>
+
+  <hr class="divider">
+
+  <!-- 1.2 iGaming -->
+  <div class="section-label">1.2</div>
+  <h3>Compared to Traditional Online Gambling (iGaming)</h3>
+  <p>iGaming⁶ in the casino context refers to all online gambling conducted over the internet, including slots, poker, and table games for real money. Currently, only 7 states have legalised traditional online gambling: New Jersey, Delaware, Pennsylvania, West Virginia, Michigan, Connecticut and Rhode Island.</p>
+
+  <div class="tabs" id="igaming-tabs">
+    <button class="tab-btn active" onclick="switchTab('igaming','2023')">2023</button>
+    <button class="tab-btn" onclick="switchTab('igaming','2024')">2024</button>
+    <button class="tab-btn" onclick="switchTab('igaming','2025')">2025</button>
+  </div>
+
+  <div id="igaming-2023" class="tab-content active">
+    <div class="table-wrap"><table>
+      <thead><tr><th>State</th><th>2023 GGR</th></tr></thead>
+      <tbody>
+        <tr><td>Connecticut</td><td>$580M</td></tr>
+        <tr><td>Delaware</td><td>$114.1M</td></tr>
+        <tr><td>Michigan</td><td>$2.3B</td></tr>
+        <tr><td>New Jersey</td><td>$1.92B</td></tr>
+        <tr><td>Pennsylvania</td><td>$1.74B</td></tr>
+        <tr><td>Rhode Island</td><td>$0 (not yet launched)</td></tr>
+        <tr><td>West Virginia</td><td>$120M</td></tr>
+        <tr class="highlight-row"><td><strong>Total</strong></td><td><strong>$6.7741B</strong></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div id="igaming-2024" class="tab-content">
+    <div class="table-wrap"><table>
+      <thead><tr><th>State</th><th>2024 GGR</th></tr></thead>
+      <tbody>
+        <tr><td>Connecticut</td><td>$761M</td></tr>
+        <tr><td>Delaware</td><td>$62.6M</td></tr>
+        <tr><td>Michigan</td><td>$2.9B</td></tr>
+        <tr><td>New Jersey</td><td>$1.95B</td></tr>
+        <tr><td>Pennsylvania</td><td>$2.71B</td></tr>
+        <tr><td>Rhode Island</td><td>$26.3M</td></tr>
+        <tr><td>West Virginia</td><td>$144M</td></tr>
+        <tr class="highlight-row"><td><strong>Total</strong></td><td><strong>$8.55B</strong></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div id="igaming-2025" class="tab-content">
+    <div class="table-wrap"><table>
+      <thead><tr><th>State</th><th>2025 GGR</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Connecticut</td><td>$928M</td><td>Estimated (+22% growth)</td></tr>
+        <tr><td>Delaware</td><td>$85.5M</td><td>Estimated (FY2025 basis)</td></tr>
+        <tr><td>Michigan</td><td>$3.8B</td><td></td></tr>
+        <tr><td>New Jersey</td><td>$2.39B</td><td></td></tr>
+        <tr><td>Pennsylvania</td><td>$3.46B</td><td></td></tr>
+        <tr><td>Rhode Island</td><td>$21M</td><td></td></tr>
+        <tr><td>West Virginia</td><td>$227M</td><td></td></tr>
+        <tr class="highlight-row"><td><strong>Total</strong></td><td><strong>$10.9115B</strong></td><td></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Sweepstakes Casinos vs. iGaming Revenue 2023–2025 (USD Billions)</div>
+    <canvas id="comparisonChart"></canvas>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Year-on-Year Growth: Sweepstakes vs. iGaming (%)</div>
+    <canvas id="growthCompChart"></canvas>
+  </div>
+
+  <p>The sweepstakes casino market maintains a <strong>96.2% CAGR⁷</strong> from 2022–2025 and achieved 285% revenue growth between 2023–2025. This reflects regulatory arbitrage¹⁷. They operate under sweepstakes law rather than gambling statutes, avoiding licensing requirements, and enabling market penetration across 43+ U.S. states where traditional iGaming remains prohibited.</p>
+
+  <hr class="divider">
+
+  <!-- 1.3 Pricing -->
+  <div class="section-label">1.3</div>
+  <h3>Pricing Analysis</h3>
+  <p>With SC pricing converged at 1.00 per dollar and customer acquisition costs creating the primary competitive barrier, platforms compete aggressively on marketing to capture market share.</p>
+
+  <div class="callout">
+    <strong>Key Finding:</strong> From the $5 tier onward, four of five platforms converge on <strong>1.00 SC per dollar (±2%)</strong>. Pricing is remarkably uniform. This suggests the market has reached competitive equilibrium where no platform can gain an advantage through price changes without triggering immediate competition.
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">SC Value per Dollar by Platform & Tier</div>
+    <canvas id="scPricingChart"></canvas>
+  </div>
+
+  <h4>Economic Interpretation. Why SC Pricing Converged</h4>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Nash Equilibrium¹⁸</h4>
+      <p>The market reached a state where each platform's pricing is optimal given competitors' pricing. Any platform charging above 1.00 SC/$ loses customers. Below 1.00 SC/$ sacrifices margin without sufficient volume gain.</p>
+    </div>
+    <div class="card">
+      <h4>Implicit Price Collusion¹⁹</h4>
+      <p>Through price leadership²⁰ and observation, all platforms converged on 1.00 SC/$ as an industry focal point that new entrants adopt automatically.</p>
+    </div>
+    <div class="card">
+      <h4>Cost-Based Constraints</h4>
+      <p>If underlying costs (payment processing, regulatory compliance, redemption) are similar across platforms, equilibrium pricing naturally converges at the same rate.</p>
+    </div>
+    <div class="card">
+      <h4>Consumer Expectation Setting</h4>
+      <p>The 1.00 SC/$ rate becomes a reference point. Customers expect this rate, making deviation above appear overpriced and below appear unsustainable.</p>
+    </div>
+  </div>
+
+  <h4>Gold Coin Pricing Strategies (Differentiation Tool)</h4>
+  <p>With SC pricing uniform, platforms use Gold Coin pricing as a differentiation mechanism and psychological marketing tool. Three strategies are visible:</p>
+  <div class="card-grid">
+    <div class="card">
+      <strong>Strategy 1: Aggressive GC Tiering</strong> :Chumba Casino<br>
+      <p style="font-size:0.82rem;margin-top:0.5rem;">400% improvement from entry to standard tiers. Creates perceived value differentiation and encourages larger purchases. Essentially price discrimination²² on the entertainment product.</p>
+    </div>
+    <div class="card">
+      <strong>Strategy 2: Moderate GC Tiering</strong> :Pulsz<br>
+      <p style="font-size:0.82rem;margin-top:0.5rem;">25% improvement from entry to top tier. Balances simplicity with some reward for larger purchases.</p>
+    </div>
+    <div class="card">
+      <strong>Strategy 3: Flat GC Pricing</strong> :Stake.us, McLuck, Global Poker<br>
+      <p style="font-size:0.82rem;margin-top:0.5rem;">Rejects GC tiering entirely. Maximizes transparency and simplicity.</p>
+    </div>
+  </div>
+
+  <h4>Psychological Functions of Gold Coins</h4>
+  <ul class="bullet-styled">
+    <li><strong>Anchoring Effect²³:</strong> Large GC numbers make packages feel more valuable even when SC (the real value) is identical across platforms</li>
+    <li><strong>Perceived Generosity:</strong> Platforms offering GC bulk discounts appear more generous, even though SC is priced identically</li>
+    <li><strong>Loss Aversion²⁴:</strong> Players who use up GC balances experience psychological "loss," motivating additional purchases</li>
+  </ul>
+
+  <h4>Customer Acquisition Bonuses — Where Real Competition Occurs</h4>
+  <div class="chart-wrap">
+    <div class="chart-title">First-Purchase SC Bonus (% above standard rate)</div>
+    <canvas id="bonusChart"></canvas>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>1st Purchase Bonus</th><th>Strategy</th></tr></thead>
+      <tbody>
+        <tr><td>Chumba Casino</td><td>500%</td><td>Aggressive acquisition via perceived generosity & trust signalling</td></tr>
+        <tr><td>Pulsz</td><td>300%</td><td>Middle-market: balances acquisition investment with sustainability</td></tr>
+        <tr><td>Global Poker</td><td>200%</td><td>Poker niche focus; needs players online more than high individual spend</td></tr>
+        <tr><td>McLuck</td><td>150%</td><td>Minimum competitive threshold; competes on product differentiation</td></tr>
+        <tr><td>Stake.us</td><td>0% (31-day daily bonus)</td><td>Retention economics: habit formation²⁷ through daily login streaks</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout purple">
+    <strong>Stake.us's Retention Strategy:</strong> Instead of a lump-sum bonus, Stake spreads 56 SC over 31 consecutive days. Behavioural research shows actions repeated for 21–30 days become habitual (Lally et al. 2010). After investing 20+ days, users experience strong psychological pressure to continue. Each missed day forfeits progress, creating loss aversion²⁴ that drives continued engagement. This competes on <em>retention economics</em> rather than pure acquisition economics.
+  </div>
+
+  <hr class="divider">
+
+  <!-- 1.4 Product Differentiation -->
+  <div class="section-label">1.4</div>
+  <h3>Product Differentiation⁴</h3>
+  <p>With SC pricing stuck at 1.00 per dollar, competing on price is impossible. Platforms must use non-price competition³⁰. (varying features, quality, and positioning to attract different customer segments.)</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Game Library Size by Platform</div>
+    <canvas id="gameCountChart"></canvas>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Total Games</th><th>Slots</th><th>Table Games</th><th>Live Dealer</th><th>Poker</th><th>Other</th></tr></thead>
+      <tbody>
+        <tr><td>Stake.us</td><td>3,000+</td><td>1,580+</td><td>180+</td><td>60+</td><td>—</td><td>200+</td></tr>
+        <tr><td>Chumba Casino</td><td>220</td><td>183</td><td>20</td><td>—</td><td>—</td><td>17</td></tr>
+        <tr><td>Pulsz</td><td>650+</td><td>600+</td><td>30+</td><td>—</td><td>—</td><td>20+</td></tr>
+        <tr><td>McLuck</td><td>350+</td><td>280+</td><td>40+</td><td>15+</td><td>—</td><td>15+</td></tr>
+        <tr><td>Global Poker</td><td>60</td><td>—</td><td>—</td><td>—</td><td>60+</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>The Paradox of Choice — Why It Doesn't Apply Universally</h4>
+  <p>Behavioural economist Barry Schwartz documented how excessive options create costs. When consumers face too many alternatives: decision paralysis, decision fatigue, and post-decision regret all emerge.</p>
+  <p>Yet Stake commands dominant market share with 1,580+ slots. Three mechanisms resolve this paradox:</p>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Information Architecture</h4>
+      <p>The platform doesn't display 3,000 games simultaneously. Algorithms recommend games based on play history. Full catalogue remains accessible through search while casual users default to curated "featured" sections.</p>
+    </div>
+    <div class="card">
+      <h4>Customer Heterogeneity</h4>
+      <p>Different users value variety differently. Casual players prefer Chumba's 220 curated games. Engaged users value Stake's 3,000 library. Users self-sort based on preferences. The platforms serve different market segments.</p>
+    </div>
+    <div class="card">
+      <h4>Satiation Effects</h4>
+      <p>Frequent players exhaust content in smaller libraries within months. Once games become familiar, players switch. Stake's 1,580 slots solve this as even daily players encounter new games regularly, preventing boredom.</p>
+    </div>
+  </div>
+
+  <h4>VIP Programs as Switching Cost Engineering</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Rakeback³⁴</th><th>VIP Tiers</th><th>Top Cashback</th></tr></thead>
+      <tbody>
+        <tr><td>Stake.us</td><td>Yes</td><td>15 (Bronze → Obsidian)</td><td>Varies by tier</td></tr>
+        <tr><td>Pulsz</td><td>Yes</td><td>5</td><td>10%</td></tr>
+        <tr><td>McLuck</td><td>Yes</td><td>6 (Silver → Black Diamond)</td><td>25%</td></tr>
+        <tr><td>Global Poker</td><td>Yes</td><td>Multiple</td><td>Varies</td></tr>
+        <tr><td>Chumba Casino</td><td>No</td><td>None</td><td>0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>VIP programs exploit the sunk cost fallacy²⁸: Consider a player reaching Stake's Gold tier after 3 months and 100,000 GC wagered. Switching to Chumba means forfeiting accumulated tier status and future rakeback. Rational choice compares only forward-looking value, but sunk cost psychology adds weight to abandoned progress, creating psychological lock-in without contractual barriers.</p>
+
+  <p>Stake's 15-tier structure (Bronze, Silver, Gold, Platinum I–VI, Diamond I–V, Obsidian) generates constant micro-progressions, triggering the goal gradient effect. Motivation increases as individuals approach objectives. Each tier advancement triggers commitment escalation, making abandonment feel increasingly costly psychologically.</p>
+
+  <div class="callout">
+    <strong>Chumba's Strategic Absence:</strong> Chumba deliberately rejects VIP programs. For their target demographic (casual, older users), tracking status creates cognitive load that outweighs reward benefits. VIP absence becomes a <em>feature</em> through horizontal differentiation. This also avoids adverse selection³⁵: VIP programs attract "bonus hunters" who optimize rakeback without genuine loyalty, consuming disproportionate resources while generating low lifetime value.
+  </div>
+
+  <hr class="divider">
+
+  <!-- 1.5 Barriers to Entry -->
+  <div class="section-label">1.5</div>
+  <h3>Barriers to Entry⁵</h3>
+  <p>Despite $23.1B in market size and apparent profitability, market concentration remains high. 25+ new platforms launched in 2025 alone, yet the top five operators continue commanding the overwhelming majority of users. Three structural barriers explain this.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>High Customer Acquisition Costs</h4>
+      <p>Chumba's 500% first-purchase bonus means a $10 purchase delivers 40 SC total value (a $30 loss per customer before marketing costs.)</p>
+      <p>To achieve just 1% market share ($231M revenue) requires ~1.32M customers. At a 200% bonus rate: $26.4M in bonuses alone. With marketing spend: <strong>$39.6M total</strong> before reaching 1% share.</p>
+    </div>
+    <div class="card">
+      <h4>Game Licensing & Provider Relationships</h4>
+      <p>Multi-year relationships with Pragmatic Play, NetEnt, Evolution Gaming create exclusive content unavailable to competitors. Volume-based revenue share means large platforms pay ~10% to providers vs. 15–18% for new entrants (a 5–8 percentage point margin disadvantage on identical games.)</p>
+      <p>On $50M annual wagers: new entrants pay <strong>$1.5M more</strong> than established platforms.</p>
+    </div>
+    <div class="card">
+      <h4>Brand Recognition & Time Barrier</h4>
+      <p>Trust accumulates through demonstrated reliability over years. "Since 2012" (Chumba) signals financial strength. The same 500% bonus from an unknown new entrant signals desperation or potential fraud (identical action, opposite signal.)</p>
+      <p>Minimum <strong>3–4 years</strong> needed to become a competitive firm in the industry.</p>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <strong>Exception — Stake.us (founded 2022):</strong> Stake became dominant in under 4 years through a unique marketing strategy. Rather than competing on traditional acquisition, they created their own streaming platform (Kick), removed regulatory limits on gambling content, and deployed $200M+ annually targeting young male demographics. Full analysis in Chapter 2.
+  </div>
+</section>
+
+<hr class="divider" style="max-width:1100px;margin:0 auto;">
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER 2
+════════════════════════════════════════════ -->
+<section id="ch2">
+  <div class="chapter-header" data-num="2">
+    <div class="ch-num">Chapter 2</div>
+    <h2>Influencer Marketing &amp; Youth Exposure</h2>
+    <p>How $200M+ in annual influencer spending targets young demographics, and the economic consequences for youth.</p>
+  </div>
+
+  <div class="section-label">2.1</div>
+  <h3>The Influencer Marketing Strategy</h3>
+  <p>Traditional advertising channels (Google Ads, Facebook, television) prohibit or severely restrict gambling content, forcing sweepstakes casinos toward alternative strategies. This section examines how platforms deploy influencer marketing at unprecedented scale.</p>
+
+  <h4>Major Stake.us Sponsorship Deals</h4>
+  <div class="influencer-grid">
+    <div class="inf-card">
+      <div class="inf-name">Drake</div>
+      <div class="inf-amount">$100M/yr</div>
+      <div class="inf-desc">Most streamed artist on Spotify (All Time). Signed 2022, terminated 2025 due to a fallout with Stake's owner.</div>
+    </div>
+    <div class="inf-card">
+      <div class="inf-name">xQc</div>
+      <div class="inf-amount">$50M/yr</div>
+      <div class="inf-desc">One of Twitch's biggest streamers. $100M total ($50M/yr × 2yr) to move to Kick after Twitch banned gambling (Oct 2022).</div>
+    </div>
+    <div class="inf-card">
+      <div class="inf-name">Adin Ross</div>
+      <div class="inf-amount">$24M/yr</div>
+      <div class="inf-desc">Large streamer + "good amount" of equity in Kick (Stake's streaming platform).</div>
+    </div>
+    <div class="inf-card">
+      <div class="inf-name">Kick Sauber F1</div>
+      <div class="inf-amount">~$100M</div>
+      <div class="inf-desc">Title partner for Sauber F1 team during 2024 & 2025 seasons. Branded presence on cars and team kit.</div>
+    </div>
+    <div class="inf-card">
+      <div class="inf-name">UFC Partnership</div>
+      <div class="inf-amount">Undisclosed</div>
+      <div class="inf-desc">Official betting partner. Branded presence inside the Octagon. Ambassadors include Israel Adesanya.</div>
+    </div>
+    <div class="inf-card">
+      <div class="inf-name">Trainwreckstv + Others</div>
+      <div class="inf-amount">$12M+/yr</div>
+      <div class="inf-desc">Multiple additional streamers bring total influencer marketing investment above $200M annually.</div>
+    </div>
+  </div>
+
+  <h4>Why Influencers?</h4>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Regulatory Arbitrage¹⁷</h4>
+      <p>After Twitch banned gambling streams, Stake created Kick. Kick is their own streaming platform where all gambling content is permitted. They then paid streamers tens of millions to switch, effectively removing all advertising regulation.</p>
+    </div>
+    <div class="card">
+      <h4>Cost-Effectiveness</h4>
+      <p>Traditional advertising: ~$20 CPM. Influencer marketing delivers deeper engagement. A 4-hour livestream creates immersive experience in which viewers watch emotional reactions to wins/losses, engage in live chat, receive direct encouragement. The parasocial relationship³⁸ creates trust advertising cannot replicate.</p>
+    </div>
+    <div class="card">
+      <h4>Targeting Young Males</h4>
+      <p>Kick's user base: 74.59% male, 25.41% female. Largest age group: 18–24. 60% of Kick users are ages 18–34. A customer acquired at 22 vs. 52 provides 30 extra revenue years ($4,500–6,000 more in lifetime value.)</p>
+    </div>
+  </div>
+
+  <div class="callout red">
+    <strong>Evidence of Intentional Demographic Targeting:</strong> Stake could sponsor athletes with broader appeal (golfers, tennis players with older demographics). Instead, they exclusively partner with figures whose audiences match Kick's young male profile: xQc (competitive gaming), Adin Ross (controversy-driven streams), Drake (hip-hop/young male), UFC (young male dominated). Owning Kick creates vertical integration³⁷ (platform, streamers, and gambling site all targeting the same demographic.)
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">2.2</div>
+  <h3>Audience Demographics by Survey Evidence</h3>
+  <p>Our survey of <strong>321 sweepstakes casino users</strong> (conducted January 2026) reveals direct evidence of the influencer-to-customer pipeline.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Survey Respondents by Age Group (n=321)</div>
+    <canvas id="ageChart"></canvas>
+  </div>
+
+  <div class="callout red">
+    <strong>Critical Finding:</strong> <strong>104 respondents (32.4%)</strong> reported being under 18, proving age gates fail to prevent minor participation. Nearly one-third of sweepstakes casino users surveyed are legally prohibited from gambling, yet accessed platforms through self-reported age verification requiring no documentation.
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">How Users Discovered Sweepstakes Casinos (n=289 users)</div>
+    <canvas id="discoveryChart"></canvas>
+  </div>
+
+  <p>Social media and streaming platforms combined represent <strong>77.4% of discovery</strong>, validating the $200M+ annual influencer investment. No respondents cited television ads, search engines, or conventional marketing.</p>
+
+  <h4>Age–Discovery Cross-Tabulation</h4>
+  <div class="card-grid">
+    <div class="card">
+      <strong>Discovered via Streaming Platforms</strong>
+      <div class="progress-bar-wrap" style="margin-top:0.75rem;">
+        <div class="progress-label"><span>Under 18</span><span>26.3%</span></div>
+        <div class="progress-bar"><div class="progress-fill red" style="width:26.3%"></div></div>
+        <div class="progress-label"><span>Ages 18–25</span><span>52.6%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:52.6%"></div></div>
+        <div class="progress-label"><span>Ages 26–35</span><span>10.5%</span></div>
+        <div class="progress-bar"><div class="progress-fill purple" style="width:10.5%"></div></div>
+        <div class="progress-label"><span>Ages 36+</span><span>10.5%</span></div>
+        <div class="progress-bar"><div class="progress-fill purple" style="width:10.5%"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <strong>Discovered via Social Media</strong>
+      <div class="progress-bar-wrap" style="margin-top:0.75rem;">
+        <div class="progress-label"><span>Under 18</span><span>42.5%</span></div>
+        <div class="progress-bar"><div class="progress-fill red" style="width:42.5%"></div></div>
+        <div class="progress-label"><span>Ages 18–25</span><span>27.5%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:27.5%"></div></div>
+        <div class="progress-label"><span>Ages 26–35</span><span>20.0%</span></div>
+        <div class="progress-bar"><div class="progress-fill purple" style="width:20%"></div></div>
+        <div class="progress-label"><span>Ages 36+</span><span>10.0%</span></div>
+        <div class="progress-bar"><div class="progress-fill purple" style="width:10%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <p style="margin-top:1rem;"><em>*Survey Limitations: Sample size (321 respondents) may not represent all 120M users. Self-reported data subject to recall bias. Cannot verify actual ages. Online forum recruitment may inflate younger user proportion. Survey conducted January 2026.</em></p>
+
+  <hr class="divider">
+
+  <div class="section-label">2.3</div>
+  <h3>Adin Ross Case Study & Psychological Mechanisms</h3>
+  <p>Adin Ross's gambling streams on Kick demonstrate the scale and psychological impact of influencer gambling content. Unlike traditional advertising measured in 30-second impressions, streamer content provides hours of continuous exposure.</p>
+
+  <div class="stat-row">
+    <div class="stat-box"><span class="big">70,000+</span><span class="desc">Avg. Concurrent Viewers</span></div>
+    <div class="stat-box"><span class="big">500,000</span><span class="desc">Peak Stream Viewers</span></div>
+    <div class="stat-box"><span class="big">1B+</span><span class="desc">Total YouTube Views</span></div>
+    <div class="stat-box"><span class="big">1.3M</span><span class="desc">Views: "$1M Win" Video</span></div>
+  </div>
+
+  <h4>What Viewers See</h4>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Emotional Intensity</h4>
+      <p>Streams feature unfiltered reactions. Screaming, jumping, intense excitement during wins. Emotional authenticity creates engagement scripted advertising cannot replicate.</p>
+    </div>
+    <div class="card">
+      <h4>Duration & Immersion</h4>
+      <p>Rather than 30-second ad spots, streams run 3–4 hours. Hundreds of individual bets create an immersive experience where gambling feels normal and fun.</p>
+    </div>
+    <div class="card">
+      <h4>Selective Outcome Display</h4>
+      <p>Big wins are highlighted and celebrated. Losses receive minimal attention or are framed as temporary setbacks. This creates availability bias⁵¹ (distorted perception of outcome probabilities.)</p>
+    </div>
+    <div class="card">
+      <h4>No Responsible Gambling Messaging</h4>
+      <p>Traditional casino ads must include disclaimers. Influencer streams contain no warnings. Chat participants encourage continued gambling and celebrate wins without acknowledging expected losses.</p>
+    </div>
+  </div>
+
+  <h4>The Parasocial Relationship³⁸ Mechanism</h4>
+  <p>Viewers perceive influencers as friends or peers rather than advertisers. When Adin Ross gambles on stream, viewers don't process it as paid promotion (despite $24M annual compensation). They see someone they "know" participating in an activity, creating social proof³⁹ that gambling is normal and potentially profitable.</p>
+  <p>Research (Horton & Wohl, 1956) demonstrates viewers process influencer content as peer advice rather than advertising, creating trust that bypasses critical evaluation. The $200M+ influencer investment purchases <em>trusted intermediaries</em> who convert scepticism into participation through perceived authenticity.</p>
+
+  <h4>Minor Exposure Scale</h4>
+  <p>Age gates on streaming platforms rely on self-reported age with no verification.</p>
+  <ul class="bullet-styled">
+    <li>FTC's 2002 survey found 100% of gambling websites allowed minors easy access</li>
+    <li>University of Michigan study found only 2% of parents believe their teen uses online betting, while 1 in 6 admit they might not notice</li>
+    <li>Spanish research: 6.5% of adolescents aged 12–17 engaged in online gambling (PubMed, 2019)</li>
+    <li>UK studies: ~50,000 children under 17 have used online gambling and developed problems (IDMERIT, 2024)</li>
+    <li>Finnish study: 13% of youth still gambled despite raising the legal age from 15 to 18 (PMC, 2020)</li>
+  </ul>
+  <p>If just 5–10% of Kick's gambling viewers are minors bypassing age gates, this represents <strong>5–10 million minor exposures annually</strong> from Adin Ross content alone.</p>
+
+  <hr class="divider">
+
+  <div class="section-label">2.4</div>
+  <h3>Economic Costs to Youth</h3>
+
+  <h4>Disproportionate Financial Burden</h4>
+  <div class="chart-wrap">
+    <div class="chart-title">Annual Gambling Losses as % of Income by Age Group</div>
+    <canvas id="burdenChart"></canvas>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Age Group</th><th>Avg. Annual Loss</th><th>Median Income</th><th>Loss as % of Income</th></tr></thead>
+      <tbody>
+        <tr class="highlight-row"><td>Ages 18–25 (Gen Z)</td><td>$1,885</td><td>$35,000</td><td><strong>5.4%</strong></td></tr>
+        <tr><td>Ages 36–44</td><td>~$800</td><td>$70,000</td><td>1.1%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Young adults lose nearly <strong>5× more</strong> as a proportion of income despite lower absolute amounts. A $1,885 loss represents <strong>31 days</strong> of work for a 22-year-old versus 6 days for a 40-year-old.</p>
+
+  <h4>Opportunity Cost: The Compound Interest⁴¹ Penalty</h4>
+  <p>Money lost at age 22 cannot compound over subsequent decades. Using historical S&P 500 returns (10% average):</p>
+  <div class="callout">
+    <strong>$1,885 annual loss from age 22–67 (45 years):</strong><br>
+    Foregone wealth = $1,885 × [(1.10⁴⁵ – 1) / 0.10] = <strong>$1,378,372</strong><br><br>
+    <strong>Same loss from age 52–67 (15 years):</strong><br>
+    Foregone wealth = $1,885 × [(1.10¹⁵ – 1) / 0.10] = <strong>$59,779</strong><br><br>
+    Youth gambling costs <strong>$1.3 million more</strong> in lifetime wealth (a 23-fold difference).
+  </div>
+
+  <h4>Mental Health Costs</h4>
+  <div class="stat-row">
+    <div class="stat-box"><span class="big">7.1%</span><span class="desc">Problem gambling rate ages 18–24</span></div>
+    <div class="stat-box"><span class="big">2.7%</span><span class="desc">Problem gambling rate ages 35–54</span></div>
+    <div class="stat-box"><span class="big">568,000</span><span class="desc">Estimated youth problem gamblers</span></div>
+    <div class="stat-box"><span class="big">$2.3B</span><span class="desc">Annual mental health treatment costs</span></div>
+  </div>
+
+  <h4>Aggregate Youth Economic Harm</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Cost Category</th><th>Annual Value</th></tr></thead>
+      <tbody>
+        <tr><td>Direct losses (youth share at 5% house edge)</td><td>$600M</td></tr>
+        <tr><td>Mental health treatment</td><td>$2.3B</td></tr>
+        <tr><td>Opportunity cost (annualised: $120B lifetime ÷ 40 years)</td><td>$3.0B</td></tr>
+        <tr class="highlight-row"><td><strong>Total Annual Youth Cost</strong></td><td><strong>$5.9B</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider" style="max-width:1100px;margin:0 auto;">
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER 3
+════════════════════════════════════════════ -->
+<section id="ch3">
+  <div class="chapter-header" data-num="3">
+    <div class="ch-num">Chapter 3</div>
+    <h2>Economic Cost &amp; Benefits Analysis</h2>
+    <p>A comprehensive welfare economics assessment — who benefits, who loses, and what is the net social impact?</p>
+  </div>
+
+  <div class="section-label">3.1</div>
+  <h3>Economic Benefits</h3>
+
+  <h4>Consumer Surplus³² — Entertainment Value</h4>
+  <p>Only 12% of sweepstakes casino users spend money; 88% engage exclusively with free promotional currency. This means platforms deliver sufficient entertainment value to retain millions without requiring payment.</p>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Theory A — Genuine Recreational Surplus</h4>
+      <p>Users derive authentic utility from gambling entertainment as with movies or concerts. The massive free-play base indicates platforms deliver real value. 645% growth and 202 verified sites confirm genuine consumer demand.</p>
+    </div>
+    <div class="card">
+      <h4>Theory B — Heterogeneous Value</h4>
+      <p>Consumer surplus varies dramatically by user type. Recreational gamblers within budgets receive genuine value. Problem gamblers experience illusory surplus reflecting addiction rather than rational consumption. 32.4% are minors who cannot provide informed consent.</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Consumer Surplus Estimates:</strong><br>
+    Conservative (25¢ per dollar, BCG): $23.1B × 0.25 = <strong>$5.8B annually</strong><br>
+    Upper bound (50¢ for recreational users, 80% of payers): $23.1B × 0.80 × 0.50 = <strong>$9.2B annually</strong>
+  </div>
+
+  <h4>Producer Surplus⁴² and Economic Value Creation</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Category</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Gross Revenue</td><td>$23.1B</td></tr>
+        <tr><td>Payouts to players (68%)</td><td>$15.7B</td></tr>
+        <tr><td>Net revenue after prizes</td><td>$7.4B</td></tr>
+        <tr><td>Operating costs (~45% of net)</td><td>$3.3B</td></tr>
+        <tr class="highlight-row"><td><strong>Producer Surplus (profits)</strong></td><td><strong>$4.1B</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Employment</h4>
+  <p>VGW (operator of Chumba Casino & Global Poker) employed ~1,300 staff at 19.7% market share. Extrapolating: <strong>1,300 ÷ 0.197 ≈ 6,600 industry employees</strong>. At average tech-sector compensation of $60,000: <strong>~$420M in annual wages</strong>.</p>
+
+  <h4>Accessibility & Convenience Value</h4>
+  <p>~33% of US citizens live more than 25 miles from the nearest casino. Using official data:</p>
+  <ul class="bullet-styled">
+    <li>IRS standard mileage rate 2025: $0.67/mile → 30-mile round trip = $20.10</li>
+    <li>BLS median hourly earnings ~$23/hr → 1-hour round trip = $23 in lost time</li>
+    <li><strong>Total cost per visit: ~$43</strong></li>
+  </ul>
+  <div class="callout green">
+    <strong>Total Accessibility Savings:</strong><br>
+    9.1M remote paying users × 25 sessions/year × $43/session = <strong>$9.8B</strong> in eliminated travel costs annually
+  </div>
+
+  <h4>Summary of Economic Benefits</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Benefit Category</th><th>Annual Value</th><th>Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>Consumer surplus</td><td>$5.8–9.2B</td><td>Medium</td></tr>
+        <tr><td>Producer surplus</td><td>$4.1B</td><td>High</td></tr>
+        <tr><td>Employment wages</td><td>$420M</td><td>Low–Medium</td></tr>
+        <tr><td>Bonus transfers to players</td><td>$1.09B</td><td>High</td></tr>
+        <tr><td>Accessibility savings</td><td>$9.8B</td><td>Medium</td></tr>
+        <tr class="highlight-row"><td><strong>Total Benefits</strong></td><td><strong>$21.2–25.6B</strong></td><td>Medium</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">3.2</div>
+  <h3>Economic Costs</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Cost Category</th><th>Amount</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Minors (under 18) — illegal transactions</td><td>$2.4B</td><td>$7.4B × 32.4%</td></tr>
+        <tr><td>Youth (18–25): direct losses + mental health + opportunity cost</td><td>$4.17B</td><td>Chapter 2.4 analysis</td></tr>
+        <tr><td>Young adults (26–35): direct + treatment + indirect</td><td>$4.47B</td><td>5% problem rate, 4× indirect multiplier</td></tr>
+        <tr><td>Mature adults (36+): direct + treatment + indirect</td><td>$2.07B</td><td>2.7% baseline rate, 4× indirect multiplier</td></tr>
+        <tr><td>Behavioural exploitation (VIP, influencer, viral wins)</td><td>$532M</td><td>Adjusted for overlap</td></tr>
+        <tr><td>Public treatment costs (govt. covering 30%)</td><td>$1.08B</td><td>$3.61B × 30%</td></tr>
+        <tr class="highlight-row"><td><strong>Total Measurable Costs</strong></td><td><strong>$14.72B</strong></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout red">
+    <strong>Plus unmeasured costs</strong> from house edge confusion (30–40% of gamblers don't understand expected losses) and Gold Coin illusion (Chumba's 400% GC tiering obscures real SC price). No direct measurement is possible, but overconsumption is documented.
+  </div>
+
+  <h4>Who Bears These Costs?</h4>
+  <p>The $14.72B in costs does not spread evenly. Out of every 100 users:</p>
+  <div class="card-grid">
+    <div class="card" style="border-color:rgba(22,163,74,0.2)">
+      <h4 style="color:var(--green)">88 people</h4>
+      <p>Play free. Zero financial harm, some entertainment benefit.</p>
+    </div>
+    <div class="card" style="border-color:rgba(37,99,235,0.2)">
+      <h4 style="color:var(--accent)">7–8 people</h4>
+      <p>Gamble recreationally within budgets and enjoy the experience.</p>
+    </div>
+    <div class="card" style="border-color:rgba(220,38,38,0.1)">
+      <h4 style="color:var(--red)">3–5 people</h4>
+      <p>Develop serious problems and bear most of the $14.72B in costs.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">3.3</div>
+  <h3>Net Welfare Analysis</h3>
+
+  <div class="welfare-comparison">
+    <div class="welfare-side benefits">
+      <h4>Total Benefits</h4>
+      <div class="welfare-row"><span class="wlabel">Consumer surplus</span><span class="wval">$5.8–9.2B</span></div>
+      <div class="welfare-row"><span class="wlabel">Producer surplus</span><span class="wval">$4.1B</span></div>
+      <div class="welfare-row"><span class="wlabel">Bonus transfers</span><span class="wval">$1.09B</span></div>
+      <div class="welfare-row"><span class="wlabel">Accessibility</span><span class="wval">$9.8B</span></div>
+      <div class="welfare-row"><span class="wlabel">Employment</span><span class="wval">$420M</span></div>
+      <div class="welfare-row"><span class="wlabel"><strong>TOTAL</strong></span><span class="wval" style="color:var(--green)"><strong>$21.2–25.6B</strong></span></div>
+    </div>
+    <div class="welfare-side costs">
+      <h4>Total Costs</h4>
+      <div class="welfare-row"><span class="wlabel">Minor exploitation</span><span class="wval">$2.4B</span></div>
+      <div class="welfare-row"><span class="wlabel">Youth (18–25)</span><span class="wval">$4.17B</span></div>
+      <div class="welfare-row"><span class="wlabel">Young adults (26–35)</span><span class="wval">$4.47B</span></div>
+      <div class="welfare-row"><span class="wlabel">Mature adults (36+)</span><span class="wval">$2.07B</span></div>
+      <div class="welfare-row"><span class="wlabel">Behavioural exploitation</span><span class="wval">$532M</span></div>
+      <div class="welfare-row"><span class="wlabel">Public treatment</span><span class="wval">$1.08B</span></div>
+      <div class="welfare-row"><span class="wlabel"><strong>TOTAL</strong></span><span class="wval" style="color:var(--red)"><strong>$14.72B</strong></span></div>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <strong>Net Social Welfare⁴⁵:</strong><br>
+    Conservative: $21.2B – $14.72B = <strong>$6.48B positive</strong><br>
+    Upper bound: $25.6B – $14.72B = <strong>$10.88B positive</strong><br><br>
+    Sweepstakes casinos create net positive aggregate value. But the <em>distribution</em> of this value is deeply problematic.
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Net Welfare: Benefits vs. Costs (USD Billions)</div>
+    <canvas id="welfareChart"></canvas>
+  </div>
+
+  <h4>Three Analytical Frameworks</h4>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Traditional Welfare Economics</h4>
+      <p><strong>Net positive ($6.5–10.9B gain).</strong> Total benefits exceed total costs. Winners could theoretically compensate losers and still profit. But compensation doesn't actually happen. Problem gamblers bear full costs while platforms keep full profits.</p>
+    </div>
+    <div class="card">
+      <h4>Rawlsian Justice⁴⁷</h4>
+      <p><strong>Fails.</strong> The worst-off group, 895,000 problem gamblers losing $11,966 each annually, are systematically harmed. A just society should prioritise improving the lives of its worst-off members.</p>
+    </div>
+    <div class="card">
+      <h4>Rights-Based Framework</h4>
+      <p><strong>Negative.</strong> 32.4% of users are minors who cannot consent. Regardless of aggregate benefits, exploiting children violates fundamental rights. The $2.4B in minor losses isn't offset by benefits to others.</p>
+    </div>
+  </div>
+
+  <h4>Counterfactual Analysis⁵²</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Counterfactual</th><th>Key Change</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>A: Users gamble at licensed casinos instead</td><td>+$1.1–2.2B tax revenue; much lower minor access rate; advertising restrictions in place</td><td>Sweepstakes are <strong>worse</strong> than this alternative</td></tr>
+        <tr><td>B: No gambling at all</td><td>Society saves $14.72B costs but loses $21.2–25.6B benefits</td><td>Sweepstakes are <strong>better</strong> than elimination</td></tr>
+        <tr><td>C: Regulated sweepstakes with youth protections</td><td>Costs reduced $3.6B; benefits barely reduced</td><td><strong>Superior</strong> to both status quo and elimination</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Final Assessment:</strong> Sweepstakes casinos generate positive net value in aggregate, but they do so through a business model that systematically exploits those least able to protect themselves. The optimal policy isn't elimination but regulation addressing youth exploitation while preserving recreational adult access.
+  </div>
+</section>
+
+<hr class="divider" style="max-width:1100px;margin:0 auto;">
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER 4
+════════════════════════════════════════════ -->
+<section id="ch4">
+  <div class="chapter-header" data-num="4">
+    <div class="ch-num">Chapter 4</div>
+    <h2>Regulatory Analysis &amp; Recommendations</h2>
+    <p>Current regulatory status, the case for and against intervention, and our evidence-based policy recommendation.</p>
+  </div>
+
+  <div class="section-label">4.1</div>
+  <h3>Current Regulatory Status</h3>
+  <p>Gambling requires three elements: payment, chance, and prize. Sweepstakes casinos eliminate "payment" through a simple trick: users buy Gold Coins (entertainment only) and receive Sweepstakes Coins as a "free bonus." Since Sweepstakes Coins are technically free, platforms claim no payment occurs for the gambling currency.</p>
+
+  <div class="callout red">
+    <strong>The legal fiction doesn't match reality.</strong> Only 12% of users spend money, and those who pay do so for Sweepstakes Coins, not Gold Coins. A $100 purchase gives exactly 100 Sweepstakes Coins (worth $100 in redemptions). The Gold Coins are the actual bonus, not the other way around. Platforms simply label things backwards to satisfy legal requirements.
+  </div>
+
+  <h4>Regulatory Arbitrage¹⁷ — Costs Avoided</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Requirement</th><th>Licensed Casinos Pay</th><th>Sweepstakes Casinos Pay</th></tr></thead>
+      <tbody>
+        <tr><td>Licensing fees</td><td>$4–10M (PA alone) + $50M physical license</td><td>$0</td></tr>
+        <tr><td>Gaming taxes</td><td>15–30% of revenue</td><td>$0</td></tr>
+        <tr><td>Age verification (KYC)</td><td>$3–5/user + $10–25K setup + ongoing compliance</td><td>Self-reported "I am 18" click</td></tr>
+        <tr><td>Responsible gambling tools</td><td>Mandatory deposit limits, self-exclusion, resources</td><td>Minimal or none</td></tr>
+        <tr><td>Advertising restrictions</td><td>Cannot market to minors; mandatory disclaimers</td><td>$200M+ targeting young audiences</td></tr>
+        <tr class="highlight-row"><td><strong>Total avoided costs</strong></td><td></td><td><strong>$1.6–2.7B annually</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">U.S. State Regulatory Status (as of February 2026)</div>
+    <canvas id="regulatoryChart"></canvas>
+  </div>
+
+  <h4>Why Enforcement Fails</h4>
+  <p>States rely on consumer protection laws, not gambling regulators. Attorneys general lack resources and expertise. Mandatory arbitration clauses block lawsuits. A California judge ruled in May 2025 that disputes must go to arbitration where platforms win almost all cases. Criminal prosecution faces jurisdictional problems when platforms operate overseas. No executive has been convicted as of February 2026.</p>
+
+  <hr class="divider">
+
+  <div class="section-label">4.2 – 4.4</div>
+  <h3>Three Regulatory Options</h3>
+
+  <div class="policy-grid">
+    <div class="policy-card rejected">
+      <div class="policy-badge badge-rej">Status Quo</div>
+      <h4>No Regulation</h4>
+      <p><strong>The case for:</strong> Adults should choose their own entertainment. 80% of adult users know they're gambling. 88% play free. Market discipline works (bad platforms fail). Sweepstakes have been legal for decades (McDonald's Monopoly, Publishers Clearing House use similar models).</p>
+      <p><strong>The case against:</strong> $2.4B extracted from minors annually. 32.4% of users are children. Market discipline has demonstrably failed to address these harms. Identical actions face different standards based on legal labels, not economic substance.</p>
+      <p><em>Net welfare: $6.5–10.9B positive. Minor protection: 0%.</em></p>
+    </div>
+    <div class="policy-card recommended">
+      <div class="policy-badge badge-rec">✓ Recommended</div>
+      <h4>Targeted Regulation</h4>
+      <p>Six interventions correcting specific market failures:</p>
+      <ol style="font-size:0.82rem;color:#334155;line-height:1.8;">
+        <li>Real age verification (ID + database check)</li>
+        <li>Mandatory loss disclosure (net losses displayed in real time)</li>
+        <li>Self-imposed deposit limits (with 72-hr override cooldown)</li>
+        <li>24-hr cooling-off for deposits over $500</li>
+        <li>Influencer marketing restrictions (mandatory disclosure, content rules)</li>
+        <li>Shared self-exclusion registry across all platforms</li>
+      </ol>
+      <p><em>Net welfare: +$11.4–16.8B. Minor protection: 99%+. Platforms operating: 150–180. Compliance cost: $360–600M.</em></p>
+    </div>
+    <div class="policy-card rejected">
+      <div class="policy-badge badge-neu">Full Regulation</div>
+      <h4>Full Gambling Regulation</h4>
+      <p>Treat sweepstakes casinos as the licensed gambling operations they functionally are: state-by-state licensing ($5–10M per state), 15–30% gaming taxes, same age verification as licensed casinos, identical advertising restrictions, 1–2% problem gambling levy.</p>
+      <p><strong>Concern:</strong> $5–10M licensing fees would consolidate market from 202 to ~20–30 platforms (Italy's experience: 93→46 platforms after stricter licensing). Further concentration in an already HHI 3,973 market.</p>
+      <p><em>Net welfare: +$11.3–16.9B. Comparable to targeted regulation but destroys 85% of operators. Annual compliance cost: $2.3–3.4B.</em></p>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Policy Comparison — Key Metrics</div>
+    <canvas id="policyChart"></canvas>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">4.5</div>
+  <h3>Policy Recommendation</h3>
+
+  <div class="callout green">
+    <strong>We recommend Targeted Regulation.</strong> This corrects specific market failures (information asymmetry, minor access, and behavioural manipulation) without eliminating consumer choice for informed adults. It applies established consumer protection standards to an industry currently evading them, achieving policy objectives through minimally restrictive means.
+  </div>
+
+  <h4>Why Not the Status Quo?</h4>
+  <p>Survey evidence: 32.4% of users are minors. $2.4B extracted from individuals legally prohibited from gambling through verification requiring only self-attestation. 895,000 problem gamblers bear average annual costs of $11,966 while platform shareholders (including two billionaires worth $5.6B) capture $4.1B in profits.</p>
+
+  <h4>Why Not Full Regulation?</h4>
+  <p>Requires $5–10M state licensing fees, consolidating 202 platforms to ~20–30. HHI of 3,973 is already extreme. Further consolidation would eliminate competitive benefits driving innovation. Net welfare outcomes are virtually identical to targeted regulation ($11.4–16.8B vs. $11.3–16.9B), but at 4–6× the compliance burden. The modest additional welfare improvement doesn't justify destroying competitive market structure.</p>
+
+  <h4>Implementation Strategy</h4>
+  <p>Targeted regulation requires no new federal legislation. The FTC possesses existing authority under Section 5 of the FTC Act to address unfair and deceptive practices. Influencer disclosure requirements already apply to other industries. Age verification standards exist for online alcohol and tobacco sales. States can implement through consumer protection agencies.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Status Quo</th><th>Targeted Regulation</th><th>Full Regulation</th></tr></thead>
+      <tbody>
+        <tr><td>Net welfare</td><td>$6.5–10.9B</td><td><strong>$11.4–16.8B</strong></td><td>$11.3–16.9B</td></tr>
+        <tr><td>Minor protection</td><td>0%</td><td><strong>99%+</strong></td><td>99%+</td></tr>
+        <tr><td>Platforms operating</td><td>202</td><td><strong>150–180</strong></td><td>20–30</td></tr>
+        <tr><td>State tax revenue</td><td>$0</td><td>$0</td><td>$1.1–2.2B</td></tr>
+        <tr><td>Annual compliance cost</td><td>$0</td><td><strong>$360–600M</strong></td><td>$2.3–3.4B</td></tr>
+        <tr><td>Problem gambling levy</td><td>$0</td><td>$0</td><td>$347M/yr</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider" style="max-width:1100px;margin:0 auto;">
+
+<!-- ═══════════════════════════════════════════
+     CONCLUSION
+════════════════════════════════════════════ -->
+<section id="conclusion">
+  <div class="section-label">Final Assessment</div>
+  <h2>Conclusion</h2>
+
+  <p>This project examined the sweepstakes casino industry. A $23.1 billion market exploiting a legal loophole to operate as gambling without traditional regulation. Through market analysis, survey research, and welfare economics, we asked: does this industry create a net positive or negative on society, and what should policymakers do about it?</p>
+
+  <h3>What We Found</h3>
+  <p>The market operates as a highly concentrated oligopoly¹². Stake.us commands 59.6% market share, with the top five platforms controlling 90% of users, yielding an HHI of 3,973. Despite this concentration, fierce non-price competition exists through welcome bonuses, VIP programs, and game selection (all with SC pricing stuck uniformly at $1.00.)</p>
+  <p>Our survey revealed 32.4% of users are minors bypassing age verification with a single click. Platforms invest over $200 million annually targeting young male audiences through influencer marketing, with 88.1% of users discovering sites through streaming and social media.</p>
+  <p>The welfare analysis shows $21.2–25.6 billion in annual benefits but $14.72 billion in costs. Benefits spread across millions of recreational users; costs concentrate on 895,000 problem gamblers losing $11,966 each, plus $2.4 billion extracted from minors.</p>
+
+  <h3>The Core Problem</h3>
+  <p>Sweepstakes casinos generate real value (entertainment, convenience, platform profits). But they generate this value by extracting wealth from people unable to protect themselves: children who cannot legally consent, young adults with underdeveloped impulse control, and problem gamblers trapped in compulsive cycles.</p>
+  <p>Traditional welfare economics says this is efficient because total benefits exceed total costs. But efficiency ignores distribution. Platform shareholders, including two individuals worth $5.6 billion, capture $4.1 billion in concentrated profits. Problem gamblers and minors bear concentrated harm. Three people suffer serious damage for every 100 who enjoy modest benefits.</p>
+
+  <h3>What Should Be Done</h3>
+  <p><strong>Targeted regulation</strong> offers the best path forward: real age verification, mandatory loss disclosure, cooling-off periods, influencer marketing restrictions, and self-exclusion tools. This approach eliminates 99% of minor participation, reduces problem gambling costs by $5.6–6.7 billion, and improves net welfare by $4.9–5.9 billion over the status quo while maintaining 150–180 competing platforms at a compliance cost of just $360–600M annually (less than 10% of current platform profits.)</p>
+
+  <div class="callout">
+    <strong>Final Assessment:</strong> Sweepstakes casinos create $6.5–10.9 billion in net positive welfare. But they create this value through a business model that systematically exploits those least able to protect themselves. Nothing can justify extracting $2.4 billion from minors or imposing $11,966 in average annual costs on 895,000 problem gamblers. Targeted regulation corrects market failures without eliminating consumer choice for informed adults. It's the policy most consistent with both economic efficiency and basic fairness.
+  </div>
+
+  <hr class="divider">
+
+  <h3>Limitations</h3>
+  <ul class="bullet-styled">
+    <li><strong>Survey sample (321 respondents)</strong> is small relative to 120M monthly users; online forum recruitment likely attracted younger users, possibly inflating the 32.4% minor figure</li>
+    <li><strong>Cannot verify respondents' actual ages</strong> — under-18s might misreport; some figures could be higher or lower than reality</li>
+    <li><strong>Accessibility benefit ($9.8B)</strong> assumes 25 casino trips/year</li>
+    <li><strong>Opportunity cost calculations</strong> assume gambling money would otherwise be invested in the stock market (unrealistic for most people)</li>
+    <li><strong>Problem gambling rates</strong> applied from general gambling research, not sweepstakes-specific data</li>
+    <li><strong>Regulatory consolidation predictions</strong> based on Italy's experience. U.S. market is larger and structured differently</li>
+    <li><strong>Connecticut and Delaware 2025 iGaming</strong> figures are estimated using single-month growth rates, which may not be representative</li>
+    <li><strong>Platform revenue estimates</strong> derived from web traffic (SimilarWeb), not actual financial data. It assumes linear relationship between users and revenue</li>
+    
+  </ul>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="notice">
+    <strong>Acknowledgements & Notices</strong><br>
+    All figures projected in USD. All information correct at the time of writing. Sources for all figures outside of our survey and calculations are listed in the bibliography. Superscript numbers (e.g. ¹) reference term definitions in the glossary. All information was correct at the date accessed. Survey completed collecting responses on 28/02/2026.
+  </div>
+  <p>Young Economist of the Year · 2026 · Sweepstakes Casinos: An Economic Analysis</p>
+  
+</footer>
+
+<script>
+// ── CHART DEFAULTS ──
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = '#e2e8f0';
+Chart.defaults.font.family = "'Syne', sans-serif";
+Chart.defaults.font.size = 11;
+
+const gold = '#2563eb';
+const purple = '#7c3aed';
+const red = '#dc2626';
+const green = '#16a34a';
+const muted = '#64748b';
+
+// ── 1. Market Growth ──
+new Chart(document.getElementById('marketGrowthChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2022', '2023', '2024', '2025'],
+    datasets: [{
+      label: 'Market Revenue (USD Billions)',
+      data: [3.1, 6.0, 10.6, 23.1],
+      backgroundColor: [
+        'rgba(37,99,235,0.2)',
+        'rgba(37,99,235,0.12)',
+        'rgba(37,99,235,0.35)',
+        'rgba(37,99,235,0.85)'
+      ],
+      borderColor: gold,
+      borderWidth: 1,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, ticks: { callback: v => '$' + v + 'B' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 2. YoY Growth ──
+new Chart(document.getElementById('yoyChart'), {
+  type: 'line',
+  data: {
+    labels: ['2022→2023', '2023→2024', '2024→2025'],
+    datasets: [{
+      label: 'YoY Growth (%)',
+      data: [93.5, 76.7, 117.9],
+      borderColor: purple,
+      backgroundColor: 'rgba(30,64,175,0.08)',
+      pointBackgroundColor: purple,
+      pointRadius: 6,
+      tension: 0.4,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, ticks: { callback: v => v + '%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 3. Market Share ──
+new Chart(document.getElementById('marketShareChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Stake.us', 'Chumba Casino', 'Pulsz.com', 'McLuck.com', 'GlobalPoker'],
+    datasets: [{
+      label: 'Monthly Users (Millions)',
+      data: [79.89, 21.04, 8.2, 6.1, 5.4],
+      backgroundColor: [gold, purple, 'rgba(30,64,175,0.25)', 'rgba(124,106,247,0.35)', 'rgba(124,106,247,0.2)'],
+      borderColor: 'transparent',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#e2e8f0' }, ticks: { callback: v => v + 'M' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 4. HHI Contribution ──
+new Chart(document.getElementById('hhiChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Stake.us (59.6%)', 'Chumba (15.7%)', 'Pulsz (6.1%)', 'McLuck (4.6%)', 'Global Poker (4.0%)', 'Others (10%)'],
+    datasets: [{
+      data: [3552.16, 246.49, 37.21, 21.16, 16, 100],
+      backgroundColor: [gold, purple, '#16a34a', '#dc2626', '#61dafb', '#94a3b8'],
+      borderWidth: 2,
+      borderColor: '#f8f9fb'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ' — HHI: ' + ctx.raw.toFixed(0) } }
+    }
+  }
+});
+
+// ── 5. iGaming vs Sweepstakes ──
+new Chart(document.getElementById('comparisonChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2023', '2024', '2025'],
+    datasets: [
+      {
+        label: 'Sweepstakes Casinos',
+        data: [6.0, 10.6, 23.1],
+        backgroundColor: 'rgba(232,197,109,0.8)',
+        borderRadius: 4
+      },
+      {
+        label: 'iGaming',
+        data: [6.77, 8.55, 10.91],
+        backgroundColor: 'rgba(124,106,247,0.8)',
+        borderRadius: 4
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { boxWidth: 12 } } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, ticks: { callback: v => '$' + v + 'B' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 6. Growth Comparison ──
+new Chart(document.getElementById('growthCompChart'), {
+  type: 'line',
+  data: {
+    labels: ['2023→2024', '2024→2025'],
+    datasets: [
+      {
+        label: 'Sweepstakes Casinos',
+        data: [76.7, 117.9],
+        borderColor: gold,
+        backgroundColor: 'rgba(37,99,235,0.06)',
+        pointBackgroundColor: gold,
+        pointRadius: 6,
+        tension: 0.4,
+        fill: true
+      },
+      {
+        label: 'iGaming',
+        data: [26.3, 27.6],
+        borderColor: purple,
+        backgroundColor: 'rgba(124,106,247,0.08)',
+        pointBackgroundColor: purple,
+        pointRadius: 6,
+        tension: 0.4,
+        fill: true
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { boxWidth: 12 } } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, ticks: { callback: v => v + '%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 7. SC Pricing ──
+new Chart(document.getElementById('scPricingChart'), {
+  type: 'line',
+  data: {
+    labels: ['$5', '$10', '$20', '$30', '$50', '$75', '$100'],
+    datasets: [
+      { label: 'Stake.us', data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], borderColor: gold, pointBackgroundColor: gold, pointRadius: 4, tension: 0.1 },
+      { label: 'Chumba', data: [0.20, 0.50, 1.0, 1.0, 1.0, 1.0, 1.0], borderColor: red, pointBackgroundColor: red, pointRadius: 4, tension: 0.3 },
+      { label: 'Pulsz', data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], borderColor: purple, pointBackgroundColor: purple, pointRadius: 4, tension: 0.1 },
+      { label: 'McLuck', data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.33, 1.0], borderColor: green, pointBackgroundColor: green, pointRadius: 4, tension: 0.1 },
+      { label: 'Global Poker', data: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], borderColor: '#61dafb', pointBackgroundColor: '#61dafb', pointRadius: 4, tension: 0.1 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { boxWidth: 12 } } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, min: 0, max: 1.5, ticks: { callback: v => v + ' SC/$' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 8. Bonus Chart ──
+new Chart(document.getElementById('bonusChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Chumba Casino', 'Pulsz', 'Global Poker', 'McLuck', 'Stake.us'],
+    datasets: [{
+      label: 'First-Purchase Bonus (%)',
+      data: [500, 300, 200, 150, 0],
+      backgroundColor: [gold, 'rgba(37,99,235,0.35)', 'rgba(37,99,235,0.12)', 'rgba(37,99,235,0.25)', 'rgba(30,64,175,0.25)'],
+      borderColor: 'transparent',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, ticks: { callback: v => v + '%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 9. Game Count ──
+new Chart(document.getElementById('gameCountChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Stake.us', 'Pulsz', 'McLuck', 'Chumba', 'Global Poker'],
+    datasets: [{
+      label: 'Total Games',
+      data: [3000, 650, 350, 220, 60],
+      backgroundColor: [gold, 'rgba(37,99,235,0.35)', 'rgba(37,99,235,0.12)', 'rgba(37,99,235,0.25)', 'rgba(30,64,175,0.25)'],
+      borderColor: 'transparent',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#e2e8f0' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 10. Age Chart ──
+new Chart(document.getElementById('ageChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Under 18', 'Ages 18–25', 'Ages 26–35', 'Ages 36–44', 'Ages 45+'],
+    datasets: [{
+      data: [32.4, 37.4, 16.2, 8.4, 5.5],
+      backgroundColor: [red, gold, purple, green, '#61dafb'],
+      borderWidth: 2,
+      borderColor: '#f8f9fb'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12, padding: 12 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '%' } }
+    }
+  }
+});
+
+// ── 11. Discovery Chart ──
+new Chart(document.getElementById('discoveryChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Social Media (TikTok/YouTube/Instagram)', 'Streaming (Kick/Twitch)', 'Celebrity Endorsement', 'Family & Friends'],
+    datasets: [{
+      data: [50.5, 26.6, 11.4, 8.0],
+      backgroundColor: [gold, purple, green, '#dc2626'],
+      borderWidth: 2,
+      borderColor: '#f8f9fb'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12, padding: 10, font: { size: 10 } } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '%' } }
+    }
+  }
+});
+
+// ── 12. Financial Burden ──
+new Chart(document.getElementById('burdenChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Ages 18–25 (Gen Z)', 'Ages 36–44'],
+    datasets: [
+      {
+        label: 'Loss as % of Income',
+        data: [5.4, 1.1],
+        backgroundColor: [red, purple],
+        borderColor: 'transparent',
+        borderRadius: 4,
+        yAxisID: 'y'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: '#e2e8f0' }, ticks: { callback: v => v + '%' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 13. Welfare Chart ──
+new Chart(document.getElementById('welfareChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Consumer Surplus', 'Producer Surplus', 'Bonus Transfers', 'Accessibility', 'Employment', 'Minor Costs', 'Youth Costs', 'Young Adult Costs', 'Mature Adult Costs', 'Behavioural Exploit.', 'Public Treatment'],
+    datasets: [{
+      label: 'Benefits (+) / Costs (−)',
+      data: [7.5, 4.1, 1.09, 9.8, 0.42, -2.4, -4.17, -4.47, -2.07, -0.532, -1.08],
+      backgroundColor: (ctx) => ctx.raw >= 0 ? 'rgba(78,203,113,0.7)' : 'rgba(240,79,79,0.7)',
+      borderColor: 'transparent',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#e2e8f0' }, ticks: { callback: v => '$' + Math.abs(v) + 'B' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// ── 14. Regulatory State Chart ──
+new Chart(document.getElementById('regulatoryChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['No regulation (sweepstakes legal)', 'Some form of ban', 'Legal online casinos (iGaming)'],
+    datasets: [{
+      data: [31, 9, 7],
+      backgroundColor: [gold, red, green],
+      borderWidth: 2,
+      borderColor: '#f8f9fb'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' states' } }
+    }
+  }
+});
+
+// ── 15. Policy Comparison ──
+new Chart(document.getElementById('policyChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Net Welfare', 'Minor Protection', 'Market Competition', 'Compliance Burden', 'Implementation Ease'],
+    datasets: [
+      {
+        label: 'Status Quo',
+        data: [40, 0, 70, 100, 100],
+        borderColor: red,
+        backgroundColor: 'rgba(220,38,38,0.07)',
+        pointBackgroundColor: red
+      },
+      {
+        label: 'Targeted Regulation',
+        data: [90, 99, 85, 75, 85],
+        borderColor: green,
+        backgroundColor: 'rgba(22,163,74,0.1)',
+        pointBackgroundColor: green
+      },
+      {
+        label: 'Full Regulation',
+        data: [90, 99, 30, 30, 50],
+        borderColor: purple,
+        backgroundColor: 'rgba(30,64,175,0.08)',
+        pointBackgroundColor: purple
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { boxWidth: 12, padding: 12 } } },
+    scales: {
+      r: {
+        grid: { color: '#e2e8f0' },
+        ticks: { display: false },
+        pointLabels: { font: { size: 11 } }
+      }
+    }
+  }
+});
+
+// ── TAB SWITCHER ──
+function switchTab(group, tab) {
+  document.querySelectorAll('[id^="' + group + '-"]').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('#' + group + '-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(group + '-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── FADE IN OBSERVER ──
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+// ── PROGRESS BARS ANIMATE ──
+const progObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.progress-fill').forEach(fill => {
+        const width = fill.style.width;
+        fill.style.width = '0';
+        setTimeout(() => { fill.style.width = width; }, 100);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.card').forEach(c => {
+  if (c.querySelector('.progress-fill')) progObs.observe(c);
+});
+</script>
+</body>
+</html>
