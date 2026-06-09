@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Application Tracker</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --border-light: #f3f4f6;
+    --text: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --accent-hover: #1d4ed8;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --yellow: #ca8a04;
+    --yellow-light: #fefce8;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Layout */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sidebar-header h1 { font-size: 15px; font-weight: 700; color: var(--text); }
+  .sidebar-header p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .sidebar-nav { flex: 1; padding: 8px 0; }
+
+  .nav-section { padding: 12px 16px 4px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 0;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    transition: all 0.1s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .nav-item .icon { width: 16px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-light);
+    font-size: 11px; color: var(--text-muted);
+  }
+
+  .main { margin-left: 220px; flex: 1; }
+  .page { display: none; padding: 32px 36px; max-width: 1100px; }
+  .page.active { display: block; }
+
+  .page-header { margin-bottom: 24px; }
+  .page-header h2 { font-size: 22px; font-weight: 700; }
+  .page-header p { color: var(--text-secondary); margin-top: 4px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Stat cards */
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .stat-value { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-size: 12px; color: var(--text-secondary); }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: var(--radius);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #fca5a5; }
+  .btn-danger:hover { background: #fee2e2; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-icon { padding: 6px; border-radius: 6px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 12px; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+  }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--accent-light); color: var(--accent); }
+  .badge-purple { background: var(--purple-light); color: var(--purple); }
+  .badge-gray { background: var(--border-light); color: var(--text-secondary); }
+
+  /* Progress bar */
+  .progress-bar { height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; background: var(--accent); }
+  .progress-fill.green { background: var(--green); }
+  .progress-fill.yellow { background: var(--yellow); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius-lg);
+    padding: 28px; width: 540px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--shadow-md);
+  }
+  .modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+
+  /* Form */
+  .form-group { margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+  input, select, textarea {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 13px; font-family: inherit; color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* Section header */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-header h3 { font-size: 15px; font-weight: 600; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; }
+
+  /* Score display */
+  .score-display { font-size: 40px; font-weight: 800; color: var(--accent); }
+  .score-range { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .score-section { text-align: center; }
+  .score-section .val { font-size: 24px; font-weight: 700; }
+  .score-section .lbl { font-size: 11px; color: var(--text-muted); }
+
+  /* Timeline dot */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .timeline-item { display: flex; gap: 14px; padding-bottom: 20px; position: relative; }
+  .timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 18px; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+  .timeline-dot.green { background: var(--green); }
+  .timeline-dot.yellow { background: var(--yellow); }
+  .timeline-dot.blue { background: var(--accent); }
+  .timeline-dot.gray { background: var(--border); border: 2px solid var(--text-muted); }
+  .timeline-content .tl-title { font-size: 13px; font-weight: 600; }
+  .timeline-content .tl-sub { font-size: 12px; color: var(--text-muted); }
+
+  /* Dashboard progress ring */
+  .overall-progress { display: flex; align-items: center; gap: 24px; }
+  .ring-container { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-pct { font-size: 22px; font-weight: 800; }
+  .ring-text { font-size: 10px; color: var(--text-muted); }
+
+  /* Checklist */
+  .checklist { display: flex; flex-direction: column; gap: 6px; }
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); border: 1px solid var(--border-light); }
+  .check-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  .check-item label { margin: 0; font-weight: 400; font-size: 13px; color: var(--text); cursor: pointer; }
+  .check-item.checked label { text-decoration: line-through; color: var(--text-muted); }
+
+  /* Notes */
+  .note-area { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; min-height: 60px; font-size: 13px; color: var(--text); }
+
+  /* Tag */
+  .tag { display: inline-block; padding: 2px 8px; background: var(--border-light); border-radius: 4px; font-size: 11px; color: var(--text-secondary); margin: 2px; }
+
+  /* SAT section bars */
+  .sat-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .sat-bar-label { width: 120px; font-size: 12px; color: var(--text-secondary); flex-shrink: 0; }
+  .sat-bar-track { flex: 1; height: 8px; background: var(--border-light); border-radius: 4px; overflow: hidden; }
+  .sat-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+  .sat-bar-val { width: 40px; font-size: 12px; font-weight: 600; text-align: right; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .sidebar { width: 180px; }
+    .main { margin-left: 180px; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .page { padding: 20px; }
+  }
+
+  /* Tooltip */
+  [title] { cursor: help; }
+
+  /* Delete btn inside table */
+  .row-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s; }
+  tr:hover .row-actions { opacity: 1; }
+
+  .divider { height: 1px; background: var(--border-light); margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>College Tracker</h1>
+    <p>Class of 2027</p>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">⊞</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('colleges')">
+      <span class="icon">🎓</span> Colleges
+    </button>
+
+    <div class="nav-section">Academics</div>
+    <button class="nav-item" onclick="showPage('grades')">
+      <span class="icon">📚</span> Leaving Cert
+    </button>
+    <button class="nav-item" onclick="showPage('sat')">
+      <span class="icon">✏️</span> SAT Scores
+    </button>
+
+    <div class="nav-section">Application</div>
+    <button class="nav-item" onclick="showPage('activities')">
+      <span class="icon">🏆</span> Extracurriculars
+    </button>
+    <button class="nav-item" onclick="showPage('essays')">
+      <span class="icon">📝</span> Essays
+    </button>
+    <button class="nav-item" onclick="showPage('recs')">
+      <span class="icon">✉️</span> Letters of Rec
+    </button>
+
+    <div class="nav-section">Planning</div>
+    <button class="nav-item" onclick="showPage('deadlines')">
+      <span class="icon">📅</span> Deadlines
+    </button>
+    <button class="nav-item" onclick="showPage('notes')">
+      <span class="icon">🗒️</span> Notes
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    Data stored locally in your browser
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h2>Dashboard</h2>
+      <p>Summer before senior year — you've got this.</p>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:20px;" id="dash-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="dash-colleges">0</div>
+        <div class="stat-label">Colleges</div>
+        <div class="stat-sub" id="dash-colleges-sub">0 applied</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="dash-sat">—</div>
+        <div class="stat-label">Best SAT</div>
+        <div class="stat-sub" id="dash-sat-sub">No scores yet</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="dash-gpa">—</div>
+        <div class="stat-label">CAO Points</div>
+        <div class="stat-sub" id="dash-gpa-sub">Best 6 subjects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="dash-ecs">0</div>
+        <div class="stat-label">Activities</div>
+        <div class="stat-sub" id="dash-ecs-sub">Listed</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">Application Checklist</div>
+        <div class="checklist" id="master-checklist">
+          <div class="check-item" id="ci-common-app">
+            <input type="checkbox" id="chk-common-app" onchange="saveChecklist()">
+            <label for="chk-common-app">Create Common App account</label>
+          </div>
+          <div class="check-item" id="ci-colleges">
+            <input type="checkbox" id="chk-colleges" onchange="saveChecklist()">
+            <label for="chk-colleges">Finalize college list (10–20 schools)</label>
+          </div>
+          <div class="check-item" id="ci-intl-research">
+            <input type="checkbox" id="chk-intl-research" onchange="saveChecklist()">
+            <label for="chk-intl-research">Check each school's international student policy &amp; aid</label>
+          </div>
+          <div class="check-item" id="ci-common-essay">
+            <input type="checkbox" id="chk-common-essay" onchange="saveChecklist()">
+            <label for="chk-common-essay">Draft Common App personal statement (650 words)</label>
+          </div>
+          <div class="check-item" id="ci-supp-essays">
+            <input type="checkbox" id="chk-supp-essays" onchange="saveChecklist()">
+            <label for="chk-supp-essays">Identify all supplemental essays needed</label>
+          </div>
+          <div class="check-item" id="ci-rec-ask">
+            <input type="checkbox" id="chk-rec-ask" onchange="saveChecklist()">
+            <label for="chk-rec-ask">Ask teachers &amp; guidance counsellor for recommendations</label>
+          </div>
+          <div class="check-item" id="ci-predicted">
+            <input type="checkbox" id="chk-predicted" onchange="saveChecklist()">
+            <label for="chk-predicted">Get official predicted Leaving Cert grades from school</label>
+          </div>
+          <div class="check-item" id="ci-sat-prep">
+            <input type="checkbox" id="chk-sat-prep" onchange="saveChecklist()">
+            <label for="chk-sat-prep">Register for SAT (many US schools require/recommend it)</label>
+          </div>
+          <div class="check-item" id="ci-activities">
+            <input type="checkbox" id="chk-activities" onchange="saveChecklist()">
+            <label for="chk-activities">Write activity descriptions (150 char each)</label>
+          </div>
+          <div class="check-item" id="ci-css-profile">
+            <input type="checkbox" id="chk-css-profile" onchange="saveChecklist()">
+            <label for="chk-css-profile">Complete CSS Profile for financial aid (international students use this, not FAFSA)</label>
+          </div>
+          <div class="check-item" id="ci-lc-transcript">
+            <input type="checkbox" id="chk-lc-transcript" onchange="saveChecklist()">
+            <label for="chk-lc-transcript">Arrange for official school transcript to be sent</label>
+          </div>
+          <div class="check-item" id="ci-english-proof">
+            <input type="checkbox" id="chk-english-proof" onchange="saveChecklist()">
+            <label for="chk-english-proof">Check if schools need English proficiency proof (most waive for Irish students)</label>
+          </div>
+          <div class="check-item" id="ci-passport">
+            <input type="checkbox" id="chk-passport" onchange="saveChecklist()">
+            <label for="chk-passport">Ensure passport is valid for travel</label>
+          </div>
+          <div class="check-item" id="ci-fee-waivers">
+            <input type="checkbox" id="chk-fee-waivers" onchange="saveChecklist()">
+            <label for="chk-fee-waivers">Check for application fee waivers (international students often qualify)</label>
+          </div>
+          <div class="check-item" id="ci-visa">
+            <input type="checkbox" id="chk-visa" onchange="saveChecklist()">
+            <label for="chk-visa">Research F-1 student visa process (apply after acceptance)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Upcoming Deadlines</div>
+        <div id="dash-deadlines-list">
+          <div class="empty-state" style="padding:24px 0;">
+            <div class="empty-icon">📅</div>
+            <p>No deadlines added yet.<br>Go to Deadlines to add some.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Essay Progress</div>
+        <div id="dash-essays-overview">
+          <div class="empty-state" style="padding:24px 0;">
+            <div class="empty-icon">📝</div>
+            <p>No essays tracked yet.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Letters of Rec Status</div>
+        <div id="dash-recs-overview">
+          <div class="empty-state" style="padding:24px 0;">
+            <div class="empty-icon">✉️</div>
+            <p>No recommenders added yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COLLEGES ===== -->
+  <div class="page" id="page-colleges">
+    <div class="page-header">
+      <h2>Colleges</h2>
+      <p>Track each school, deadlines, and application status.</p>
+    </div>
+
+    <div class="section-header">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="college-filter" onchange="renderColleges()" style="width:auto;padding:6px 10px;">
+          <option value="">All Schools</option>
+          <option value="Reach">Reach</option>
+          <option value="Match">Match</option>
+          <option value="Safety">Safety</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('college-modal')">+ Add College</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Type</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="colleges-table">
+          <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎓</div><p>Add your first college above.</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== GRADES (Leaving Cert) ===== -->
+  <div class="page" id="page-grades">
+    <div class="page-header">
+      <h2>Leaving Certificate</h2>
+      <p>Track test scores per subject and your predicted CAO points. Best 6 subjects count (max 625 with Maths bonus).</p>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat-card">
+        <div class="card-title">Predicted CAO Points</div>
+        <div class="stat-value" id="lc-total-points" style="color:var(--accent);">—</div>
+        <div class="stat-sub">Best 6 of 7 subjects</div>
+      </div>
+      <div class="stat-card">
+        <div class="card-title">With Maths Bonus</div>
+        <div class="stat-value" id="lc-bonus-points" style="color:var(--green);">—</div>
+        <div class="stat-sub">+25 if HL Maths ≥ H6</div>
+      </div>
+      <div class="stat-card">
+        <div class="card-title">Max Possible</div>
+        <div class="stat-value" style="color:var(--text-secondary);">625</div>
+        <div class="stat-sub">6×H1 + Maths bonus</div>
+      </div>
+      <div class="stat-card">
+        <div class="card-title">H1s So Far</div>
+        <div class="stat-value" id="lc-h1-count">0</div>
+        <div class="stat-sub">Predicted H1 grades</div>
+      </div>
+    </div>
+
+    <!-- Points reference table -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:10px;">CAO Points Reference</div>
+      <div style="display:flex;gap:32px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">HIGHER LEVEL</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px 16px;font-size:12px;">
+            <span><strong>H1</strong> 100pts</span><span style="color:var(--text-muted);">90–100%</span>
+            <span><strong>H2</strong> 88pts</span><span style="color:var(--text-muted);">80–89%</span>
+            <span><strong>H3</strong> 77pts</span><span style="color:var(--text-muted);">70–79%</span>
+            <span><strong>H4</strong> 66pts</span><span style="color:var(--text-muted);">60–69%</span>
+            <span><strong>H5</strong> 56pts</span><span style="color:var(--text-muted);">50–59%</span>
+            <span><strong>H6</strong> 46pts</span><span style="color:var(--text-muted);">40–49%</span>
+            <span><strong>H7</strong> 37pts</span><span style="color:var(--text-muted);">30–39%</span>
+            <span><strong>H8</strong> 0pts</span><span style="color:var(--text-muted);">&lt;30%</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">ORDINARY LEVEL</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px 16px;font-size:12px;">
+            <span><strong>O1</strong> 56pts</span><span style="color:var(--text-muted);">90–100%</span>
+            <span><strong>O2</strong> 46pts</span><span style="color:var(--text-muted);">80–89%</span>
+            <span><strong>O3</strong> 37pts</span><span style="color:var(--text-muted);">70–79%</span>
+            <span><strong>O4</strong> 28pts</span><span style="color:var(--text-muted);">60–69%</span>
+            <span><strong>O5</strong> 20pts</span><span style="color:var(--text-muted);">50–59%</span>
+            <span><strong>O6</strong> 12pts</span><span style="color:var(--text-muted);">40–49%</span>
+            <span><strong>O7</strong> 0pts</span><span style="color:var(--text-muted);">30–39%</span>
+            <span><strong>O8</strong> 0pts</span><span style="color:var(--text-muted);">&lt;30%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-subject cards -->
+    <div id="subjects-container"></div>
+  </div>
+
+  <!-- ===== SAT ===== -->
+  <div class="page" id="page-sat">
+    <div class="page-header">
+      <h2>SAT Scores</h2>
+      <p>Track test attempts and set your target score.</p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">Best Score</div>
+        <div id="sat-best-display">
+          <div class="score-display" id="sat-best-total">—</div>
+          <div style="display:flex;gap:24px;margin-top:12px;">
+            <div class="score-section">
+              <div class="val" id="sat-best-rw">—</div>
+              <div class="lbl">Reading & Writing</div>
+            </div>
+            <div class="score-section">
+              <div class="val" id="sat-best-math">—</div>
+              <div class="lbl">Math</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Score Goal</div>
+        <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:12px;">
+          <div>
+            <label style="display:block;margin-bottom:4px;">Target Total</label>
+            <input type="number" id="sat-goal-total" min="400" max="1600" placeholder="1500" style="width:100px;" oninput="saveSATGoal()">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:4px;">R&W Goal</label>
+            <input type="number" id="sat-goal-rw" min="200" max="800" placeholder="750" style="width:80px;" oninput="saveSATGoal()">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:4px;">Math Goal</label>
+            <input type="number" id="sat-goal-math" min="200" max="800" placeholder="750" style="width:80px;" oninput="saveSATGoal()">
+          </div>
+        </div>
+        <div id="sat-goal-progress"></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h3>Test Attempts</h3>
+      <button class="btn btn-primary" onclick="openModal('sat-modal')">+ Add Score</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Reading & Writing</th>
+            <th>Math</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="sat-table">
+          <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✏️</div><p>Add your SAT scores above.</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== ACTIVITIES ===== -->
+  <div class="page" id="page-activities">
+    <div class="page-header">
+      <h2>Extracurricular Activities</h2>
+      <p>Common App allows up to 10 activities. Prioritize your strongest.</p>
+    </div>
+
+    <div class="section-header">
+      <div style="color:var(--text-secondary);font-size:13px;">
+        <span id="ec-count">0</span>/10 activities added
+      </div>
+      <button class="btn btn-primary" onclick="openModal('ec-modal')">+ Add Activity</button>
+    </div>
+
+    <div id="activities-list">
+      <div class="empty-state card">
+        <div class="empty-icon">🏆</div>
+        <p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ESSAYS ===== -->
+  <div class="page" id="page-essays">
+    <div class="page-header">
+      <h2>Essays</h2>
+      <p>Track your personal statement and supplemental essays for each school.</p>
+    </div>
+
+    <div class="section-header">
+      <div style="display:flex;gap:8px;">
+        <select id="essay-college-filter" onchange="renderEssays()" style="width:auto;padding:6px 10px;">
+          <option value="">All Colleges</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('essay-modal')">+ Add Essay</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr>
+            <th>College</th>
+            <th>Type</th>
+            <th>Prompt</th>
+            <th>Word Limit</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="essays-table">
+          <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📝</div><p>Add your essays above.</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== RECS ===== -->
+  <div class="page" id="page-recs">
+    <div class="page-header">
+      <h2>Letters of Recommendation</h2>
+      <p>Most schools require 2 teacher recs + 1 counselor rec. Some schools want more.</p>
+    </div>
+
+    <div class="section-header">
+      <h3></h3>
+      <button class="btn btn-primary" onclick="openModal('rec-modal')">+ Add Recommender</button>
+    </div>
+
+    <div id="recs-list">
+      <div class="empty-state card">
+        <div class="empty-icon">✉️</div>
+        <p>Add your recommenders and track where each letter is needed.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DEADLINES ===== -->
+  <div class="page" id="page-deadlines">
+    <div class="page-header">
+      <h2>Deadlines</h2>
+      <p>All important dates in one place.</p>
+    </div>
+
+    <div class="section-header">
+      <h3></h3>
+      <button class="btn btn-primary" onclick="openModal('deadline-modal')">+ Add Deadline</button>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card-title" style="margin-bottom:12px;">Upcoming</div>
+        <div id="deadlines-upcoming" class="timeline">
+          <div class="empty-state" style="padding:20px 0;">
+            <p>No upcoming deadlines.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:12px;">Past / Completed</div>
+        <div id="deadlines-past" class="timeline">
+          <div style="color:var(--text-muted);font-size:13px;padding:4px 0;">None yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NOTES ===== -->
+  <div class="page" id="page-notes">
+    <div class="page-header">
+      <h2>Notes</h2>
+      <p>Scratch pad for thoughts, research, and reminders.</p>
+    </div>
+    <div class="card">
+      <textarea id="notes-content" style="width:100%;min-height:400px;border:none;resize:vertical;font-size:14px;outline:none;" placeholder="Start typing your notes here... This is auto-saved." oninput="saveNotes()"></textarea>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- College Modal -->
+<div class="modal-overlay" id="college-modal">
+  <div class="modal">
+    <h3 id="college-modal-title">Add College</h3>
+    <input type="hidden" id="college-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>School Name *</label>
+        <input type="text" id="col-name" placeholder="Harvard University">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="col-type">
+          <option>Reach</option>
+          <option>Match</option>
+          <option>Safety</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Application Deadline</label>
+        <input type="date" id="col-deadline">
+      </div>
+      <div class="form-group">
+        <label>Application Type</label>
+        <select id="col-app-type">
+          <option>Regular Decision</option>
+          <option>Early Decision (ED)</option>
+          <option>Early Action (EA)</option>
+          <option>Restrictive EA</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="col-status">
+          <option>Researching</option>
+          <option>Planning to Apply</option>
+          <option>In Progress</option>
+          <option>Submitted</option>
+          <option>Interview</option>
+          <option>Accepted</option>
+          <option>Waitlisted</option>
+          <option>Deferred</option>
+          <option>Rejected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Portal URL</label>
+        <input type="url" id="col-portal" placeholder="https://apply.college.edu">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>SAT Range (25th–75th percentile)</label>
+      <input type="text" id="col-sat-range" placeholder="e.g. 1500–1580">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="col-notes" placeholder="Why this school? Visit notes, financial aid info..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('college-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCollege()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Test Score Modal (Leaving Cert) -->
+<div class="modal-overlay" id="grade-modal">
+  <div class="modal">
+    <h3 id="grade-modal-title">Add Test Score</h3>
+    <input type="hidden" id="grade-edit-id">
+    <input type="hidden" id="grade-subject-key">
+    <div class="form-group">
+      <label>Test / Exam Name *</label>
+      <input type="text" id="gr-name" placeholder="e.g. Christmas Test, Mock Exam, Class Test...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Score (%)</label>
+        <input type="number" id="gr-score" min="0" max="100" placeholder="78" oninput="updateGradePreview()">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="gr-date">
+      </div>
+    </div>
+    <div class="form-group" id="grade-preview-row" style="display:none;">
+      <div style="background:var(--accent-light);border-radius:var(--radius);padding:10px 14px;font-size:13px;">
+        At <strong id="gp-score">—</strong>% on <strong id="gp-level">Higher</strong> Level → <strong id="gp-grade" style="color:var(--accent);font-size:15px;">—</strong> (<span id="gp-pts">—</span> CAO pts)
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="gr-notes" placeholder="What went well? Topics to review..." rows="2"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('grade-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTestScore()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAT Modal -->
+<div class="modal-overlay" id="sat-modal">
+  <div class="modal">
+    <h3>Add SAT Score</h3>
+    <input type="hidden" id="sat-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Test Date *</label>
+        <input type="month" id="sat-date">
+      </div>
+      <div class="form-group">
+        <label>Total Score</label>
+        <input type="number" id="sat-total" min="400" max="1600" placeholder="1450" readonly>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Reading & Writing *</label>
+        <input type="number" id="sat-rw" min="200" max="800" placeholder="720" oninput="calcSATTotal()">
+      </div>
+      <div class="form-group">
+        <label>Math *</label>
+        <input type="number" id="sat-math" min="200" max="800" placeholder="730" oninput="calcSATTotal()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="sat-notes" placeholder="What went well? What to improve?"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('sat-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSAT()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EC Modal -->
+<div class="modal-overlay" id="ec-modal">
+  <div class="modal">
+    <h3 id="ec-modal-title">Add Activity</h3>
+    <input type="hidden" id="ec-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Activity Name *</label>
+        <input type="text" id="ec-name" placeholder="Varsity Soccer">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="ec-category">
+          <option>Athletics</option>
+          <option>Arts</option>
+          <option>Academic</option>
+          <option>Community Service</option>
+          <option>Student Government</option>
+          <option>Club / Organization</option>
+          <option>Work / Internship</option>
+          <option>Research</option>
+          <option>Volunteering</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Position / Role</label>
+        <input type="text" id="ec-role" placeholder="Captain, President, Member...">
+      </div>
+      <div class="form-group">
+        <label>Organization</label>
+        <input type="text" id="ec-org" placeholder="School, club name...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Hours / Week</label>
+        <input type="number" id="ec-hours" min="0" placeholder="5">
+      </div>
+      <div class="form-group">
+        <label>Weeks / Year</label>
+        <input type="number" id="ec-weeks" min="0" placeholder="40">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Years Active</label>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <label style="display:flex;gap:4px;align-items:center;font-weight:400;cursor:pointer;"><input type="checkbox" id="ec-y9" name="ec-years"> 9th</label>
+        <label style="display:flex;gap:4px;align-items:center;font-weight:400;cursor:pointer;"><input type="checkbox" id="ec-y10" name="ec-years"> 10th</label>
+        <label style="display:flex;gap:4px;align-items:center;font-weight:400;cursor:pointer;"><input type="checkbox" id="ec-y11" name="ec-years"> 11th</label>
+        <label style="display:flex;gap:4px;align-items:center;font-weight:400;cursor:pointer;"><input type="checkbox" id="ec-y12" name="ec-years"> 12th</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Common App Description <span style="font-weight:400;color:var(--text-muted)">(150 char max)</span></label>
+      <textarea id="ec-desc" maxlength="150" placeholder="Briefly describe your role and accomplishments..." rows="3" oninput="updateECCharCount()"></textarea>
+      <div style="text-align:right;font-size:11px;color:var(--text-muted);margin-top:4px;"><span id="ec-char-count">0</span>/150</div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('ec-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEC()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Essay Modal -->
+<div class="modal-overlay" id="essay-modal">
+  <div class="modal">
+    <h3 id="essay-modal-title">Add Essay</h3>
+    <input type="hidden" id="essay-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>College</label>
+        <input type="text" id="essay-college" placeholder="Common App / Harvard / etc.">
+      </div>
+      <div class="form-group">
+        <label>Essay Type</label>
+        <select id="essay-type">
+          <option>Personal Statement</option>
+          <option>Why This College</option>
+          <option>Why This Major</option>
+          <option>Extracurricular</option>
+          <option>Community / Diversity</option>
+          <option>Challenge / Adversity</option>
+          <option>Additional Info</option>
+          <option>Other Supplemental</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Word Limit</label>
+        <input type="number" id="essay-wordlimit" placeholder="650">
+      </div>
+      <div class="form-group">
+        <label>Current Word Count</label>
+        <input type="number" id="essay-wordcount" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="essay-status">
+        <option>Not Started</option>
+        <option>Brainstorming</option>
+        <option>Outlining</option>
+        <option>First Draft</option>
+        <option>Revising</option>
+        <option>Final Review</option>
+        <option>Complete</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Prompt / Topic</label>
+      <textarea id="essay-prompt" placeholder="Paste the prompt or describe your topic..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="essay-notes" placeholder="Ideas, feedback received, next steps..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('essay-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEssay()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rec Modal -->
+<div class="modal-overlay" id="rec-modal">
+  <div class="modal">
+    <h3 id="rec-modal-title">Add Recommender</h3>
+    <input type="hidden" id="rec-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" id="rec-name" placeholder="Ms. Johnson">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="rec-role">
+          <option>Teacher</option>
+          <option>Counselor</option>
+          <option>Coach</option>
+          <option>Employer / Supervisor</option>
+          <option>Mentor</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Subject / Context</label>
+        <input type="text" id="rec-subject" placeholder="AP English Lit, Tennis Coach...">
+      </div>
+      <div class="form-group">
+        <label>Asked On</label>
+        <input type="date" id="rec-asked-date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="rec-status">
+        <option>Planning to Ask</option>
+        <option>Asked</option>
+        <option>Confirmed</option>
+        <option>Letter Submitted</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Schools This Rec Is For</label>
+      <input type="text" id="rec-schools" placeholder="All schools / Harvard, MIT, Stanford...">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="rec-notes" placeholder="Info to share with them, follow-up reminders..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('rec-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRec()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deadline Modal -->
+<div class="modal-overlay" id="deadline-modal">
+  <div class="modal">
+    <h3>Add Deadline</h3>
+    <input type="hidden" id="dl-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="dl-title" placeholder="Harvard EA Deadline">
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" id="dl-date">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="dl-category">
+          <option>Application</option>
+          <option>SAT Test Date</option>
+          <option>Financial Aid</option>
+          <option>Scholarship</option>
+          <option>Rec Letter</option>
+          <option>Visit / Interview</option>
+          <option>Decision Date</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="dl-priority">
+          <option>High</option>
+          <option>Medium</option>
+          <option>Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <input type="text" id="dl-notes" placeholder="Any additional notes...">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('deadline-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeadline()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const DB = {
+  colleges: [],
+  subjects: null,
+  sat: [],
+  activities: [],
+  essays: [],
+  recs: [],
+  deadlines: [],
+  checklist: {},
+  satGoal: {},
+  notes: ''
+};
+
+function load() {
+  const saved = localStorage.getItem('collegeTrackerDB');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      Object.assign(DB, parsed);
+    } catch(e) {}
+  }
+}
+
+function save() {
+  localStorage.setItem('collegeTrackerDB', JSON.stringify(DB));
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelector(`[onclick="showPage('${id}')"]`).classList.add('active');
+  renderPage(id);
+}
+
+function renderPage(id) {
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'colleges') renderColleges();
+  if (id === 'grades') renderGrades();
+  if (id === 'sat') renderSAT();
+  if (id === 'activities') renderActivities();
+  if (id === 'essays') renderEssays();
+  if (id === 'recs') renderRecs();
+  if (id === 'deadlines') renderDeadlines();
+  if (id === 'notes') document.getElementById('notes-content').value = DB.notes || '';
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id, editId) {
+  document.getElementById(id).classList.add('open');
+  if (!editId) clearModal(id);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+function clearModal(id) {
+  const modal = document.getElementById(id);
+  modal.querySelectorAll('input:not([type=checkbox])').forEach(i => i.value = '');
+  modal.querySelectorAll('textarea').forEach(t => t.value = '');
+  modal.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  modal.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
+  const hiddenId = modal.querySelector('input[type=hidden]');
+  if (hiddenId) hiddenId.value = '';
+}
+
+// ============================================================
+// BADGES
+// ============================================================
+function statusBadge(status) {
+  const map = {
+    'Submitted': 'green', 'Accepted': 'green', 'Complete': 'green',
+    'Letter Submitted': 'green', 'Confirmed': 'green',
+    'In Progress': 'blue', 'Revising': 'blue', 'First Draft': 'blue',
+    'Interview': 'purple', 'Waitlisted': 'purple',
+    'Deferred': 'yellow', 'Planning to Apply': 'yellow', 'Asked': 'yellow',
+    'Rejected': 'red',
+    'Researching': 'gray', 'Not Started': 'gray', 'Brainstorming': 'gray'
+  };
+  const cls = map[status] || 'gray';
+  return `<span class="badge badge-${cls}">${status}</span>`;
+}
+
+function typeBadge(type) {
+  const map = { 'Reach': 'red', 'Match': 'yellow', 'Safety': 'green' };
+  return `<span class="badge badge-${map[type] || 'gray'}">${type}</span>`;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  // Stats
+  const applied = DB.colleges.filter(c => ['Submitted','Accepted','Waitlisted','Deferred','Rejected'].includes(c.status)).length;
+  document.getElementById('dash-colleges').textContent = DB.colleges.length;
+  document.getElementById('dash-colleges-sub').textContent = applied + ' applied';
+
+  const bestSAT = getBestSAT();
+  document.getElementById('dash-sat').textContent = bestSAT ? bestSAT.total : '—';
+  document.getElementById('dash-sat-sub').textContent = bestSAT ? `R&W: ${bestSAT.rw} | M: ${bestSAT.math}` : 'No scores yet';
+
+  initSubjects();
+  const { withBonus } = calcCAOPoints();
+  const hasCAO = LC_SUBJECTS.some(s => DB.subjects[s.key] && DB.subjects[s.key].predictedGrade);
+  document.getElementById('dash-gpa').textContent = hasCAO ? withBonus : '—';
+  document.getElementById('dash-gpa-sub').textContent = hasCAO ? 'incl. Maths bonus' : 'Set predicted grades';
+
+  document.getElementById('dash-ecs').textContent = DB.activities.length;
+
+  // Checklist state
+  Object.entries(DB.checklist).forEach(([id, checked]) => {
+    const el = document.getElementById('chk-' + id);
+    if (el) {
+      el.checked = checked;
+      el.closest('.check-item').classList.toggle('checked', checked);
+    }
+  });
+
+  // Deadlines
+  const now = new Date();
+  const upcoming = DB.deadlines
+    .filter(d => new Date(d.date) >= now)
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 5);
+
+  const dlContainer = document.getElementById('dash-deadlines-list');
+  if (upcoming.length === 0) {
+    dlContainer.innerHTML = `<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">📅</div><p>No upcoming deadlines.</p></div>`;
+  } else {
+    dlContainer.innerHTML = upcoming.map(d => {
+      const date = new Date(d.date + 'T12:00:00');
+      const days = Math.ceil((date - now) / 86400000);
+      const urgent = days <= 7;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);">
+        <div>
+          <div style="font-size:13px;font-weight:500;">${d.title}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${d.category}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px;font-weight:600;color:${urgent?'var(--red)':'var(--text)'};">${date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${days}d away</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Essays overview
+  const essayContainer = document.getElementById('dash-essays-overview');
+  if (DB.essays.length === 0) {
+    essayContainer.innerHTML = `<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">📝</div><p>No essays tracked yet.</p></div>`;
+  } else {
+    const statuses = ['Complete','Final Review','Revising','First Draft','Outlining','Brainstorming','Not Started'];
+    const counts = {};
+    statuses.forEach(s => counts[s] = DB.essays.filter(e => e.status === s).length);
+    const complete = counts['Complete'];
+    const total = DB.essays.length;
+    essayContainer.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span>${complete} of ${total} complete</span>
+          <span>${Math.round(complete/total*100)||0}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill green" style="width:${Math.round(complete/total*100)||0}%"></div></div>
+      </div>
+      ${DB.essays.slice(0,4).map(e => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-light);">
+          <div style="font-size:12px;">${e.college} — ${e.type}</div>
+          ${statusBadge(e.status)}
+        </div>`).join('')}
+      ${total > 4 ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">+${total-4} more essays</div>` : ''}
+    `;
+  }
+
+  // Recs overview
+  const recContainer = document.getElementById('dash-recs-overview');
+  if (DB.recs.length === 0) {
+    recContainer.innerHTML = `<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">✉️</div><p>No recommenders added yet.</p></div>`;
+  } else {
+    recContainer.innerHTML = DB.recs.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);">
+        <div>
+          <div style="font-size:13px;font-weight:500;">${r.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${r.role} · ${r.subject || ''}</div>
+        </div>
+        ${statusBadge(r.status)}
+      </div>
+    `).join('');
+  }
+}
+
+// ============================================================
+// CHECKLIST
+// ============================================================
+function saveChecklist() {
+  document.querySelectorAll('[id^="chk-"]').forEach(el => {
+    const key = el.id.replace('chk-', '');
+    DB.checklist[key] = el.checked;
+    el.closest('.check-item').classList.toggle('checked', el.checked);
+  });
+  save();
+}
+
+// ============================================================
+// COLLEGES
+// ============================================================
+function saveCollege() {
+  const name = document.getElementById('col-name').value.trim();
+  if (!name) { alert('Please enter a school name.'); return; }
+
+  const id = document.getElementById('college-edit-id').value || uid();
+  const existing = DB.colleges.findIndex(c => c.id === id);
+
+  const college = {
+    id, name,
+    type: document.getElementById('col-type').value,
+    deadline: document.getElementById('col-deadline').value,
+    appType: document.getElementById('col-app-type').value,
+    status: document.getElementById('col-status').value,
+    portal: document.getElementById('col-portal').value,
+    satRange: document.getElementById('col-sat-range').value,
+    notes: document.getElementById('col-notes').value
+  };
+
+  if (existing >= 0) DB.colleges[existing] = college;
+  else DB.colleges.push(college);
+
+  save();
+  closeModal('college-modal');
+  renderColleges();
+  updateEssayCollegeFilter();
+}
+
+function editCollege(id) {
+  const c = DB.colleges.find(c => c.id === id);
+  if (!c) return;
+  document.getElementById('college-modal-title').textContent = 'Edit College';
+  document.getElementById('college-edit-id').value = c.id;
+  document.getElementById('col-name').value = c.name;
+  document.getElementById('col-type').value = c.type;
+  document.getElementById('col-deadline').value = c.deadline || '';
+  document.getElementById('col-app-type').value = c.appType || 'Regular Decision';
+  document.getElementById('col-status').value = c.status;
+  document.getElementById('col-portal').value = c.portal || '';
+  document.getElementById('col-sat-range').value = c.satRange || '';
+  document.getElementById('col-notes').value = c.notes || '';
+  openModal('college-modal', id);
+}
+
+function deleteCollege(id) {
+  if (!confirm('Delete this college?')) return;
+  DB.colleges = DB.colleges.filter(c => c.id !== id);
+  save();
+  renderColleges();
+}
+
+function renderColleges() {
+  const filter = document.getElementById('college-filter').value;
+  const list = filter ? DB.colleges.filter(c => c.type === filter) : DB.colleges;
+  const tbody = document.getElementById('colleges-table');
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎓</div><p>Add your first college above.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(c => {
+    const deadline = c.deadline ? new Date(c.deadline + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const nameCell = c.portal ? `<a href="${c.portal}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">${c.name}</a>` : `<strong>${c.name}</strong>`;
+    return `<tr>
+      <td>${nameCell}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.appType || ''} ${c.satRange ? '· SAT: '+c.satRange : ''}</div></td>
+      <td>${typeBadge(c.type)}</td>
+      <td>${deadline}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--text-secondary);">${c.notes ? c.notes.slice(0,60)+(c.notes.length>60?'…':'') : ''}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editCollege('${c.id}')" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteCollege('${c.id}')" title="Delete">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// LEAVING CERT GRADES
+// ============================================================
+const LC_SUBJECTS = [
+  { key: 'maths',    name: 'Mathematics',       defaultLevel: 'Higher' },
+  { key: 'english',  name: 'English',            defaultLevel: 'Higher' },
+  { key: 'italian',  name: 'Italian',            defaultLevel: 'Higher' },
+  { key: 'french',   name: 'French',             defaultLevel: 'Higher' },
+  { key: 'economics',name: 'Economics',          defaultLevel: 'Higher' },
+  { key: 'accounting',name: 'Accounting',        defaultLevel: 'Higher' },
+  { key: 'cs',       name: 'Computer Science',   defaultLevel: 'Higher' },
+];
+
+const LC_HL_POINTS = { H1:100, H2:88, H3:77, H4:66, H5:56, H6:46, H7:37, H8:0 };
+const LC_OL_POINTS = { O1:56, O2:46, O3:37, O4:28, O5:20, O6:12, O7:0, O8:0 };
+const LC_HL_RANGES = { H1:'90–100%', H2:'80–89%', H3:'70–79%', H4:'60–69%', H5:'50–59%', H6:'40–49%', H7:'30–39%', H8:'<30%' };
+const LC_OL_RANGES = { O1:'90–100%', O2:'80–89%', O3:'70–79%', O4:'60–69%', O5:'50–59%', O6:'40–49%', O7:'30–39%', O8:'<30%' };
+
+function lcPointsFromGrade(grade) {
+  return LC_HL_POINTS[grade] ?? LC_OL_POINTS[grade] ?? 0;
+}
+
+function lcGradeFromScore(pct, level) {
+  if (level === 'Higher') {
+    if (pct >= 90) return 'H1';
+    if (pct >= 80) return 'H2';
+    if (pct >= 70) return 'H3';
+    if (pct >= 60) return 'H4';
+    if (pct >= 50) return 'H5';
+    if (pct >= 40) return 'H6';
+    if (pct >= 30) return 'H7';
+    return 'H8';
+  } else {
+    if (pct >= 90) return 'O1';
+    if (pct >= 80) return 'O2';
+    if (pct >= 70) return 'O3';
+    if (pct >= 60) return 'O4';
+    if (pct >= 50) return 'O5';
+    if (pct >= 40) return 'O6';
+    if (pct >= 30) return 'O7';
+    return 'O8';
+  }
+}
+
+function initSubjects() {
+  if (!DB.subjects) {
+    DB.subjects = {};
+    LC_SUBJECTS.forEach(s => {
+      DB.subjects[s.key] = { level: s.defaultLevel, predictedGrade: '', tests: [] };
+    });
+  }
+}
+
+function calcCAOPoints() {
+  initSubjects();
+  const pts = LC_SUBJECTS.map(s => {
+    const sub = DB.subjects[s.key];
+    return sub.predictedGrade ? lcPointsFromGrade(sub.predictedGrade) : 0;
+  });
+  pts.sort((a,b) => b - a);
+  const best6 = pts.slice(0,6).reduce((a,b) => a+b, 0);
+
+  // Maths bonus: +25 if Higher Level and H6 or better
+  const mathsSub = DB.subjects['maths'];
+  const mathsGrade = mathsSub ? mathsSub.predictedGrade : '';
+  const mathsBonus = mathsSub && mathsSub.level === 'Higher' && mathsGrade && LC_HL_POINTS[mathsGrade] >= 46 ? 25 : 0;
+
+  return { best6, withBonus: best6 + mathsBonus, mathsBonus };
+}
+
+function getGradeBadgeColor(grade) {
+  if (!grade) return 'gray';
+  const pts = lcPointsFromGrade(grade);
+  if (pts >= 88) return 'green';
+  if (pts >= 66) return 'blue';
+  if (pts >= 46) return 'yellow';
+  if (pts > 0) return 'red';
+  return 'gray';
+}
+
+// Modal helpers for test score
+function openTestModal(subjectKey, testId) {
+  const sub = LC_SUBJECTS.find(s => s.key === subjectKey);
+  document.getElementById('grade-modal-title').textContent = `Add Test — ${sub ? sub.name : ''}`;
+  document.getElementById('grade-subject-key').value = subjectKey;
+  document.getElementById('grade-edit-id').value = testId || '';
+  document.getElementById('gr-name').value = '';
+  document.getElementById('gr-score').value = '';
+  document.getElementById('gr-date').value = '';
+  document.getElementById('gr-notes').value = '';
+  document.getElementById('grade-preview-row').style.display = 'none';
+
+  if (testId) {
+    const subData = DB.subjects[subjectKey];
+    const test = (subData.tests || []).find(t => t.id === testId);
+    if (test) {
+      document.getElementById('grade-modal-title').textContent = `Edit Test — ${sub ? sub.name : ''}`;
+      document.getElementById('gr-name').value = test.name;
+      document.getElementById('gr-score').value = test.score;
+      document.getElementById('gr-date').value = test.date || '';
+      document.getElementById('gr-notes').value = test.notes || '';
+      updateGradePreview();
+    }
+  }
+  document.getElementById('grade-modal').classList.add('open');
+}
+
+function updateGradePreview() {
+  const score = parseFloat(document.getElementById('gr-score').value);
+  const key = document.getElementById('grade-subject-key').value;
+  const subData = DB.subjects[key];
+  const level = subData ? subData.level : 'Higher';
+  const row = document.getElementById('grade-preview-row');
+  if (isNaN(score) || score < 0 || score > 100) { row.style.display = 'none'; return; }
+  const grade = lcGradeFromScore(score, level);
+  const pts = lcPointsFromGrade(grade);
+  document.getElementById('gp-score').textContent = score;
+  document.getElementById('gp-level').textContent = level;
+  document.getElementById('gp-grade').textContent = grade;
+  document.getElementById('gp-pts').textContent = pts;
+  row.style.display = 'block';
+}
+
+function saveTestScore() {
+  const name = document.getElementById('gr-name').value.trim();
+  const score = document.getElementById('gr-score').value;
+  if (!name) { alert('Please enter a test name.'); return; }
+
+  initSubjects();
+  const key = document.getElementById('grade-subject-key').value;
+  const editId = document.getElementById('grade-edit-id').value;
+  const subData = DB.subjects[key];
+  if (!subData.tests) subData.tests = [];
+
+  const pct = parseFloat(score);
+  const grade = !isNaN(pct) ? lcGradeFromScore(pct, subData.level) : '';
+
+  if (editId) {
+    const idx = subData.tests.findIndex(t => t.id === editId);
+    if (idx >= 0) {
+      subData.tests[idx] = { ...subData.tests[idx], name, score: pct, grade, date: document.getElementById('gr-date').value, notes: document.getElementById('gr-notes').value };
+    }
+  } else {
+    subData.tests.push({ id: uid(), name, score: pct, grade, date: document.getElementById('gr-date').value, notes: document.getElementById('gr-notes').value });
+  }
+
+  save();
+  closeModal('grade-modal');
+  renderGrades();
+}
+
+function deleteTest(subjectKey, testId) {
+  if (!confirm('Delete this test score?')) return;
+  DB.subjects[subjectKey].tests = DB.subjects[subjectKey].tests.filter(t => t.id !== testId);
+  save();
+  renderGrades();
+}
+
+function saveSubjectSettings(key) {
+  initSubjects();
+  const level = document.getElementById(`level-${key}`).value;
+  const predicted = document.getElementById(`predicted-${key}`).value;
+  DB.subjects[key].level = level;
+  DB.subjects[key].predictedGrade = predicted;
+  save();
+  renderGrades();
+}
+
+function renderGrades() {
+  initSubjects();
+  const { best6, withBonus, mathsBonus } = calcCAOPoints();
+  const hasAny = LC_SUBJECTS.some(s => DB.subjects[s.key].predictedGrade);
+  document.getElementById('lc-total-points').textContent = hasAny ? best6 : '—';
+  document.getElementById('lc-bonus-points').textContent = hasAny ? withBonus : '—';
+  const h1count = LC_SUBJECTS.filter(s => DB.subjects[s.key].predictedGrade === 'H1').length;
+  document.getElementById('lc-h1-count').textContent = h1count;
+
+  const container = document.getElementById('subjects-container');
+  container.innerHTML = LC_SUBJECTS.map(s => {
+    const sub = DB.subjects[s.key];
+    const level = sub.level || 'Higher';
+    const predicted = sub.predictedGrade || '';
+    const tests = sub.tests || [];
+    const pts = predicted ? lcPointsFromGrade(predicted) : null;
+    const avgScore = tests.length ? Math.round(tests.reduce((a,t) => a + (t.score||0), 0) / tests.length) : null;
+    const avgGrade = avgScore !== null ? lcGradeFromScore(avgScore, level) : null;
+
+    const hlOptions = Object.keys(LC_HL_POINTS).map(g => `<option ${predicted===g?'selected':''}>${g}</option>`).join('');
+    const olOptions = Object.keys(LC_OL_POINTS).map(g => `<option ${predicted===g?'selected':''}>${g}</option>`).join('');
+    const gradeOptions = level === 'Higher' ? hlOptions : olOptions;
+
+    return `<div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+            <strong style="font-size:15px;">${s.name}</strong>
+            ${predicted ? `<span class="badge badge-${getGradeBadgeColor(predicted)}" style="font-size:13px;padding:3px 10px;">${predicted}</span>` : '<span class="badge badge-gray">No prediction set</span>'}
+            ${pts !== null ? `<span style="font-size:12px;color:var(--text-muted);">${pts} CAO pts</span>` : ''}
+            ${avgGrade ? `<span style="font-size:11px;color:var(--text-muted);">Test avg: ${avgGrade} (${avgScore}%)</span>` : ''}
+          </div>
+          <!-- Subject settings inline -->
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div>
+              <label style="font-size:11px;margin-bottom:3px;">Level</label>
+              <select id="level-${s.key}" onchange="saveSubjectSettings('${s.key}')" style="padding:5px 8px;font-size:12px;">
+                <option ${level==='Higher'?'selected':''}>Higher</option>
+                <option ${level==='Ordinary'?'selected':''}>Ordinary</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;margin-bottom:3px;">Predicted Grade</label>
+              <select id="predicted-${s.key}" onchange="saveSubjectSettings('${s.key}')" style="padding:5px 8px;font-size:12px;">
+                <option value="">— Not set —</option>
+                ${gradeOptions}
+              </select>
+            </div>
+            <div style="margin-top:16px;">
+              <button class="btn btn-secondary btn-sm" onclick="openTestModal('${s.key}')">+ Add Test</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tests table -->
+        ${tests.length > 0 ? `
+        <div style="flex:2;min-width:300px;">
+          <table style="font-size:12px;">
+            <thead>
+              <tr>
+                <th style="padding:4px 8px;">Test</th>
+                <th style="padding:4px 8px;">Score</th>
+                <th style="padding:4px 8px;">Grade</th>
+                <th style="padding:4px 8px;">Date</th>
+                <th style="padding:4px 8px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tests.map(t => {
+                const g = t.grade || lcGradeFromScore(t.score, level);
+                return `<tr>
+                  <td style="padding:6px 8px;"><strong>${t.name}</strong>${t.notes ? `<div style="color:var(--text-muted);font-size:11px;">${t.notes}</div>` : ''}</td>
+                  <td style="padding:6px 8px;">${t.score !== undefined ? t.score + '%' : '—'}</td>
+                  <td style="padding:6px 8px;"><span class="badge badge-${getGradeBadgeColor(g)}">${g}</span></td>
+                  <td style="padding:6px 8px;color:var(--text-muted);">${t.date ? new Date(t.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : '—'}</td>
+                  <td style="padding:6px 8px;"><div class="row-actions" style="opacity:1;">
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="openTestModal('${s.key}','${t.id}')" title="Edit">✏️</button>
+                    <button class="btn btn-danger btn-sm btn-icon" onclick="deleteTest('${s.key}','${t.id}')" title="Delete">🗑</button>
+                  </div></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>` : `<div style="flex:2;min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;padding:12px;">No tests added yet.</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// SAT
+// ============================================================
+function calcSATTotal() {
+  const rw = parseInt(document.getElementById('sat-rw').value) || 0;
+  const math = parseInt(document.getElementById('sat-math').value) || 0;
+  document.getElementById('sat-total').value = rw && math ? rw + math : '';
+}
+
+function getBestSAT() {
+  if (DB.sat.length === 0) return null;
+  return DB.sat.reduce((best, s) => (!best || s.total > best.total) ? s : best, null);
+}
+
+function saveSATGoal() {
+  DB.satGoal = {
+    total: parseInt(document.getElementById('sat-goal-total').value) || 0,
+    rw: parseInt(document.getElementById('sat-goal-rw').value) || 0,
+    math: parseInt(document.getElementById('sat-goal-math').value) || 0
+  };
+  save();
+  renderSATGoalProgress();
+}
+
+function renderSATGoalProgress() {
+  const best = getBestSAT();
+  const goal = DB.satGoal;
+  const container = document.getElementById('sat-goal-progress');
+  if (!goal.total) { container.innerHTML = ''; return; }
+
+  const pct = best ? Math.min(100, Math.round(best.total / goal.total * 100)) : 0;
+  container.innerHTML = `
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span>Total: ${best ? best.total : '—'} / ${goal.total}</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>
+    </div>
+    ${goal.rw ? `<div class="sat-bar-row"><div class="sat-bar-label">R&W</div><div class="sat-bar-track"><div class="sat-bar-fill" style="width:${best?Math.min(100,Math.round(best.rw/goal.rw*100)):0}%"></div></div><div class="sat-bar-val">${best ? best.rw : '—'}</div></div>` : ''}
+    ${goal.math ? `<div class="sat-bar-row"><div class="sat-bar-label">Math</div><div class="sat-bar-track"><div class="sat-bar-fill" style="width:${best?Math.min(100,Math.round(best.math/goal.math*100)):0}%"></div></div><div class="sat-bar-val">${best ? best.math : '—'}</div></div>` : ''}
+  `;
+}
+
+function saveSAT() {
+  const date = document.getElementById('sat-date').value;
+  const rw = parseInt(document.getElementById('sat-rw').value);
+  const math = parseInt(document.getElementById('sat-math').value);
+  if (!date || !rw || !math) { alert('Please fill in date, R&W, and Math scores.'); return; }
+
+  const id = document.getElementById('sat-edit-id').value || uid();
+  const existing = DB.sat.findIndex(s => s.id === id);
+  const entry = { id, date, rw, math, total: rw + math, notes: document.getElementById('sat-notes').value };
+
+  if (existing >= 0) DB.sat[existing] = entry;
+  else DB.sat.push(entry);
+
+  save();
+  closeModal('sat-modal');
+  renderSAT();
+}
+
+function editSAT(id) {
+  const s = DB.sat.find(s => s.id === id);
+  if (!s) return;
+  document.getElementById('sat-edit-id').value = s.id;
+  document.getElementById('sat-date').value = s.date;
+  document.getElementById('sat-rw').value = s.rw;
+  document.getElementById('sat-math').value = s.math;
+  document.getElementById('sat-total').value = s.total;
+  document.getElementById('sat-notes').value = s.notes || '';
+  openModal('sat-modal', id);
+}
+
+function deleteSAT(id) {
+  if (!confirm('Delete this score?')) return;
+  DB.sat = DB.sat.filter(s => s.id !== id);
+  save();
+  renderSAT();
+}
+
+function renderSAT() {
+  const best = getBestSAT();
+  document.getElementById('sat-best-total').textContent = best ? best.total : '—';
+  document.getElementById('sat-best-rw').textContent = best ? best.rw : '—';
+  document.getElementById('sat-best-math').textContent = best ? best.math : '—';
+
+  if (DB.satGoal.total) {
+    document.getElementById('sat-goal-total').value = DB.satGoal.total || '';
+    document.getElementById('sat-goal-rw').value = DB.satGoal.rw || '';
+    document.getElementById('sat-goal-math').value = DB.satGoal.math || '';
+  }
+  renderSATGoalProgress();
+
+  const tbody = document.getElementById('sat-table');
+  const sorted = [...DB.sat].sort((a,b) => new Date(b.date) - new Date(a.date));
+  if (sorted.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✏️</div><p>Add your SAT scores above.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(s => {
+    const isBest = best && s.id === best.id;
+    const date = new Date(s.date + '-01').toLocaleDateString('en-US', {month:'long',year:'numeric'});
+    return `<tr>
+      <td>${date}</td>
+      <td><strong style="font-size:16px;">${s.total}</strong> ${isBest ? '<span class="badge badge-green">Best</span>' : ''}</td>
+      <td>${s.rw}</td>
+      <td>${s.math}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">${s.notes || ''}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editSAT('${s.id}')" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteSAT('${s.id}')" title="Delete">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// ACTIVITIES
+// ============================================================
+function updateECCharCount() {
+  const len = document.getElementById('ec-desc').value.length;
+  document.getElementById('ec-char-count').textContent = len;
+}
+
+function saveEC() {
+  const name = document.getElementById('ec-name').value.trim();
+  if (!name) { alert('Please enter an activity name.'); return; }
+  if (DB.activities.length >= 10 && !document.getElementById('ec-edit-id').value) {
+    alert('Common App allows a maximum of 10 activities.');
+    return;
+  }
+
+  const id = document.getElementById('ec-edit-id').value || uid();
+  const existing = DB.activities.findIndex(a => a.id === id);
+
+  const years = [];
+  if (document.getElementById('ec-y9').checked) years.push('9th');
+  if (document.getElementById('ec-y10').checked) years.push('10th');
+  if (document.getElementById('ec-y11').checked) years.push('11th');
+  if (document.getElementById('ec-y12').checked) years.push('12th');
+
+  const activity = {
+    id, name,
+    category: document.getElementById('ec-category').value,
+    role: document.getElementById('ec-role').value,
+    org: document.getElementById('ec-org').value,
+    hours: document.getElementById('ec-hours').value,
+    weeks: document.getElementById('ec-weeks').value,
+    years,
+    desc: document.getElementById('ec-desc').value
+  };
+
+  if (existing >= 0) DB.activities[existing] = activity;
+  else DB.activities.push(activity);
+
+  save();
+  closeModal('ec-modal');
+  renderActivities();
+}
+
+function editEC(id) {
+  const a = DB.activities.find(a => a.id === id);
+  if (!a) return;
+  document.getElementById('ec-modal-title').textContent = 'Edit Activity';
+  document.getElementById('ec-edit-id').value = a.id;
+  document.getElementById('ec-name').value = a.name;
+  document.getElementById('ec-category').value = a.category;
+  document.getElementById('ec-role').value = a.role || '';
+  document.getElementById('ec-org').value = a.org || '';
+  document.getElementById('ec-hours').value = a.hours || '';
+  document.getElementById('ec-weeks').value = a.weeks || '';
+  document.getElementById('ec-y9').checked = (a.years || []).includes('9th');
+  document.getElementById('ec-y10').checked = (a.years || []).includes('10th');
+  document.getElementById('ec-y11').checked = (a.years || []).includes('11th');
+  document.getElementById('ec-y12').checked = (a.years || []).includes('12th');
+  document.getElementById('ec-desc').value = a.desc || '';
+  updateECCharCount();
+  openModal('ec-modal', id);
+}
+
+function deleteEC(id) {
+  if (!confirm('Delete this activity?')) return;
+  DB.activities = DB.activities.filter(a => a.id !== id);
+  save();
+  renderActivities();
+}
+
+function moveEC(id, dir) {
+  const idx = DB.activities.findIndex(a => a.id === id);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= DB.activities.length) return;
+  [DB.activities[idx], DB.activities[newIdx]] = [DB.activities[newIdx], DB.activities[idx]];
+  save();
+  renderActivities();
+}
+
+function renderActivities() {
+  const count = DB.activities.length;
+  document.getElementById('ec-count').textContent = count;
+
+  const container = document.getElementById('activities-list');
+  if (count === 0) {
+    container.innerHTML = `<div class="empty-state card"><div class="empty-icon">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = DB.activities.map((a, i) => `
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;color:var(--text-muted);min-width:28px;text-align:center;">${i+1}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong>${a.name}</strong>
+            <span class="badge badge-gray">${a.category}</span>
+            ${a.years && a.years.length ? a.years.map(y => `<span class="tag">${y}</span>`).join('') : ''}
+          </div>
+          ${a.role ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${a.role}${a.org ? ' · ' + a.org : ''}</div>` : ''}
+          ${(a.hours || a.weeks) ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.hours ? a.hours+'h/wk' : ''} ${a.weeks ? '· '+a.weeks+' wks/yr' : ''}</div>` : ''}
+          ${a.desc ? `<div style="margin-top:8px;font-size:12px;background:var(--bg);border-radius:6px;padding:8px 10px;border:1px solid var(--border-light);">${a.desc} <span style="color:var(--text-muted);">(${a.desc.length}/150)</span></div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',-1)" ${i===0?'disabled':''} title="Move up">↑</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',1)" ${i===count-1?'disabled':''} title="Move down">↓</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="editEC('${a.id}')" title="Edit">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteEC('${a.id}')" title="Delete">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// ESSAYS
+// ============================================================
+function updateEssayCollegeFilter() {
+  const sel = document.getElementById('essay-college-filter');
+  const val = sel.value;
+  const colleges = ['Common App', ...DB.colleges.map(c => c.name)];
+  sel.innerHTML = '<option value="">All Colleges</option>' + colleges.map(c => `<option ${c===val?'selected':''}>${c}</option>`).join('');
+}
+
+function saveEssay() {
+  const college = document.getElementById('essay-college').value.trim();
+  if (!college) { alert('Please enter a college.'); return; }
+
+  const id = document.getElementById('essay-edit-id').value || uid();
+  const existing = DB.essays.findIndex(e => e.id === id);
+
+  const essay = {
+    id, college,
+    type: document.getElementById('essay-type').value,
+    wordLimit: document.getElementById('essay-wordlimit').value,
+    wordCount: document.getElementById('essay-wordcount').value,
+    status: document.getElementById('essay-status').value,
+    prompt: document.getElementById('essay-prompt').value,
+    notes: document.getElementById('essay-notes').value
+  };
+
+  if (existing >= 0) DB.essays[existing] = essay;
+  else DB.essays.push(essay);
+
+  save();
+  closeModal('essay-modal');
+  renderEssays();
+  updateEssayCollegeFilter();
+}
+
+function editEssay(id) {
+  const e = DB.essays.find(e => e.id === id);
+  if (!e) return;
+  document.getElementById('essay-modal-title').textContent = 'Edit Essay';
+  document.getElementById('essay-edit-id').value = e.id;
+  document.getElementById('essay-college').value = e.college;
+  document.getElementById('essay-type').value = e.type;
+  document.getElementById('essay-wordlimit').value = e.wordLimit || '';
+  document.getElementById('essay-wordcount').value = e.wordCount || '';
+  document.getElementById('essay-status').value = e.status;
+  document.getElementById('essay-prompt').value = e.prompt || '';
+  document.getElementById('essay-notes').value = e.notes || '';
+  openModal('essay-modal', id);
+}
+
+function deleteEssay(id) {
+  if (!confirm('Delete this essay?')) return;
+  DB.essays = DB.essays.filter(e => e.id !== id);
+  save();
+  renderEssays();
+}
+
+function renderEssays() {
+  updateEssayCollegeFilter();
+  const filter = document.getElementById('essay-college-filter').value;
+  const list = filter ? DB.essays.filter(e => e.college === filter) : DB.essays;
+  const tbody = document.getElementById('essays-table');
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📝</div><p>Add your essays above.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(e => {
+    const wl = e.wordLimit ? parseInt(e.wordLimit) : null;
+    const wc = e.wordCount ? parseInt(e.wordCount) : 0;
+    const pct = wl ? Math.min(100, Math.round(wc / wl * 100)) : 0;
+    return `<tr>
+      <td><strong>${e.college}</strong></td>
+      <td><span class="badge badge-gray">${e.type}</span></td>
+      <td style="max-width:220px;font-size:12px;color:var(--text-secondary);">${e.prompt ? e.prompt.slice(0,60)+(e.prompt.length>60?'…':'') : '—'}</td>
+      <td>
+        ${wl ? `<div style="font-size:12px;">${wc}/${wl}</div>
+        <div class="progress-bar" style="margin-top:4px;width:80px;"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>` : '—'}
+      </td>
+      <td>${statusBadge(e.status)}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editEssay('${e.id}')" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteEssay('${e.id}')" title="Delete">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// RECS
+// ============================================================
+function saveRec() {
+  const name = document.getElementById('rec-name').value.trim();
+  if (!name) { alert('Please enter a name.'); return; }
+
+  const id = document.getElementById('rec-edit-id').value || uid();
+  const existing = DB.recs.findIndex(r => r.id === id);
+
+  const rec = {
+    id, name,
+    role: document.getElementById('rec-role').value,
+    subject: document.getElementById('rec-subject').value,
+    askedDate: document.getElementById('rec-asked-date').value,
+    status: document.getElementById('rec-status').value,
+    schools: document.getElementById('rec-schools').value,
+    notes: document.getElementById('rec-notes').value
+  };
+
+  if (existing >= 0) DB.recs[existing] = rec;
+  else DB.recs.push(rec);
+
+  save();
+  closeModal('rec-modal');
+  renderRecs();
+}
+
+function editRec(id) {
+  const r = DB.recs.find(r => r.id === id);
+  if (!r) return;
+  document.getElementById('rec-modal-title').textContent = 'Edit Recommender';
+  document.getElementById('rec-edit-id').value = r.id;
+  document.getElementById('rec-name').value = r.name;
+  document.getElementById('rec-role').value = r.role;
+  document.getElementById('rec-subject').value = r.subject || '';
+  document.getElementById('rec-asked-date').value = r.askedDate || '';
+  document.getElementById('rec-status').value = r.status;
+  document.getElementById('rec-schools').value = r.schools || '';
+  document.getElementById('rec-notes').value = r.notes || '';
+  openModal('rec-modal', id);
+}
+
+function deleteRec(id) {
+  if (!confirm('Delete this recommender?')) return;
+  DB.recs = DB.recs.filter(r => r.id !== id);
+  save();
+  renderRecs();
+}
+
+function renderRecs() {
+  const container = document.getElementById('recs-list');
+  if (DB.recs.length === 0) {
+    container.innerHTML = `<div class="empty-state card"><div class="empty-icon">✉️</div><p>Add your recommenders and track where each letter is needed.</p></div>`;
+    return;
+  }
+
+  const statusIcon = { 'Letter Submitted': '✅', 'Confirmed': '🟢', 'Asked': '🟡', 'Planning to Ask': '⚪' };
+  container.innerHTML = DB.recs.map(r => `
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">${statusIcon[r.status] || '⚪'}</span>
+            <strong style="font-size:15px;">${r.name}</strong>
+            <span class="badge badge-gray">${r.role}</span>
+          </div>
+          ${r.subject ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;margin-left:30px;">${r.subject}</div>` : ''}
+          ${r.schools ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;margin-left:30px;">For: ${r.schools}</div>` : ''}
+          ${r.askedDate ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;margin-left:30px;">Asked: ${new Date(r.askedDate+'T12:00:00').toLocaleDateString()}</div>` : ''}
+          ${r.notes ? `<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);padding:8px 10px;background:var(--bg);border-radius:6px;margin-left:30px;">${r.notes}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          ${statusBadge(r.status)}
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="editRec('${r.id}')" title="Edit">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteRec('${r.id}')" title="Delete">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// DEADLINES
+// ============================================================
+function saveDeadline() {
+  const title = document.getElementById('dl-title').value.trim();
+  const date = document.getElementById('dl-date').value;
+  if (!title || !date) { alert('Please enter a title and date.'); return; }
+
+  const id = document.getElementById('dl-edit-id').value || uid();
+  const existing = DB.deadlines.findIndex(d => d.id === id);
+
+  const deadline = {
+    id, title, date,
+    category: document.getElementById('dl-category').value,
+    priority: document.getElementById('dl-priority').value,
+    notes: document.getElementById('dl-notes').value
+  };
+
+  if (existing >= 0) DB.deadlines[existing] = deadline;
+  else DB.deadlines.push(deadline);
+
+  save();
+  closeModal('deadline-modal');
+  renderDeadlines();
+}
+
+function deleteDeadline(id) {
+  if (!confirm('Delete this deadline?')) return;
+  DB.deadlines = DB.deadlines.filter(d => d.id !== id);
+  save();
+  renderDeadlines();
+}
+
+function renderDeadlines() {
+  const now = new Date();
+  const upcoming = DB.deadlines.filter(d => new Date(d.date + 'T12:00:00') >= now).sort((a,b) => new Date(a.date) - new Date(b.date));
+  const past = DB.deadlines.filter(d => new Date(d.date + 'T12:00:00') < now).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  const priorityColor = { High: 'var(--red)', Medium: 'var(--yellow)', Low: 'var(--text-muted)' };
+  const dotColor = { High: 'red', Medium: 'yellow', Low: 'gray' };
+
+  function renderList(list) {
+    if (list.length === 0) return '<div style="color:var(--text-muted);font-size:13px;padding:4px 0;">None.</div>';
+    return list.map(d => {
+      const date = new Date(d.date + 'T12:00:00');
+      const days = Math.ceil((date - now) / 86400000);
+      return `<div class="timeline-item">
+        <div class="timeline-dot ${dotColor[d.priority] || 'gray'}"></div>
+        <div class="timeline-content" style="flex:1;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div>
+              <div class="tl-title">${d.title}</div>
+              <div class="tl-sub">${d.category} · ${date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+              ${d.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${d.notes}</div>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              ${days >= 0 ? `<span style="font-size:11px;font-weight:600;color:${days<=7?'var(--red)':days<=30?'var(--yellow)':'var(--text-muted)'};">${days}d</span>` : ''}
+              <button class="btn btn-danger btn-sm btn-icon" onclick="deleteDeadline('${d.id}')" title="Delete">🗑</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('deadlines-upcoming').innerHTML = renderList(upcoming);
+  document.getElementById('deadlines-past').innerHTML = renderList(past);
+}
+
+// ============================================================
+// NOTES
+// ============================================================
+function saveNotes() {
+  DB.notes = document.getElementById('notes-content').value;
+  save();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+load();
+renderDashboard();
+updateEssayCollegeFilter();
+
+// Pre-populate SAT goal inputs
+if (DB.satGoal && DB.satGoal.total) {
+  document.getElementById('sat-goal-total').value = DB.satGoal.total || '';
+  document.getElementById('sat-goal-rw').value = DB.satGoal.rw || '';
+  document.getElementById('sat-goal-math').value = DB.satGoal.math || '';
+}
+</script>
+</body>
+</html>

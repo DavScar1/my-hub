@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Lifestyle</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-warm: #faf9f7;
+    --border: #e8e5e0;
+    --border-light: #f0ede8;
+    --text: #1c1a18;
+    --text-secondary: #6b6460;
+    --text-muted: #a09890;
+    --accent: #4a7856;
+    --accent-light: #eef5f1;
+    --accent-hover: #3a6044;
+    --green: #4a7856;
+    --green-light: #eef5f1;
+    --amber: #b5620d;
+    --amber-light: #fdf2e8;
+    --red: #c0392b;
+    --red-light: #fdf0ef;
+    --blue: #2c5282;
+    --blue-light: #ebf0f8;
+    --purple: #553c7b;
+    --purple-light: #f3effe;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 230px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sidebar-logo h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .sidebar-logo p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .sidebar-today {
+    padding: 14px 20px;
+    background: var(--accent-light);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sidebar-today .date { font-size: 11px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sidebar-today .greeting { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  .sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+  .nav-section-label { padding: 12px 18px 4px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 18px;
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    transition: all 0.12s;
+    border: none; background: none; width: 100%; text-align: left;
+    border-radius: 0;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .nav-item .icon { width: 18px; text-align: center; flex-shrink: 0; font-size: 15px; }
+  .nav-item .badge-count { margin-left: auto; background: var(--accent); color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+
+  .sidebar-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-light);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Main */
+  .main { margin-left: 230px; flex: 1; }
+  .page { display: none; padding: 36px 40px; max-width: 1100px; }
+  .page.active { display: block; }
+
+  .page-header { margin-bottom: 28px; }
+  .page-header h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.4px; }
+  .page-header p { color: var(--text-secondary); margin-top: 5px; font-size: 13.5px; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow); }
+  .card-sm { padding: 16px; }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  /* Stat cards */
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-icon { font-size: 22px; margin-bottom: 10px; }
+  .stat-value { font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 5px; }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: var(--radius);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: none; transition: all 0.15s; font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #f5c0bc; }
+  .btn-danger:hover { background: #fbe4e2; }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+  .btn-icon { padding: 6px 8px; }
+  .btn-ghost { background: none; border: none; color: var(--text-muted); padding: 4px 6px; cursor: pointer; border-radius: 6px; font-size: 13px; }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+  /* Section header */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-header h3 { font-size: 16px; font-weight: 700; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 20px; width: fit-content; }
+  .tab-btn {
+    padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; background: none; color: var(--text-secondary);
+    transition: all 0.15s; font-family: inherit;
+  }
+  .tab-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-weight: 600; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,8,5,0.4); z-index: 1000;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius-xl);
+    padding: 30px; width: 520px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .modal h3 { font-size: 18px; font-weight: 800; margin-bottom: 22px; letter-spacing: -0.3px; }
+
+  /* Form */
+  .form-group { margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+  input, select, textarea {
+    width: 100%; padding: 9px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 13px; font-family: inherit; color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74,120,86,0.12);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-purple { background: var(--purple-light); color: var(--purple); }
+  .badge-gray { background: var(--border-light); color: var(--text-secondary); }
+
+  /* Routine step */
+  .routine-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+    background: var(--surface-warm);
+    margin-bottom: 8px;
+    transition: all 0.15s;
+  }
+  .routine-step.done { opacity: 0.55; }
+  .routine-step.done .step-name { text-decoration: line-through; color: var(--text-muted); }
+  .routine-step input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .step-name { flex: 1; font-size: 13.5px; }
+  .step-time { font-size: 11px; color: var(--text-muted); }
+  .step-drag { cursor: grab; color: var(--text-muted); font-size: 14px; padding: 2px 4px; }
+
+  /* Habit grid */
+  .habit-grid { display: flex; flex-direction: column; gap: 12px; }
+  .habit-row { display: flex; align-items: center; gap: 10px; }
+  .habit-label { width: 140px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .habit-days { display: flex; gap: 4px; flex-wrap: wrap; }
+  .habit-day {
+    width: 24px; height: 24px; border-radius: 5px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.12s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: var(--text-muted);
+    position: relative;
+  }
+  .habit-day:hover { border-color: var(--accent); }
+  .habit-day.done { background: var(--accent); border-color: var(--accent); }
+  .habit-day.today { border-color: var(--accent); border-width: 2px; }
+  .habit-streak { font-size: 12px; color: var(--amber); font-weight: 700; white-space: nowrap; }
+
+  /* Product card */
+  .product-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .product-card.urgent { border-color: #f5c0bc; border-left: 3px solid var(--red); }
+  .product-card.low { border-color: #f5deb3; border-left: 3px solid var(--amber); }
+  .product-name { font-size: 14px; font-weight: 700; }
+  .product-brand { font-size: 12px; color: var(--text-muted); }
+  .stock-bar { height: 5px; background: var(--border-light); border-radius: 3px; overflow: hidden; }
+  .stock-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .stock-full .stock-fill { background: var(--green); }
+  .stock-medium .stock-fill { background: var(--amber); }
+  .stock-low .stock-fill { background: var(--red); }
+
+  /* Outfit card */
+  .outfit-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .outfit-name { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .outfit-item { font-size: 13px; color: var(--text-secondary); padding: 3px 0; border-bottom: 1px solid var(--border-light); }
+  .outfit-item:last-child { border-bottom: none; }
+
+  /* Progress ring (SVG) */
+  .ring-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+  .ring-center { position: absolute; text-align: center; }
+  .ring-pct { font-size: 18px; font-weight: 800; }
+  .ring-sub { font-size: 10px; color: var(--text-muted); }
+
+  /* Today page routine cards */
+  .today-routine { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); }
+  .today-routine-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .today-routine-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .routine-progress-text { font-size: 12px; color: var(--text-muted); }
+  .routine-mini-bar { height: 4px; background: var(--border-light); border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
+  .routine-mini-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+  /* Skin journal */
+  .journal-entry { background: var(--surface-warm); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+  .journal-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; display: flex; gap: 12px; align-items: center; }
+  .journal-text { font-size: 13px; color: var(--text); }
+  .mood-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* Weekly habit calendar */
+  .cal-header { display: flex; gap: 4px; margin-bottom: 6px; }
+  .cal-day-label { width: 24px; text-align: center; font-size: 10px; color: var(--text-muted); font-weight: 600; }
+
+  /* Wishlist item */
+  .wish-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+  .wish-item:last-child { border-bottom: none; }
+  .wish-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .wish-priority.high { background: var(--red); }
+  .wish-priority.medium { background: var(--amber); }
+  .wish-priority.low { background: var(--green); }
+
+  /* Empty */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .empty-state .ei { font-size: 32px; margin-bottom: 10px; }
+  .empty-state p { font-size: 13px; }
+
+  /* Row actions */
+  .row-actions { display: flex; gap: 4px; }
+
+  /* Toggle */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+  .toggle { position: relative; width: 36px; height: 20px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 20px; cursor: pointer; transition: 0.2s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border-light); margin: 20px 0; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 200px; }
+    .main { margin-left: 200px; }
+    .page { padding: 20px; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h1>My Lifestyle</h1>
+    <p id="sidebar-date-line">Loading...</p>
+  </div>
+  <div class="sidebar-today">
+    <div class="date" id="sidebar-day">Monday</div>
+    <div class="greeting" id="sidebar-greeting">Good morning ☀️</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <button class="nav-item active" onclick="showPage('today')">
+      <span class="icon">🏠</span> Today
+    </button>
+
+    <div class="nav-section-label">Routines</div>
+    <button class="nav-item" onclick="showPage('morning')">
+      <span class="icon">🌅</span> Morning
+    </button>
+    <button class="nav-item" onclick="showPage('evening')">
+      <span class="icon">🌙</span> Evening
+    </button>
+    <button class="nav-item" onclick="showPage('gym')">
+      <span class="icon">💪</span> Gym
+    </button>
+    <button class="nav-item" onclick="showPage('weekly')">
+      <span class="icon">📆</span> Weekly Habits
+    </button>
+
+    <div class="nav-section-label">Lifestyle</div>
+    <button class="nav-item" onclick="showPage('habits')">
+      <span class="icon">🔥</span> Habit Tracker
+    </button>
+    <button class="nav-item" onclick="showPage('products')">
+      <span class="icon">🧴</span> Products
+      <span class="badge-count" id="nav-buy-count" style="display:none;"></span>
+    </button>
+    <button class="nav-item" onclick="showPage('wardrobe')">
+      <span class="icon">👕</span> Wardrobe
+    </button>
+    <button class="nav-item" onclick="showPage('journal')">
+      <span class="icon">📓</span> Journal
+    </button>
+  </div>
+  <div class="sidebar-footer">Saved locally · <span id="sf-date"></span></div>
+</nav>
+
+<main class="main">
+
+<!-- ===== TODAY ===== -->
+<div class="page active" id="page-today">
+  <div class="page-header">
+    <h2 id="today-greeting-h2">Good morning</h2>
+    <p id="today-date-sub">Monday, 9 June 2026</p>
+  </div>
+
+  <div class="grid-4" style="margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-value" id="today-streak">0</div>
+      <div class="stat-label">Day Streak</div>
+      <div class="stat-sub">Keep it going</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value" id="today-habits-done">0</div>
+      <div class="stat-label">Habits Today</div>
+      <div class="stat-sub" id="today-habits-sub">of 0 completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🛒</div>
+      <div class="stat-value" id="today-buy-count">0</div>
+      <div class="stat-label">Need to Buy</div>
+      <div class="stat-sub">Products low/empty</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👗</div>
+      <div class="stat-value" id="today-outfit-count">0</div>
+      <div class="stat-label">Saved Outfits</div>
+      <div class="stat-sub">In wardrobe</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div id="today-morning-card" class="today-routine"></div>
+    <div id="today-evening-card" class="today-routine"></div>
+  </div>
+  <div class="grid-2">
+    <div id="today-gym-card" class="today-routine"></div>
+    <div id="today-weekly-card" class="today-routine"></div>
+  </div>
+</div>
+
+<!-- ===== MORNING ===== -->
+<div class="page" id="page-morning">
+  <div class="page-header">
+    <h2>🌅 Morning Routine</h2>
+    <p>Build your ideal morning. Steps reset each day.</p>
+  </div>
+  <div id="morning-content"></div>
+</div>
+
+<!-- ===== EVENING ===== -->
+<div class="page" id="page-evening">
+  <div class="page-header">
+    <h2>🌙 Evening Routine</h2>
+    <p>Wind down and set yourself up for tomorrow.</p>
+  </div>
+  <div id="evening-content"></div>
+</div>
+
+<!-- ===== GYM ===== -->
+<div class="page" id="page-gym">
+  <div class="page-header">
+    <h2>💪 Gym Routine</h2>
+    <p>Pre-workout, workout, and recovery steps.</p>
+  </div>
+  <div id="gym-content"></div>
+</div>
+
+<!-- ===== WEEKLY ===== -->
+<div class="page" id="page-weekly">
+  <div class="page-header">
+    <h2>📆 Weekly Habits</h2>
+    <p>Things to do each week — laundry, meal prep, planning, etc.</p>
+  </div>
+  <div id="weekly-content"></div>
+</div>
+
+<!-- ===== HABIT TRACKER ===== -->
+<div class="page" id="page-habits">
+  <div class="page-header">
+    <h2>🔥 Habit Tracker</h2>
+    <p>Track daily habits and build streaks. Click a day to mark it done.</p>
+  </div>
+
+  <div class="section-header">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-ghost" onclick="changeMonth(-1)">‹</button>
+      <span id="habit-month-label" style="font-weight:700;font-size:15px;"></span>
+      <button class="btn btn-ghost" onclick="changeMonth(1)">›</button>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('habit-modal')">+ Add Habit</button>
+  </div>
+
+  <div class="card">
+    <div id="habit-tracker-grid">
+      <div class="empty-state"><div class="ei">🔥</div><p>Add habits to track below.</p></div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <div class="section-header">
+      <h3 style="font-size:14px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Manage Habits</h3>
+      <span></span>
+    </div>
+    <div id="habit-manage-list"></div>
+  </div>
+</div>
+
+<!-- ===== PRODUCTS ===== -->
+<div class="page" id="page-products">
+  <div class="page-header">
+    <h2>🧴 Products</h2>
+    <p>Track what you have, what you're running low on, and what to buy next.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchProductTab('skincare',this)">Skincare & Grooming</button>
+    <button class="tab-btn" onclick="switchProductTab('clothes',this)">Clothes Wishlist</button>
+    <button class="tab-btn" onclick="switchProductTab('supps',this)">Supplements</button>
+  </div>
+
+  <div id="products-buy-alert" style="display:none;background:var(--red-light);border:1px solid #f5c0bc;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--red);"></div>
+
+  <div class="section-header">
+    <h3 id="prod-tab-title">Skincare & Grooming</h3>
+    <button class="btn btn-primary" onclick="openAddProduct()">+ Add Product</button>
+  </div>
+
+  <div id="products-skincare-tab">
+    <div id="products-skincare-grid" class="grid-3"></div>
+  </div>
+  <div id="products-clothes-tab" style="display:none;">
+    <div id="products-clothes-list"></div>
+  </div>
+  <div id="products-supps-tab" style="display:none;">
+    <div id="products-supps-grid" class="grid-3"></div>
+  </div>
+</div>
+
+<!-- ===== WARDROBE ===== -->
+<div class="page" id="page-wardrobe">
+  <div class="page-header">
+    <h2>👕 Wardrobe & Outfits</h2>
+    <p>Save your go-to outfits and plan what to wear.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchWardrobeTab('outfits',this)">Saved Outfits</button>
+    <button class="tab-btn" onclick="switchWardrobeTab('planner',this)">Week Planner</button>
+  </div>
+
+  <div id="wardrobe-outfits-tab">
+    <div class="section-header">
+      <div style="display:flex;gap:8px;">
+        <select id="outfit-filter-season" onchange="renderOutfits()" style="padding:6px 10px;width:auto;">
+          <option value="">All Seasons</option>
+          <option>Summer</option><option>Autumn</option><option>Winter</option><option>Spring</option>
+        </select>
+        <select id="outfit-filter-occ" onchange="renderOutfits()" style="padding:6px 10px;width:auto;">
+          <option value="">All Occasions</option>
+          <option>Casual</option><option>School</option><option>Going Out</option><option>Sport</option><option>Smart</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('outfit-modal')">+ Save Outfit</button>
+    </div>
+    <div id="outfits-grid" class="grid-3"></div>
+  </div>
+
+  <div id="wardrobe-planner-tab" style="display:none;">
+    <div class="card">
+      <div class="card-title">This Week's Outfits</div>
+      <div id="week-planner-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JOURNAL ===== -->
+<div class="page" id="page-journal">
+  <div class="page-header">
+    <h2>📓 Daily Journal</h2>
+    <p>Log your skin condition, energy, mood, and notes. Spot patterns over time.</p>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px;align-items:start;">
+    <div class="card">
+      <div class="card-title">Today's Entry</div>
+      <div class="form-group">
+        <label>Mood</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="mood-picker">
+          <button class="btn btn-secondary btn-sm" onclick="selectMood(this,'😊 Great')">😊 Great</button>
+          <button class="btn btn-secondary btn-sm" onclick="selectMood(this,'😐 Okay')">😐 Okay</button>
+          <button class="btn btn-secondary btn-sm" onclick="selectMood(this,'😴 Tired')">😴 Tired</button>
+          <button class="btn btn-secondary btn-sm" onclick="selectMood(this,'😤 Stressed')">😤 Stressed</button>
+          <button class="btn btn-secondary btn-sm" onclick="selectMood(this,'🤒 Unwell')">🤒 Unwell</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Energy (1–10)</label>
+        <input type="range" id="j-energy" min="1" max="10" value="7" oninput="document.getElementById('j-energy-val').textContent=this.value" style="width:100%;accent-color:var(--accent);">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;"><span>Low</span><span id="j-energy-val">7</span><span>High</span></div>
+      </div>
+      <div class="form-group">
+        <label>Skin Today</label>
+        <select id="j-skin">
+          <option value="">Select...</option>
+          <option>Clear ✨</option>
+          <option>Mostly clear</option>
+          <option>Slight breakout</option>
+          <option>Dry / tight</option>
+          <option>Oily</option>
+          <option>Sensitive / red</option>
+          <option>Bad breakout</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="j-notes" placeholder="Anything to note today — diet, sleep, stress, new products..." rows="3"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveJournalEntry()" style="width:100%;">Save Entry</button>
+    </div>
+
+    <div>
+      <div class="card-title" style="margin-bottom:12px;">Past Entries</div>
+      <div id="journal-entries-list">
+        <div class="empty-state" style="padding:20px 0;"><p>No entries yet.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Routine Step Modal -->
+<div class="modal-overlay" id="step-modal">
+  <div class="modal">
+    <h3 id="step-modal-title">Add Step</h3>
+    <input type="hidden" id="step-routine-key">
+    <input type="hidden" id="step-edit-id">
+    <div class="form-group">
+      <label>Step Name *</label>
+      <input type="text" id="step-name" placeholder="e.g. Wash face, Take vitamins...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Duration (optional)</label>
+        <input type="text" id="step-duration" placeholder="5 min">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="step-category">
+          <option value="">— None —</option>
+          <option>Skincare</option>
+          <option>Body</option>
+          <option>Hair</option>
+          <option>Nutrition</option>
+          <option>Exercise</option>
+          <option>Mental</option>
+          <option>Hygiene</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes / Products used</label>
+      <textarea id="step-notes" placeholder="Which product? Any reminders?" rows="2"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('step-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStep()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Habit Modal -->
+<div class="modal-overlay" id="habit-modal">
+  <div class="modal">
+    <h3>Add Habit</h3>
+    <input type="hidden" id="habit-edit-id">
+    <div class="form-group">
+      <label>Habit Name *</label>
+      <input type="text" id="habit-name" placeholder="e.g. Gym, Read 20 mins, No junk food...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Icon (emoji)</label>
+        <input type="text" id="habit-icon" placeholder="💪" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="habit-category">
+          <option>Health</option>
+          <option>Fitness</option>
+          <option>Skincare</option>
+          <option>Study</option>
+          <option>Mindset</option>
+          <option>Diet</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('habit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHabit()">Add Habit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h3 id="product-modal-title">Add Product</h3>
+    <input type="hidden" id="product-edit-id">
+    <input type="hidden" id="product-tab-key">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input type="text" id="prod-name" placeholder="e.g. CeraVe Moisturiser">
+      </div>
+      <div class="form-group">
+        <label>Brand</label>
+        <input type="text" id="prod-brand" placeholder="CeraVe">
+      </div>
+    </div>
+
+    <div id="skincare-fields">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="prod-cat">
+            <option>Cleanser</option><option>Toner</option><option>Serum</option>
+            <option>Moisturiser</option><option>SPF</option><option>Eye Cream</option>
+            <option>Mask</option><option>Body Wash</option><option>Shampoo</option>
+            <option>Conditioner</option><option>Deodorant</option><option>Fragrance</option>
+            <option>Hair Styling</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stock Level</label>
+          <select id="prod-stock">
+            <option value="full">Full / Stocked</option>
+            <option value="medium">Getting low</option>
+            <option value="low">Running out!</option>
+            <option value="empty">Empty — need to buy</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Opened / Expiry date</label>
+          <input type="date" id="prod-expiry">
+        </div>
+        <div class="form-group">
+          <label>Rating</label>
+          <select id="prod-rating">
+            <option value="">— Not rated —</option>
+            <option value="5">⭐⭐⭐⭐⭐ Love it</option>
+            <option value="4">⭐⭐⭐⭐ Good</option>
+            <option value="3">⭐⭐⭐ Okay</option>
+            <option value="2">⭐⭐ Meh</option>
+            <option value="1">⭐ Didn't work</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Buy Link</label>
+        <input type="url" id="prod-skincare-link" placeholder="https://...">
+      </div>
+    </div>
+
+    <div id="clothes-fields" style="display:none;">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="prod-clothes-type">
+            <option>T-Shirt</option><option>Jeans</option><option>Shorts</option>
+            <option>Hoodie</option><option>Jacket</option><option>Shoes</option>
+            <option>Trainers</option><option>Tracksuit</option><option>Shirt</option>
+            <option>Trousers</option><option>Accessories</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="prod-clothes-priority">
+            <option value="high">Need now</option>
+            <option value="medium">Want soon</option>
+            <option value="low">Wishlist</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Budget</label>
+          <input type="text" id="prod-clothes-budget" placeholder="€50">
+        </div>
+        <div class="form-group">
+          <label>Link</label>
+          <input type="url" id="prod-clothes-link" placeholder="https://...">
+        </div>
+      </div>
+    </div>
+
+    <div id="supps-fields" style="display:none;">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="prod-supp-type">
+            <option>Protein</option><option>Creatine</option><option>Pre-workout</option>
+            <option>Vitamin D</option><option>Omega-3</option><option>Magnesium</option>
+            <option>Zinc</option><option>Multivitamin</option><option>Collagen</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stock Level</label>
+          <select id="prod-supp-stock">
+            <option value="full">Full / Stocked</option>
+            <option value="medium">Getting low</option>
+            <option value="low">Running out!</option>
+            <option value="empty">Empty — need to buy</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dose / Timing</label>
+          <input type="text" id="prod-supp-dose" placeholder="5g with water, morning">
+        </div>
+        <div class="form-group">
+          <label>Link</label>
+          <input type="url" id="prod-supp-link" placeholder="https://...">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="prod-notes" placeholder="Any notes about this product..." rows="2"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('product-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Outfit Modal -->
+<div class="modal-overlay" id="outfit-modal">
+  <div class="modal">
+    <h3 id="outfit-modal-title">Save Outfit</h3>
+    <input type="hidden" id="outfit-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Outfit Name *</label>
+        <input type="text" id="outfit-name" placeholder="e.g. Casual Friday, Gym Look...">
+      </div>
+      <div class="form-group">
+        <label>Occasion</label>
+        <select id="outfit-occ">
+          <option>Casual</option><option>School</option><option>Going Out</option>
+          <option>Sport</option><option>Smart</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Season</label>
+        <select id="outfit-season">
+          <option>Any</option><option>Summer</option><option>Autumn</option>
+          <option>Winter</option><option>Spring</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rating</label>
+        <select id="outfit-rating">
+          <option value="5">⭐⭐⭐⭐⭐ Favourite</option>
+          <option value="4">⭐⭐⭐⭐ Good</option>
+          <option value="3">⭐⭐⭐ Alright</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Items (one per line)</label>
+      <textarea id="outfit-items" rows="5" placeholder="White Nike tee&#10;Grey slim joggers&#10;New Balance 550 cream&#10;Black cap"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Notes / Inspo</label>
+      <textarea id="outfit-notes" rows="2" placeholder="Works well with... good for..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('outfit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOutfit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const DB = {
+  routines: { morning: [], evening: [], gym: [], weekly: [] },
+  routineChecks: {},   // { 'morning_stepId_YYYY-MM-DD': true }
+  habits: [],
+  habitLog: {},        // { 'habitId_YYYY-MM-DD': true }
+  products: { skincare: [], clothes: [], supps: [] },
+  outfits: [],
+  weekPlanner: {},     // { 'Mon': outfitId, ... }
+  journal: [],
+  habitViewMonth: null
+};
+
+let currentProductTab = 'skincare';
+let currentWardrobeTab = 'outfits';
+
+function load() {
+  const s = localStorage.getItem('lifestyleDB');
+  if (s) { try { Object.assign(DB, JSON.parse(s)); } catch(e) {} }
+  if (!DB.routines) DB.routines = { morning: [], evening: [], gym: [], weekly: [] };
+  ['morning','evening','gym','weekly'].forEach(r => { if (!DB.routines[r]) DB.routines[r] = []; });
+  if (!DB.habits) DB.habits = [];
+  if (!DB.habitLog) DB.habitLog = {};
+  if (!DB.products) DB.products = { skincare:[], clothes:[], supps:[] };
+  ['skincare','clothes','supps'].forEach(k => { if (!DB.products[k]) DB.products[k] = []; });
+  if (!DB.outfits) DB.outfits = [];
+  if (!DB.journal) DB.journal = [];
+  if (!DB.routineChecks) DB.routineChecks = {};
+  if (!DB.weekPlanner) DB.weekPlanner = {};
+}
+
+function save() { localStorage.setItem('lifestyleDB', JSON.stringify(DB)); }
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function today() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+// ============================================================
+// DATE / GREETING
+// ============================================================
+function initDateGreeting() {
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? 'Good morning ☀️' : h < 17 ? 'Good afternoon 🌤️' : 'Good evening 🌙';
+  const greetWord = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dayStr = dayNames[now.getDay()];
+  const dateStr = `${dayStr}, ${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
+  document.getElementById('sidebar-date-line').textContent = dateStr;
+  document.getElementById('sidebar-day').textContent = dayStr;
+  document.getElementById('sidebar-greeting').textContent = greeting;
+  document.getElementById('today-greeting-h2').textContent = greetWord;
+  document.getElementById('today-date-sub').textContent = dateStr;
+  document.getElementById('sf-date').textContent = dateStr;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const btn = document.querySelector(`[onclick="showPage('${id}')"]`);
+  if (btn) btn.classList.add('active');
+  renderPage(id);
+}
+
+function renderPage(id) {
+  if (id === 'today') renderToday();
+  if (id === 'morning') renderRoutinePage('morning');
+  if (id === 'evening') renderRoutinePage('evening');
+  if (id === 'gym') renderRoutinePage('gym');
+  if (id === 'weekly') renderRoutinePage('weekly');
+  if (id === 'habits') renderHabits();
+  if (id === 'products') renderProducts();
+  if (id === 'wardrobe') renderWardrobe();
+  if (id === 'journal') renderJournal();
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id, editId) {
+  document.getElementById(id).classList.add('open');
+  if (!editId) {
+    const modal = document.getElementById(id);
+    modal.querySelectorAll('input:not([type=hidden])').forEach(i => { if(i.type!=='range') i.value=''; });
+    modal.querySelectorAll('textarea').forEach(t => t.value='');
+    modal.querySelectorAll('select').forEach(s => s.selectedIndex=0);
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
+});
+
+// ============================================================
+// TODAY
+// ============================================================
+function renderToday() {
+  // Streak: count consecutive days habits were all done
+  const streak = calcStreak();
+  document.getElementById('today-streak').textContent = streak;
+
+  const todayStr = today();
+  const totalHabits = DB.habits.length;
+  const doneTodayHabits = DB.habits.filter(h => DB.habitLog[h.id + '_' + todayStr]).length;
+  document.getElementById('today-habits-done').textContent = doneTodayHabits;
+  document.getElementById('today-habits-sub').textContent = `of ${totalHabits} completed`;
+
+  const buyCount = countNeedToBuy();
+  document.getElementById('today-buy-count').textContent = buyCount;
+  document.getElementById('today-outfit-count').textContent = DB.outfits.length;
+
+  updateNavBuyBadge(buyCount);
+
+  // Routine mini-cards
+  const routineInfo = {
+    morning: { emoji:'🌅', label:'Morning Routine' },
+    evening: { emoji:'🌙', label:'Evening Routine' },
+    gym:     { emoji:'💪', label:'Gym Routine' },
+    weekly:  { emoji:'📆', label:'Weekly Habits' }
+  };
+
+  Object.entries(routineInfo).forEach(([key, info]) => {
+    const steps = DB.routines[key] || [];
+    const done = steps.filter(s => DB.routineChecks[key+'_'+s.id+'_'+todayStr]).length;
+    const total = steps.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const el = document.getElementById('today-' + (key==='morning'?'morning':key==='evening'?'evening':key==='gym'?'gym':'weekly') + '-card');
+    if (!el) return;
+
+    if (total === 0) {
+      el.innerHTML = `<div class="today-routine-header"><div class="today-routine-title">${info.emoji} ${info.label}</div></div><div style="color:var(--text-muted);font-size:13px;">No steps added yet. <button class="btn-ghost" style="font-size:12px;padding:2px 6px;" onclick="showPage('${key}')">Set up →</button></div>`;
+      return;
+    }
+
+    const checkboxes = steps.slice(0,4).map(s => {
+      const checked = !!DB.routineChecks[key+'_'+s.id+'_'+todayStr];
+      return `<div class="routine-step ${checked?'done':''}" style="padding:7px 12px;margin-bottom:5px;">
+        <input type="checkbox" ${checked?'checked':''} onchange="toggleStep('${key}','${s.id}',this)">
+        <span class="step-name" style="font-size:13px;">${s.name}</span>
+        ${s.duration ? `<span class="step-time">${s.duration}</span>` : ''}
+      </div>`;
+    }).join('');
+    const more = total > 4 ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px;">+${total-4} more · <button class="btn-ghost" style="font-size:12px;" onclick="showPage('${key}')">See all</button></div>` : '';
+
+    el.innerHTML = `
+      <div class="today-routine-header">
+        <div class="today-routine-title">${info.emoji} ${info.label}</div>
+        <span class="routine-progress-text">${done}/${total} done</span>
+      </div>
+      <div class="routine-mini-bar"><div class="routine-mini-fill" style="width:${pct}%"></div></div>
+      ${checkboxes}${more}`;
+  });
+}
+
+function calcStreak() {
+  if (DB.habits.length === 0) return 0;
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 365; i++) {
+    const dateStr = d.toISOString().split('T')[0];
+    const allDone = DB.habits.every(h => DB.habitLog[h.id + '_' + dateStr]);
+    if (allDone) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function countNeedToBuy() {
+  let count = 0;
+  DB.products.skincare.forEach(p => { if (p.stock==='low'||p.stock==='empty') count++; });
+  DB.products.supps.forEach(p => { if (p.stock==='low'||p.stock==='empty') count++; });
+  DB.products.clothes.forEach(p => { if (p.priority==='high') count++; });
+  return count;
+}
+
+function updateNavBuyBadge(count) {
+  const badge = document.getElementById('nav-buy-count');
+  if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+  else badge.style.display = 'none';
+}
+
+// ============================================================
+// ROUTINES
+// ============================================================
+const ROUTINE_LABELS = {
+  morning: { emoji:'🌅', label:'Morning Routine', tip:'Tip: Order steps from most to least important so you nail the essentials even on rushed days.' },
+  evening: { emoji:'🌙', label:'Evening Routine', tip:'Tip: A consistent evening routine dramatically improves sleep quality and skin health.' },
+  gym:     { emoji:'💪', label:'Gym Routine', tip:'Tip: Pre-workout, workout steps, and recovery all in one place.' },
+  weekly:  { emoji:'📆', label:'Weekly Habits', tip:'Tip: Check these off once per week — laundry, meal prep, planning, etc.' }
+};
+
+function renderRoutinePage(key) {
+  const info = ROUTINE_LABELS[key];
+  const steps = DB.routines[key] || [];
+  const todayStr = today();
+  const container = document.getElementById(key + '-content');
+
+  const totalTime = steps.reduce((sum, s) => {
+    const m = parseInt(s.duration); return sum + (isNaN(m) ? 0 : m);
+  }, 0);
+
+  let html = `
+    <div style="background:var(--accent-light);border:1px solid #c8dece;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--accent);">
+      ${info.tip}
+    </div>
+    <div class="section-header" style="margin-bottom:16px;">
+      <div style="color:var(--text-secondary);font-size:13px;">${steps.length} steps ${totalTime ? '· ~'+totalTime+' min total' : ''}</div>
+      <button class="btn btn-primary" onclick="openStepModal('${key}')">+ Add Step</button>
+    </div>`;
+
+  if (steps.length === 0) {
+    html += `<div class="empty-state card"><div class="ei">${info.emoji}</div><p>No steps yet — add your first one above.</p></div>`;
+  } else {
+    html += `<div id="${key}-steps-list">`;
+    steps.forEach((s, i) => {
+      const checked = !!DB.routineChecks[key+'_'+s.id+'_'+todayStr];
+      const catColors = {Skincare:'badge-green',Body:'badge-blue',Hair:'badge-purple',Nutrition:'badge-amber',Exercise:'badge-red',Mental:'badge-purple',Hygiene:'badge-gray'};
+      const catBadge = s.category ? `<span class="badge ${catColors[s.category]||'badge-gray'}" style="font-size:10px;padding:2px 7px;">${s.category}</span>` : '';
+      html += `<div class="routine-step ${checked?'done':''}" id="step-row-${s.id}">
+        <span class="step-drag" style="cursor:default;color:var(--border);">⋮⋮</span>
+        <input type="checkbox" ${checked?'checked':''} onchange="toggleStep('${key}','${s.id}',this)">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="step-name">${s.name}</span>
+            ${catBadge}
+          </div>
+          ${s.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${s.notes}</div>` : ''}
+        </div>
+        ${s.duration ? `<span class="step-time">${s.duration}</span>` : ''}
+        <div class="row-actions">
+          <button class="btn btn-secondary btn-xs" onclick="openStepModal('${key}','${s.id}')">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteStep('${key}','${s.id}')">🗑</button>
+          ${i>0?`<button class="btn btn-secondary btn-xs" onclick="moveStep('${key}','${s.id}',-1)">↑</button>`:''}
+          ${i<steps.length-1?`<button class="btn btn-secondary btn-xs" onclick="moveStep('${key}','${s.id}',1)">↓</button>`:''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+
+    const done = steps.filter(s => DB.routineChecks[key+'_'+s.id+'_'+todayStr]).length;
+    const pct = Math.round(done/steps.length*100);
+    html += `<div class="card" style="margin-top:16px;">
+      <div class="card-title">Today's Progress</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+        <span>${done} of ${steps.length} steps done today</span>
+        <span style="font-weight:700;color:var(--accent);">${pct}%</span>
+      </div>
+      <div class="progress-bar" style="height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:4px;transition:width 0.3s;"></div>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function toggleStep(routineKey, stepId, el) {
+  const key = routineKey + '_' + stepId + '_' + today();
+  DB.routineChecks[key] = el.checked;
+  const row = document.getElementById('step-row-' + stepId);
+  if (row) { row.classList.toggle('done', el.checked); row.querySelector('.step-name').style.textDecoration = el.checked ? 'line-through' : ''; }
+  save();
+  // Update today progress if on same routine page
+  const pctEl = document.querySelector(`#${routineKey}-content .card`);
+  renderRoutinePage(routineKey);
+}
+
+function openStepModal(routineKey, stepId) {
+  document.getElementById('step-routine-key').value = routineKey;
+  document.getElementById('step-edit-id').value = stepId || '';
+  document.getElementById('step-modal-title').textContent = stepId ? 'Edit Step' : 'Add Step';
+  if (stepId) {
+    const s = (DB.routines[routineKey]||[]).find(x => x.id===stepId);
+    if (s) {
+      document.getElementById('step-name').value = s.name;
+      document.getElementById('step-duration').value = s.duration||'';
+      document.getElementById('step-category').value = s.category||'';
+      document.getElementById('step-notes').value = s.notes||'';
+    }
+  } else {
+    document.getElementById('step-name').value='';
+    document.getElementById('step-duration').value='';
+    document.getElementById('step-category').value='';
+    document.getElementById('step-notes').value='';
+  }
+  openModal('step-modal', stepId||null);
+}
+
+function saveStep() {
+  const name = document.getElementById('step-name').value.trim();
+  if (!name) { alert('Please enter a step name.'); return; }
+  const key = document.getElementById('step-routine-key').value;
+  const editId = document.getElementById('step-edit-id').value;
+
+  const step = {
+    id: editId || uid(),
+    name,
+    duration: document.getElementById('step-duration').value,
+    category: document.getElementById('step-category').value,
+    notes: document.getElementById('step-notes').value
+  };
+
+  if (!DB.routines[key]) DB.routines[key] = [];
+  if (editId) {
+    const idx = DB.routines[key].findIndex(s => s.id===editId);
+    if (idx>=0) DB.routines[key][idx] = step;
+  } else {
+    DB.routines[key].push(step);
+  }
+  save();
+  closeModal('step-modal');
+  renderRoutinePage(key);
+}
+
+function deleteStep(key, id) {
+  if (!confirm('Delete this step?')) return;
+  DB.routines[key] = (DB.routines[key]||[]).filter(s => s.id!==id);
+  save();
+  renderRoutinePage(key);
+}
+
+function moveStep(key, id, dir) {
+  const arr = DB.routines[key];
+  const i = arr.findIndex(s => s.id===id);
+  const j = i+dir;
+  if (j<0||j>=arr.length) return;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  save();
+  renderRoutinePage(key);
+}
+
+// ============================================================
+// HABIT TRACKER
+// ============================================================
+if (!DB.habitViewMonth) DB.habitViewMonth = new Date().toISOString().slice(0,7);
+
+function changeMonth(dir) {
+  const [y,m] = DB.habitViewMonth.split('-').map(Number);
+  const d = new Date(y, m-1+dir, 1);
+  DB.habitViewMonth = d.toISOString().slice(0,7);
+  renderHabits();
+}
+
+function saveHabit() {
+  const name = document.getElementById('habit-name').value.trim();
+  if (!name) { alert('Please enter a habit name.'); return; }
+  const editId = document.getElementById('habit-edit-id').value;
+  const habit = {
+    id: editId || uid(),
+    name,
+    icon: document.getElementById('habit-icon').value || '✅',
+    category: document.getElementById('habit-category').value
+  };
+  if (editId) {
+    const i = DB.habits.findIndex(h=>h.id===editId);
+    if (i>=0) DB.habits[i]=habit;
+  } else {
+    DB.habits.push(habit);
+  }
+  save();
+  closeModal('habit-modal');
+  renderHabits();
+}
+
+function deleteHabit(id) {
+  if (!confirm('Delete this habit? All log data will be lost.')) return;
+  DB.habits = DB.habits.filter(h=>h.id!==id);
+  save();
+  renderHabits();
+}
+
+function toggleHabitDay(habitId, dateStr) {
+  const key = habitId+'_'+dateStr;
+  DB.habitLog[key] = !DB.habitLog[key];
+  if (!DB.habitLog[key]) delete DB.habitLog[key];
+  save();
+  renderHabits();
+}
+
+function calcHabitStreak(habitId) {
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 365; i++) {
+    const ds = d.toISOString().split('T')[0];
+    if (DB.habitLog[habitId+'_'+ds]) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function renderHabits() {
+  if (!DB.habitViewMonth) DB.habitViewMonth = new Date().toISOString().slice(0,7);
+  const [y,m] = DB.habitViewMonth.split('-').map(Number);
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('habit-month-label').textContent = `${monthNames[m-1]} ${y}`;
+
+  const daysInMonth = new Date(y,m,0).getDate();
+  const todayStr = today();
+
+  // Day labels
+  const dayNums = Array.from({length:daysInMonth},(_,i)=>i+1);
+  const headerHtml = `<div style="display:flex;gap:4px;margin-bottom:4px;padding-left:150px;">
+    ${dayNums.map(d=>`<div style="width:24px;text-align:center;font-size:9px;color:var(--text-muted);font-weight:600;">${d}</div>`).join('')}
+  </div>`;
+
+  const grid = document.getElementById('habit-tracker-grid');
+  const manageList = document.getElementById('habit-manage-list');
+
+  if (DB.habits.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">🔥</div><p>Add habits to start tracking.</p></div>';
+    manageList.innerHTML = '';
+    return;
+  }
+
+  let gridHtml = headerHtml;
+  DB.habits.forEach(h => {
+    const streak = calcHabitStreak(h.id);
+    const row = dayNums.map(d => {
+      const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const done = !!DB.habitLog[h.id+'_'+ds];
+      const isToday = ds===todayStr;
+      const isFuture = ds>todayStr;
+      return `<div class="habit-day ${done?'done':''} ${isToday?'today':''}"
+        onclick="${isFuture?'':''}"
+        style="cursor:${isFuture?'default':'pointer'};opacity:${isFuture?0.3:1};"
+        ${!isFuture?`onclick="toggleHabitDay('${h.id}','${ds}')" title="${ds}"`:''}>
+      </div>`;
+    }).join('');
+    gridHtml += `<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+      <div style="width:150px;display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <span style="font-size:16px;">${h.icon}</span>
+        <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.name}</span>
+      </div>
+      ${row}
+      <span class="habit-streak" style="margin-left:8px;width:50px;font-size:11px;">${streak>0?'🔥'+streak+'d':''}</span>
+    </div>`;
+  });
+
+  // Monthly completion row
+  gridHtml += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);display:flex;gap:4px;align-items:center;">
+    <div style="width:150px;font-size:11px;font-weight:700;color:var(--text-muted);">DAILY SCORE</div>
+    ${dayNums.map(d => {
+      const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const done = DB.habits.filter(h => DB.habitLog[h.id+'_'+ds]).length;
+      const total = DB.habits.length;
+      const pct = total ? done/total : 0;
+      const bg = pct===1?'var(--accent)':pct>0.5?'#a0c4ae':pct>0?'#d0e6d8':'var(--border-light)';
+      const isFuture = ds>todayStr;
+      return `<div style="width:24px;height:24px;background:${isFuture?'transparent':bg};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;font-weight:700;${isFuture?'':'border:1px solid '+bg};" title="${done}/${total} on ${ds}">${(!isFuture&&done>0)?done:''}</div>`;
+    }).join('')}
+  </div>`;
+
+  grid.innerHTML = gridHtml;
+
+  // Manage list
+  manageList.innerHTML = DB.habits.map(h => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);">
+      <span style="font-size:18px;">${h.icon}</span>
+      <span style="font-size:13px;font-weight:600;flex:1;">${h.name}</span>
+      <span class="badge badge-gray">${h.category}</span>
+      <button class="btn btn-danger btn-xs" onclick="deleteHabit('${h.id}')">Delete</button>
+    </div>`).join('');
+}
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+let activeProductTab = 'skincare';
+
+function switchProductTab(tab, el) {
+  activeProductTab = tab;
+  document.querySelectorAll('#products-skincare-tab,#products-clothes-tab,#products-supps-tab').forEach(d=>d.style.display='none');
+  document.querySelectorAll('.tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('products-'+tab+'-tab').style.display='';
+  const titles = {skincare:'Skincare & Grooming',clothes:'Clothes Wishlist',supps:'Supplements & Health'};
+  document.getElementById('prod-tab-title').textContent = titles[tab];
+  renderProducts();
+}
+
+function openAddProduct() {
+  document.getElementById('product-tab-key').value = activeProductTab;
+  document.getElementById('product-edit-id').value = '';
+  document.getElementById('product-modal-title').textContent = 'Add Product';
+  // Show/hide fields
+  document.getElementById('skincare-fields').style.display = activeProductTab==='skincare'?'':'none';
+  document.getElementById('clothes-fields').style.display = activeProductTab==='clothes'?'':'none';
+  document.getElementById('supps-fields').style.display = activeProductTab==='supps'?'':'none';
+  openModal('product-modal');
+}
+
+function editProduct(tab, id) {
+  const p = DB.products[tab].find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('product-tab-key').value = tab;
+  document.getElementById('product-edit-id').value = id;
+  document.getElementById('product-modal-title').textContent = 'Edit Product';
+  document.getElementById('prod-name').value = p.name;
+  document.getElementById('prod-brand').value = p.brand||'';
+  document.getElementById('prod-notes').value = p.notes||'';
+  document.getElementById('skincare-fields').style.display = tab==='skincare'?'':'none';
+  document.getElementById('clothes-fields').style.display = tab==='clothes'?'':'none';
+  document.getElementById('supps-fields').style.display = tab==='supps'?'':'none';
+  if (tab==='skincare') {
+    document.getElementById('prod-cat').value = p.cat||'';
+    document.getElementById('prod-stock').value = p.stock||'full';
+    document.getElementById('prod-expiry').value = p.expiry||'';
+    document.getElementById('prod-rating').value = p.rating||'';
+  } else if (tab==='clothes') {
+    document.getElementById('prod-clothes-type').value = p.clothesType||'';
+    document.getElementById('prod-clothes-priority').value = p.priority||'medium';
+    document.getElementById('prod-clothes-budget').value = p.budget||'';
+    document.getElementById('prod-clothes-link').value = p.link||'';
+  } else {
+    document.getElementById('prod-supp-type').value = p.suppType||'';
+    document.getElementById('prod-supp-stock').value = p.stock||'full';
+    document.getElementById('prod-supp-dose').value = p.dose||'';
+    document.getElementById('prod-supp-link').value = p.link||'';
+  }
+  openModal('product-modal', id);
+}
+
+function saveProduct() {
+  const name = document.getElementById('prod-name').value.trim();
+  if (!name) { alert('Please enter a product name.'); return; }
+  const tab = document.getElementById('product-tab-key').value;
+  const editId = document.getElementById('product-edit-id').value;
+
+  let product = { id: editId||uid(), name, brand: document.getElementById('prod-brand').value, notes: document.getElementById('prod-notes').value };
+  if (tab==='skincare') {
+    product = {...product, cat:document.getElementById('prod-cat').value, stock:document.getElementById('prod-stock').value, expiry:document.getElementById('prod-expiry').value, rating:document.getElementById('prod-rating').value };
+  } else if (tab==='clothes') {
+    product = {...product, clothesType:document.getElementById('prod-clothes-type').value, priority:document.getElementById('prod-clothes-priority').value, budget:document.getElementById('prod-clothes-budget').value, link:document.getElementById('prod-clothes-link').value };
+  } else {
+    product = {...product, suppType:document.getElementById('prod-supp-type').value, stock:document.getElementById('prod-supp-stock').value, dose:document.getElementById('prod-supp-dose').value, link:document.getElementById('prod-supp-link').value };
+  }
+
+  if (editId) {
+    const i = DB.products[tab].findIndex(p=>p.id===editId);
+    if (i>=0) DB.products[tab][i]=product;
+  } else {
+    DB.products[tab].push(product);
+  }
+  save();
+  closeModal('product-modal');
+  renderProducts();
+}
+
+function deleteProduct(tab, id) {
+  if (!confirm('Delete this product?')) return;
+  DB.products[tab] = DB.products[tab].filter(p=>p.id!==id);
+  save();
+  renderProducts();
+}
+
+function renderProducts() {
+  const buyItems = [];
+  DB.products.skincare.forEach(p => { if(p.stock==='low'||p.stock==='empty') buyItems.push(p.name+(p.brand?' ('+p.brand+')':'')); });
+  DB.products.supps.forEach(p => { if(p.stock==='low'||p.stock==='empty') buyItems.push(p.name+(p.brand?' ('+p.brand+')':'')); });
+  DB.products.clothes.forEach(p => { if(p.priority==='high') buyItems.push(p.name+' [Clothes]'); });
+
+  const alert = document.getElementById('products-buy-alert');
+  if (buyItems.length > 0) {
+    alert.style.display='';
+    alert.innerHTML = `🛒 <strong>Need to buy:</strong> ${buyItems.join(', ')}`;
+  } else { alert.style.display='none'; }
+
+  updateNavBuyBadge(buyItems.length);
+
+  // Skincare
+  const skGrid = document.getElementById('products-skincare-grid');
+  const sk = DB.products.skincare;
+  if (sk.length===0) { skGrid.innerHTML='<div class="empty-state card" style="grid-column:1/-1;"><div class="ei">🧴</div><p>Add your skincare & grooming products.</p></div>'; }
+  else {
+    const stockPct = {full:100, medium:55, low:20, empty:0};
+    const stars = r => r ? '⭐'.repeat(parseInt(r)) : '';
+    skGrid.innerHTML = sk.map(p => {
+      const pct = stockPct[p.stock]||100;
+      const cls = pct===100?'stock-full':pct>=50?'stock-medium':'stock-low';
+      const urgent = p.stock==='empty'||p.stock==='low';
+      const expTxt = p.expiry ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Opened: ${new Date(p.expiry+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'})}</div>` : '';
+      return `<div class="product-card ${urgent?(p.stock==='empty'?'urgent':'low'):''}">
+        <div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-brand">${p.brand||''} ${p.cat?'· '+p.cat:''}</div>
+          ${expTxt}
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
+            <span>Stock</span>
+            <span>${{full:'Stocked',medium:'Getting low',low:'Running out!',empty:'Empty'}[p.stock]||''}</span>
+          </div>
+          <div class="stock-bar ${cls}"><div class="stock-fill" style="width:${pct}%"></div></div>
+        </div>
+        ${p.rating?`<div style="font-size:12px;">${stars(p.rating)}</div>`:''}
+        ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);">${p.notes}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button class="btn btn-secondary btn-xs" onclick="editProduct('skincare','${p.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteProduct('skincare','${p.id}')">🗑 Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Clothes
+  const clList = document.getElementById('products-clothes-list');
+  const cl = DB.products.clothes;
+  if (cl.length===0) { clList.innerHTML='<div class="empty-state card"><div class="ei">👗</div><p>Add clothes you want to buy.</p></div>'; }
+  else {
+    const sortedCl = [...cl].sort((a,b)=>({high:0,medium:1,low:2}[a.priority]||1)-({high:0,medium:1,low:2}[b.priority]||1));
+    clList.innerHTML='<div class="card"><div>';
+    clList.innerHTML = `<div class="card"><div>${sortedCl.map(p=>`
+      <div class="wish-item">
+        <div class="wish-priority ${p.priority||'medium'}"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;">${p.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${p.brand||''} ${p.clothesType?'· '+p.clothesType:''} ${p.budget?'· '+p.budget:''}</div>
+          ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.notes}</div>`:''}
+        </div>
+        <span class="badge badge-${p.priority==='high'?'red':p.priority==='medium'?'amber':'green'}">${{high:'Need now',medium:'Want soon',low:'Wishlist'}[p.priority]||''}</span>
+        ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs">🔗</a>`:''}
+        <button class="btn btn-secondary btn-xs" onclick="editProduct('clothes','${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteProduct('clothes','${p.id}')">🗑</button>
+      </div>`).join('')}</div></div>`;
+  }
+
+  // Supps
+  const suGrid = document.getElementById('products-supps-grid');
+  const su = DB.products.supps;
+  const stockPct2 = {full:100, medium:55, low:20, empty:0};
+  if (su.length===0) { suGrid.innerHTML='<div class="empty-state card" style="grid-column:1/-1;"><div class="ei">💊</div><p>Add your supplements & vitamins.</p></div>'; }
+  else {
+    suGrid.innerHTML = su.map(p => {
+      const pct = stockPct2[p.stock]||100;
+      const cls = pct===100?'stock-full':pct>=50?'stock-medium':'stock-low';
+      const urgent = p.stock==='empty'||p.stock==='low';
+      return `<div class="product-card ${urgent?(p.stock==='empty'?'urgent':'low'):''}">
+        <div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-brand">${p.brand||''} ${p.suppType?'· '+p.suppType:''}</div>
+          ${p.dose?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">📋 ${p.dose}</div>`:''}
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
+            <span>Stock</span><span>${{full:'Stocked',medium:'Getting low',low:'Running out!',empty:'Empty'}[p.stock]||''}</span>
+          </div>
+          <div class="stock-bar ${cls}"><div class="stock-fill" style="width:${pct}%"></div></div>
+        </div>
+        ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);">${p.notes}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs">🔗 Buy</a>`:''}
+          <button class="btn btn-secondary btn-xs" onclick="editProduct('supps','${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteProduct('supps','${p.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ============================================================
+// WARDROBE
+// ============================================================
+function switchWardrobeTab(tab, el) {
+  currentWardrobeTab = tab;
+  document.getElementById('wardrobe-outfits-tab').style.display = tab==='outfits'?'':'none';
+  document.getElementById('wardrobe-planner-tab').style.display = tab==='planner'?'':'none';
+  document.querySelectorAll('#page-wardrobe .tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if (tab==='planner') renderWeekPlanner();
+}
+
+function saveOutfit() {
+  const name = document.getElementById('outfit-name').value.trim();
+  if (!name) { alert('Please enter an outfit name.'); return; }
+  const editId = document.getElementById('outfit-edit-id').value;
+  const outfit = {
+    id: editId||uid(),
+    name,
+    occ: document.getElementById('outfit-occ').value,
+    season: document.getElementById('outfit-season').value,
+    rating: document.getElementById('outfit-rating').value,
+    items: document.getElementById('outfit-items').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    notes: document.getElementById('outfit-notes').value
+  };
+  if (editId) {
+    const i = DB.outfits.findIndex(o=>o.id===editId);
+    if (i>=0) DB.outfits[i]=outfit;
+  } else {
+    DB.outfits.push(outfit);
+  }
+  save();
+  closeModal('outfit-modal');
+  renderOutfits();
+}
+
+function editOutfit(id) {
+  const o = DB.outfits.find(x=>x.id===id);
+  if (!o) return;
+  document.getElementById('outfit-modal-title').textContent='Edit Outfit';
+  document.getElementById('outfit-edit-id').value=o.id;
+  document.getElementById('outfit-name').value=o.name;
+  document.getElementById('outfit-occ').value=o.occ;
+  document.getElementById('outfit-season').value=o.season;
+  document.getElementById('outfit-rating').value=o.rating;
+  document.getElementById('outfit-items').value=(o.items||[]).join('\n');
+  document.getElementById('outfit-notes').value=o.notes||'';
+  openModal('outfit-modal',id);
+}
+
+function deleteOutfit(id) {
+  if (!confirm('Delete this outfit?')) return;
+  DB.outfits = DB.outfits.filter(o=>o.id!==id);
+  save();
+  renderOutfits();
+}
+
+function renderOutfits() {
+  const seasonFilter = document.getElementById('outfit-filter-season').value;
+  const occFilter = document.getElementById('outfit-filter-occ').value;
+  const list = DB.outfits.filter(o => (!seasonFilter||(o.season===seasonFilter||o.season==='Any')) && (!occFilter||o.occ===occFilter));
+  const grid = document.getElementById('outfits-grid');
+  if (list.length===0) {
+    grid.innerHTML='<div class="empty-state card" style="grid-column:1/-1;"><div class="ei">👕</div><p>Save your go-to outfits above.</p></div>';
+    return;
+  }
+  const stars=r=>'⭐'.repeat(parseInt(r)||0);
+  grid.innerHTML = list.map(o=>`<div class="outfit-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+      <div>
+        <div class="outfit-name">${o.name}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-gray">${o.occ}</span>
+          <span class="badge badge-blue">${o.season}</span>
+          ${o.rating?`<span style="font-size:11px;">${stars(o.rating)}</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-secondary btn-xs" onclick="editOutfit('${o.id}')">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteOutfit('${o.id}')">🗑</button>
+      </div>
+    </div>
+    <div>${(o.items||[]).map(item=>`<div class="outfit-item">· ${item}</div>`).join('')}</div>
+    ${o.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);">${o.notes}</div>`:''}
+  </div>`).join('');
+}
+
+function renderWeekPlanner() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const grid = document.getElementById('week-planner-grid');
+  grid.innerHTML = days.map(day=>{
+    const outfitId = DB.weekPlanner[day];
+    const outfit = outfitId ? DB.outfits.find(o=>o.id===outfitId) : null;
+    const options = DB.outfits.map(o=>`<option value="${o.id}" ${outfitId===o.id?'selected':''}>${o.name}</option>`).join('');
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light);">
+      <div style="width:40px;font-size:13px;font-weight:700;color:var(--text-muted);">${day}</div>
+      <select style="flex:1;padding:7px 10px;" onchange="setDayOutfit('${day}',this.value)">
+        <option value="">— No outfit planned —</option>
+        ${options}
+      </select>
+      ${outfit?`<div style="font-size:12px;color:var(--text-secondary);">${(outfit.items||[]).slice(0,2).join(', ')}${outfit.items.length>2?'...':''}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function setDayOutfit(day, outfitId) {
+  if (outfitId) DB.weekPlanner[day] = outfitId;
+  else delete DB.weekPlanner[day];
+  save();
+  renderWeekPlanner();
+}
+
+function renderWardrobe() {
+  renderOutfits();
+  if (currentWardrobeTab==='planner') renderWeekPlanner();
+}
+
+// ============================================================
+// JOURNAL
+// ============================================================
+let selectedMood = '';
+function selectMood(btn, mood) {
+  selectedMood = mood;
+  document.querySelectorAll('#mood-picker .btn').forEach(b=>b.classList.remove('btn-primary'));
+  document.querySelectorAll('#mood-picker .btn').forEach(b=>b.classList.add('btn-secondary'));
+  btn.classList.remove('btn-secondary');
+  btn.classList.add('btn-primary');
+}
+
+function saveJournalEntry() {
+  const entry = {
+    id: uid(),
+    date: today(),
+    mood: selectedMood,
+    energy: document.getElementById('j-energy').value,
+    skin: document.getElementById('j-skin').value,
+    notes: document.getElementById('j-notes').value
+  };
+  // Replace existing entry for today
+  DB.journal = DB.journal.filter(e=>e.date!==today());
+  DB.journal.unshift(entry);
+  save();
+  renderJournal();
+  // Reset
+  document.getElementById('j-notes').value='';
+  document.getElementById('j-skin').value='';
+  document.getElementById('j-energy').value='7';
+  document.getElementById('j-energy-val').textContent='7';
+  document.querySelectorAll('#mood-picker .btn').forEach(b=>{b.classList.remove('btn-primary');b.classList.add('btn-secondary');});
+  selectedMood='';
+}
+
+function deleteJournalEntry(id) {
+  DB.journal = DB.journal.filter(e=>e.id!==id);
+  save();
+  renderJournal();
+}
+
+function renderJournal() {
+  const list = document.getElementById('journal-entries-list');
+  if (DB.journal.length===0) {
+    list.innerHTML='<div class="empty-state" style="padding:20px 0;"><p>No entries yet. Log your first entry →</p></div>';
+    return;
+  }
+  const skinColors={'Clear ✨':'var(--green)','Mostly clear':'var(--green)','Slight breakout':'var(--amber)','Dry / tight':'var(--blue)','Oily':'var(--amber)','Sensitive / red':'var(--red)','Bad breakout':'var(--red)'};
+  list.innerHTML = DB.journal.slice(0,20).map(e=>{
+    const d = new Date(e.date+'T12:00:00');
+    const dateStr = d.toLocaleDateString('en-IE',{weekday:'short',day:'numeric',month:'short'});
+    return `<div class="journal-entry">
+      <div class="journal-meta">
+        <span style="font-weight:700;color:var(--text);">${dateStr}</span>
+        ${e.mood?`<span>${e.mood}</span>`:''}
+        ${e.energy?`<span>⚡ ${e.energy}/10</span>`:''}
+        ${e.skin?`<span style="color:${skinColors[e.skin]||'var(--text-muted)'};">Skin: ${e.skin}</span>`:''}
+        <button class="btn-ghost" style="margin-left:auto;font-size:11px;padding:1px 5px;" onclick="deleteJournalEntry('${e.id}')">✕</button>
+      </div>
+      ${e.notes?`<div class="journal-text">${e.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+load();
+initDateGreeting();
+renderToday();
+renderJournal();
+renderOutfits();
+updateNavBuyBadge(countNeedToBuy());
+
+// Reload today's date display each minute
+setInterval(initDateGreeting, 60000);
+</script>
+</body>
+</html>
