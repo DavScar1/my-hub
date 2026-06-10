@@ -389,11 +389,48 @@ a{color:var(--accent);text-decoration:none;}
 a:hover{text-decoration:underline;}
 
 @media(max-width:900px){
-  .sidebar{width:200px;}
-  .main{margin-left:200px;}
-  .page{padding:20px;}
   .grid-4{grid-template-columns:1fr 1fr;}
   .grid-3{grid-template-columns:1fr 1fr;}
+}
+
+/* ============================================================
+   MOBILE SIDEBAR (hamburger drawer)
+============================================================ */
+.sidebar-toggle{
+  display:none;position:fixed;top:12px;left:12px;z-index:101;
+  width:42px;height:42px;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface);
+  align-items:center;justify-content:center;font-size:20px;
+  cursor:pointer;box-shadow:var(--shadow-md);
+}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;}
+.sidebar-overlay.open{display:block;}
+
+@media(max-width:860px){
+  .sidebar-toggle{display:flex;}
+  .sidebar{
+    width:264px;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    box-shadow:0 0 30px rgba(0,0,0,.18);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .page{padding:64px 16px 28px;}
+  .nav-item{padding:11px 16px;font-size:14px;}
+  .nav-item .icon{font-size:16px;}
+}
+
+@media(max-width:600px){
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .modal{padding:18px;border-radius:14px;width:100%;}
+  .tt-summary{grid-template-columns:1fr;}
+  .lc-ref-grid{grid-template-columns:repeat(2,1fr);}
+  .sat-bar-label{width:90px;font-size:11px;}
+  .form-actions{flex-direction:column-reverse;}
+  .form-actions .btn{width:100%;justify-content:center;}
+  .page-header h2{font-size:20px;}
 }
 </style>
 </head>
@@ -419,10 +456,13 @@ a:hover{text-decoration:underline;}
 
 <div class="app">
 
+<button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <!-- ============================================================
      SIDEBAR
 ============================================================ -->
-<nav class="sidebar">
+<nav class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <h1>My Hub</h1>
     <p id="sb-date">Loading...</p>
@@ -1447,6 +1487,17 @@ function showPage(id) {
   const btn = document.querySelector(`[onclick="showPage('${id}')"]`);
   if (btn) btn.classList.add('active');
   if (typeof renderPage === 'function') renderPage(id);
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
 }
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -1550,16 +1601,6 @@ function today() { return dateStr(); }
 // ============================================================
 // NAVIGATION (merged)
 // ============================================================
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const page = document.getElementById('page-' + id);
-  if (page) page.classList.add('active');
-  const btn = document.querySelector(`[onclick="showPage('${id}')"]`);
-  if (btn) btn.classList.add('active');
-  renderPage(id);
-}
-
 function renderPage(id) {
   // College pages (prefixed c-)
   if (id === 'c-dashboard') renderDashboard();
