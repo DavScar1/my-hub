@@ -247,11 +247,28 @@ tr:hover .row-actions{opacity:1;}
 /* ============================================================
    HABIT GRID (life)
 ============================================================ */
-.habit-day{width:23px;height:23px;border-radius:5px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;font-size:9px;}
+.habit-day{border-radius:5px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .12s;}
 .habit-day:hover{border-color:var(--accent);}
 .habit-day.done{background:var(--accent);border-color:var(--accent);}
 .habit-day.today{border-color:var(--accent);border-width:2px;}
-.habit-streak{font-size:11px;color:var(--amber);font-weight:700;white-space:nowrap;}
+.habit-streak{font-size:11px;color:var(--amber);font-weight:700;white-space:nowrap;flex-shrink:0;}
+
+/* Habit grid: fixed names column + horizontally scrollable days */
+.habit-grid-row{display:flex;align-items:flex-start;}
+.habit-names-col{flex-shrink:0;width:148px;padding-right:8px;min-width:0;}
+.habit-days-col{flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.hr-header{height:16px;margin-bottom:4px;display:flex;align-items:center;}
+.hr-habit{height:23px;margin-bottom:6px;display:flex;align-items:center;}
+.hr-score{height:24px;padding-top:12px;border-top:1px solid var(--border-light);display:flex;align-items:center;}
+.habit-cell{width:23px;height:23px;flex-shrink:0;text-align:center;font-size:9px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;justify-content:center;}
+.habit-name-text{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.habit-score-label{font-size:11px;font-weight:700;color:var(--text-muted);}
+
+@media(max-width:600px){
+  .habit-day,.habit-cell{width:20px;height:20px;}
+  .habit-names-col{width:116px;}
+  .habit-streak{font-size:10px;}
+}
 /* Time tracker */
 .tt-section{margin-top:32px;}
 .tt-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--border-light);}
@@ -768,8 +785,12 @@ a:hover{text-decoration:underline;}
       </div>
       <button class="btn btn-primary" onclick="openModal('habit-modal')">+ Add Habit</button>
     </div>
-    <div class="card" style="overflow-x:auto;">
-      <div id="habit-tracker-grid"><div class="empty-state"><div class="ei">🔥</div><p>Add habits to start tracking.</p></div></div>
+    <div class="card">
+      <div id="habit-grid-empty" class="empty-state" style="display:none;"><div class="ei">🔥</div><p>Add habits to start tracking.</p></div>
+      <div id="habit-grid-row" class="habit-grid-row">
+        <div class="habit-names-col" id="habit-names-grid"></div>
+        <div class="habit-days-col"><div id="habit-days-grid" style="width:max-content;"></div></div>
+      </div>
     </div>
 
     <!-- Manage habits -->
@@ -2382,17 +2403,29 @@ function renderHabits() {
   document.getElementById('habit-month-label').textContent=`${monthNames[m-1]} ${y}`;
   const daysInMonth=new Date(y,m,0).getDate();const todayStr=today();
   const dayNums=Array.from({length:daysInMonth},(_,i)=>i+1);
-  const headerHtml=`<div style="display:flex;gap:4px;margin-bottom:4px;padding-left:150px;">${dayNums.map(d=>`<div style="width:24px;text-align:center;font-size:9px;color:var(--text-muted);font-weight:600;">${d}</div>`).join('')}</div>`;
-  const grid=document.getElementById('habit-tracker-grid');const manageList=document.getElementById('habit-manage-list');
-  if(DB.habits.length===0){grid.innerHTML='<div class="empty-state"><div class="ei">🔥</div><p>Add habits to start tracking.</p></div>';manageList.innerHTML='';return;}
-  let gridHtml=headerHtml;
+  const namesGrid=document.getElementById('habit-names-grid');
+  const daysGrid=document.getElementById('habit-days-grid');
+  const emptyEl=document.getElementById('habit-grid-empty');
+  const rowEl=document.getElementById('habit-grid-row');
+  const manageList=document.getElementById('habit-manage-list');
+  if(DB.habits.length===0){emptyEl.style.display='';rowEl.style.display='none';manageList.innerHTML='';return;}
+  emptyEl.style.display='none';rowEl.style.display='';
+
+  let namesHtml=`<div class="hr-header"></div>`;
+  let daysHtml=`<div class="hr-header" style="gap:4px;">${dayNums.map(d=>`<div class="habit-cell">${d}</div>`).join('')}</div>`;
+
   DB.habits.forEach(h=>{
     const streak=calcHabitStreak(h.id);
-    const row=dayNums.map(d=>{const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const done=!!DB.habitLog[h.id+'_'+ds];const isToday=ds===todayStr;const isFuture=ds>todayStr;return`<div class="habit-day ${done?'done':''} ${isToday?'today':''}" style="cursor:${isFuture?'default':'pointer'};opacity:${isFuture?0.3:1};" ${!isFuture?`onclick="toggleHabitDay('${h.id}','${ds}')" title="${ds}"`:''} ></div>`;}).join('');
-    gridHtml+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;"><div style="width:150px;display:flex;align-items:center;gap:6px;flex-shrink:0;"><span style="font-size:16px;">${h.icon}</span><span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.name}</span></div>${row}<span class="habit-streak" style="margin-left:8px;width:50px;font-size:11px;">${streak>0?'🔥'+streak+'d':''}</span></div>`;
+    const row=dayNums.map(d=>{const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const done=!!DB.habitLog[h.id+'_'+ds];const isToday=ds===todayStr;const isFuture=ds>todayStr;return`<div class="habit-day habit-cell ${done?'done':''} ${isToday?'today':''}" style="cursor:${isFuture?'default':'pointer'};opacity:${isFuture?0.3:1};" ${!isFuture?`onclick="toggleHabitDay('${h.id}','${ds}')" title="${ds}"`:''} ></div>`;}).join('');
+    namesHtml+=`<div class="hr-habit" style="gap:6px;"><span style="font-size:16px;flex-shrink:0;">${h.icon}</span><span class="habit-name-text">${h.name}</span>${streak>0?`<span class="habit-streak">🔥${streak}d</span>`:''}</div>`;
+    daysHtml+=`<div class="hr-habit" style="gap:4px;">${row}</div>`;
   });
-  gridHtml+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);display:flex;gap:4px;align-items:center;"><div style="width:150px;font-size:11px;font-weight:700;color:var(--text-muted);">DAILY SCORE</div>${dayNums.map(d=>{const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const done=DB.habits.filter(h=>DB.habitLog[h.id+'_'+ds]).length;const total=DB.habits.length;const pct=total?done/total:0;const bg=pct===1?'var(--accent)':pct>0.5?'#a0c4ae':pct>0?'#d0e6d8':'var(--border-light)';const isFuture=ds>todayStr;return`<div style="width:24px;height:24px;background:${isFuture?'transparent':bg};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;font-weight:700;${isFuture?'':'border:1px solid '+bg};" title="${done}/${total} on ${ds}">${(!isFuture&&done>0)?done:''}</div>`;}).join('')}</div>`;
-  grid.innerHTML=gridHtml;
+
+  namesHtml+=`<div class="hr-score"><span class="habit-score-label">DAILY SCORE</span></div>`;
+  daysHtml+=`<div class="hr-score" style="gap:4px;">${dayNums.map(d=>{const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const done=DB.habits.filter(h=>DB.habitLog[h.id+'_'+ds]).length;const total=DB.habits.length;const pct=total?done/total:0;const bg=pct===1?'var(--accent)':pct>0.5?'#a0c4ae':pct>0?'#d0e6d8':'var(--border-light)';const isFuture=ds>todayStr;return`<div class="habit-cell" style="background:${isFuture?'transparent':bg};border-radius:5px;color:white;${isFuture?'':'border:1px solid '+bg};" title="${done}/${total} on ${ds}">${(!isFuture&&done>0)?done:''}</div>`;}).join('')}</div>`;
+
+  namesGrid.innerHTML=namesHtml;
+  daysGrid.innerHTML=daysHtml;
   manageList.innerHTML=DB.habits.map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);"><span style="font-size:18px;">${h.icon}</span><span style="font-size:13px;font-weight:600;flex:1;">${h.name}</span><span class="badge badge-gray">${h.category}</span><button class="btn btn-danger btn-xs" onclick="deleteHabit('${h.id}')">Delete</button></div>`).join('');
   renderTimeTracker();
 }
