@@ -2443,12 +2443,12 @@ function switchProductTab(tab,el) {
   document.getElementById('prod-tab-title').textContent=titles[tab];renderProducts();
 }
 function openAddProduct() {
-  document.getElementById('product-tab-key').value=activeProductTab;document.getElementById('product-edit-id').value='';
   document.getElementById('product-modal-title').textContent='Add Product';
   document.getElementById('skincare-fields').style.display=activeProductTab==='skincare'?'':'none';
   document.getElementById('clothes-fields').style.display=activeProductTab==='clothes'?'':'none';
   document.getElementById('supps-fields').style.display=activeProductTab==='supps'?'':'none';
   openModal('product-modal');
+  document.getElementById('product-tab-key').value=activeProductTab;document.getElementById('product-edit-id').value='';
 }
 function editProduct(tab,id) {
   const p=DB.products[tab].find(x=>x.id===id);if(!p)return;
