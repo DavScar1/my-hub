@@ -557,6 +557,10 @@ a:hover{text-decoration:underline;}
       <div class="stat-card"><div class="stat-value" id="dash-cao">—</div><div class="stat-label">CAO Points</div><div class="stat-sub" id="dash-cao-sub">Set predicted grades</div></div>
       <div class="stat-card"><div class="stat-value" id="dash-ecs">0</div><div class="stat-label">Activities</div><div class="stat-sub">Listed</div></div>
     </div>
+    <div class="card" id="dash-planner-card" style="margin-bottom:18px;display:none;">
+      <div class="card-title" id="dash-planner-title">Current Plan</div>
+      <div id="dash-planner-content"></div>
+    </div>
     <div class="grid-2" style="margin-bottom:18px;">
       <div class="card">
         <div class="card-title">Application Checklist</div>
@@ -1725,6 +1729,8 @@ function renderDashboard() {
   document.getElementById('dash-cao-sub').textContent = hasCAO ? 'incl. Maths bonus' : 'Set predicted grades';
   document.getElementById('dash-ecs').textContent = DB.activities.length;
 
+  renderDashboardPlanner();
+
   // Checklist
   Object.entries(DB.checklist).forEach(([id, checked]) => {
     const el = document.getElementById('chk-' + id);
@@ -2329,7 +2335,38 @@ function deletePlanBlock(id) { if(!confirm('Delete this plan?'))return; DB.plann
 function togglePlanTask(blockId,taskId) {
   const b=DB.planner.find(b=>b.id===blockId);if(!b)return;
   const t=b.tasks.find(t=>t.id===taskId);if(!t)return;
-  t.done=!t.done;save();renderPlanner();
+  t.done=!t.done;save();renderPlanner();renderDashboardPlanner();
+}
+function planTaskListHtml(p) {
+  const done=(p.tasks||[]).filter(t=>t.done).length;const total=(p.tasks||[]).length;
+  const pct=total?Math.round(done/total*100):0;
+  const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+      <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${p.title?` · ${p.title}`:''}</div>
+    </div>
+    ${total?`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;"><span>${done} of ${total} done</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>`:''}
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      ${(p.tasks||[]).map(t=>`<div class="check-item${t.done?' checked':''}"><input type="checkbox" id="dpt-${t.id}" ${t.done?'checked':''} onchange="togglePlanTask('${p.id}','${t.id}')"><label for="dpt-${t.id}">${t.text}</label></div>`).join('')}
+    </div>`;
+}
+function renderDashboardPlanner() {
+  const card=document.getElementById('dash-planner-card');if(!card)return;
+  const now=new Date();
+  const isActive=p=>now>=new Date(p.start+'T12:00:00')&&now<=new Date(p.end+'T23:59:59');
+  const active=DB.planner.filter(isActive).sort((a,b)=>new Date(a.start)-new Date(b.start));
+  const upcoming=DB.planner.filter(p=>new Date(p.start+'T12:00:00')>now).sort((a,b)=>new Date(a.start)-new Date(b.start));
+  const title=document.getElementById('dash-planner-title');
+  const content=document.getElementById('dash-planner-content');
+  if(active.length){
+    card.style.display='';title.textContent='Current Plan';
+    content.innerHTML=active.map((p,i)=>`<div${i>0?' style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);"':''}>${planTaskListHtml(p)}</div>`).join('');
+  } else if(upcoming.length){
+    const p=upcoming[0];
+    card.style.display='';title.textContent='Next Plan';
+    content.innerHTML=planTaskListHtml(p);
+  } else {
+    card.style.display='none';
+  }
 }
 function renderPlanner() {
   const list=document.getElementById('planner-list');
