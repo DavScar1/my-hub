@@ -166,6 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--surface);border-radius:var(--radius-xl);padding:28px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.14);}
+.modal.modal-lg{width:760px;}
 .modal h3{font-size:17px;font-weight:800;margin-bottom:20px;letter-spacing:-.3px;}
 
 /* ============================================================
@@ -672,24 +673,11 @@ a:hover{text-decoration:underline;}
   <!-- Extracurriculars -->
   <div class="page" id="page-c-activities">
     <div class="page-header"><h2>Extracurricular Activities</h2><p>Track your activities and measure real growth with custom metrics.</p></div>
-    <div class="tabs" style="margin-bottom:14px;">
-      <button class="tab-btn active" id="ec-tab-list-btn" onclick="switchECTab('list',this)">Activities</button>
-      <button class="tab-btn" id="ec-tab-metrics-btn" onclick="switchECTab('metrics',this)">📊 Metrics</button>
+    <div class="section-header">
+      <div style="color:var(--text-secondary);font-size:13px;"><span id="ec-count">0</span>/10 activities added</div>
+      <button class="btn btn-primary" onclick="openModal('ec-modal')">+ Add Activity</button>
     </div>
-    <div id="ec-tab-list">
-      <div class="section-header">
-        <div style="color:var(--text-secondary);font-size:13px;"><span id="ec-count">0</span>/10 activities added</div>
-        <button class="btn btn-primary" onclick="openModal('ec-modal')">+ Add Activity</button>
-      </div>
-      <div id="activities-list"><div class="empty-state card"><div class="ei">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div></div>
-    </div>
-    <div id="ec-tab-metrics" style="display:none;">
-      <div class="section-header">
-        <div style="font-size:13px;color:var(--text-secondary);">Define custom metrics per activity and log updates over time.</div>
-        <button class="btn btn-primary" onclick="openECMetricModal()">+ Add Metric</button>
-      </div>
-      <div id="ec-metrics-list"></div>
-    </div>
+    <div id="activities-list"><div class="empty-state card"><div class="ei">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div></div>
   </div>
 
   <!-- Essays -->
@@ -1093,11 +1081,26 @@ a:hover{text-decoration:underline;}
 </div>
 
 <!-- EC Metric modal -->
+<!-- EC Detail / Mini Dashboard modal -->
+<div class="modal-overlay" id="ec-detail-modal">
+  <div class="modal modal-lg">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;">
+      <div>
+        <h3 id="ec-detail-title" style="margin-bottom:2px;">Activity</h3>
+        <div id="ec-detail-sub" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openECMetricModal(undefined, ecDetailActivityId)">+ Add Metric</button>
+    </div>
+    <div id="ec-detail-content"></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('ec-detail-modal')">Close</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="ec-metric-modal">
   <div class="modal">
     <h3 id="ec-metric-modal-title">Add Metric</h3>
     <input type="hidden" id="ec-metric-edit-id">
-    <div class="form-group">
+    <div class="form-group" id="ec-metric-activity-group" style="display:none;">
       <label>Activity *</label>
       <select id="ec-metric-activity"></select>
     </div>
@@ -1657,7 +1660,7 @@ function renderPage(id) {
   if (id === 'c-colleges') { renderColleges(); updateEssayCollegeFilter(); }
   if (id === 'c-leavingcert') renderGrades();
   if (id === 'c-sat') renderSAT();
-  if (id === 'c-activities') { renderActivities(); renderECMetrics(); }
+  if (id === 'c-activities') renderActivities();
   if (id === 'c-essays') renderEssays();
   if (id === 'c-planner') renderPlanner();
   if (id === 'c-recs') renderRecs();
@@ -2062,28 +2065,61 @@ function renderActivities() {
   const count=DB.activities.length;document.getElementById('ec-count').textContent=count;
   const container=document.getElementById('activities-list');
   if(count===0){container.innerHTML=`<div class="empty-state card"><div class="empty-icon">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div>`;return;}
-  container.innerHTML=DB.activities.map((a,i)=>`<div class="card" style="margin-bottom:12px;"><div style="display:flex;align-items:flex-start;gap:12px;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;color:var(--text-muted);min-width:28px;text-align:center;">${i+1}</div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><strong>${a.name}</strong><span class="badge badge-gray">${a.category}</span>${(a.years||[]).map(y=>`<span class="tag">${y}</span>`).join('')}</div>${a.role?`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${a.role}${a.org?' · '+a.org:''}</div>`:''} ${(a.hours||a.weeks)?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.hours?a.hours+'h/wk':''} ${a.weeks?'· '+a.weeks+' wks/yr':''}</div>`:''} ${a.desc?`<div style="margin-top:8px;font-size:12px;background:var(--bg);border-radius:6px;padding:8px 10px;border:1px solid var(--border-light);">${a.desc} <span style="color:var(--text-muted);">(${a.desc.length}/150)</span></div>`:''}</div><div style="display:flex;flex-direction:column;gap:4px;"><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',-1)" ${i===0?'disabled':''}>↑</button><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',1)" ${i===count-1?'disabled':''}>↓</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editEC('${a.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEC('${a.id}')">🗑</button></div></div></div>`).join('');
-}
-
-function switchECTab(tab, el) {
-  document.getElementById('ec-tab-list').style.display = tab==='list' ? '' : 'none';
-  document.getElementById('ec-tab-metrics').style.display = tab==='metrics' ? '' : 'none';
-  document.querySelectorAll('#ec-tab-list-btn,#ec-tab-metrics-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  if (tab==='metrics') renderECMetrics();
+  container.innerHTML=DB.activities.map((a,i)=>{
+    const metricCount=DB.ecMetrics.filter(m=>m.activityId===a.id).length;
+    return `<div class="card" style="margin-bottom:12px;"><div style="display:flex;align-items:flex-start;gap:12px;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;color:var(--text-muted);min-width:28px;text-align:center;">${i+1}</div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><strong>${a.name}</strong><span class="badge badge-gray">${a.category}</span>${(a.years||[]).map(y=>`<span class="tag">${y}</span>`).join('')}</div>${a.role?`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${a.role}${a.org?' · '+a.org:''}</div>`:''} ${(a.hours||a.weeks)?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.hours?a.hours+'h/wk':''} ${a.weeks?'· '+a.weeks+' wks/yr':''}</div>`:''} ${a.desc?`<div style="margin-top:8px;font-size:12px;background:var(--bg);border-radius:6px;padding:8px 10px;border:1px solid var(--border-light);">${a.desc} <span style="color:var(--text-muted);">(${a.desc.length}/150)</span></div>`:''}<div style="margin-top:8px;"><button class="btn btn-secondary btn-sm" onclick="openECDetail('${a.id}')">📊 Metrics${metricCount?' ('+metricCount+')':''}</button></div></div><div style="display:flex;flex-direction:column;gap:4px;"><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',-1)" ${i===0?'disabled':''}>↑</button><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',1)" ${i===count-1?'disabled':''}>↓</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editEC('${a.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEC('${a.id}')">🗑</button></div></div></div>`;
+  }).join('');
 }
 
 // ============================================================
-// EC METRICS
+// EC METRICS / DETAIL MINI-DASHBOARD
 // ============================================================
-function openECMetricModal(editId) {
+let ecDetailActivityId = null;
+
+function openECDetail(activityId) {
+  const a = DB.activities.find(x=>x.id===activityId); if(!a) return;
+  ecDetailActivityId = activityId;
+  document.getElementById('ec-detail-title').textContent = a.name;
+  document.getElementById('ec-detail-sub').textContent = [a.role, a.org].filter(Boolean).join(' · ') || a.category;
+  renderECDetail(activityId);
+  openModal('ec-detail-modal', activityId);
+}
+
+function metricChartSvg(sorted, m) {
+  if (sorted.length < 2) return '';
+  const w=640, h=140, padX=10, padY=20;
+  const values = sorted.map(e=>e.value);
+  let min = Math.min(...values), max = Math.max(...values);
+  if (min===max) { min -= 1; max += 1; }
+  const xStep = (w-2*padX)/(sorted.length-1);
+  const points = sorted.map((e,i)=>{
+    const x = padX + i*xStep;
+    const y = h-padY - ((e.value-min)/(max-min))*(h-2*padY);
+    return [x,y];
+  });
+  const pathD = points.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const areaD = `${pathD} L${points[points.length-1][0].toFixed(1)},${h-padY} L${points[0][0].toFixed(1)},${h-padY} Z`;
+  const dots = points.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="var(--accent)"><title>${new Date(sorted[i].date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'})}: ${sorted[i].value}${m.unit?' '+m.unit:''}</title></circle>`).join('');
+  const fmtDate = d => new Date(d+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'});
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:120px;display:block;">
+    <path d="${areaD}" fill="var(--accent)" opacity="0.08"></path>
+    <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2"></path>
+    ${dots}
+    <text x="${padX}" y="${h-4}" font-size="10" fill="var(--text-muted)">${fmtDate(sorted[0].date)}</text>
+    <text x="${w-padX}" y="${h-4}" font-size="10" fill="var(--text-muted)" text-anchor="end">${fmtDate(sorted[sorted.length-1].date)}</text>
+    <text x="${padX}" y="12" font-size="10" fill="var(--text-muted)">${max}${m.unit?' '+m.unit:''}</text>
+    <text x="${padX}" y="${h-padY-4}" font-size="10" fill="var(--text-muted)">${min}${m.unit?' '+m.unit:''}</text>
+  </svg>`;
+}
+
+function openECMetricModal(editId, activityId) {
   const m = editId ? DB.ecMetrics.find(x=>x.id===editId) : null;
+  const actId = activityId || (m ? m.activityId : ecDetailActivityId);
   document.getElementById('ec-metric-modal-title').textContent = m ? 'Edit Metric' : 'Add Metric';
   document.getElementById('ec-metric-edit-id').value = editId||'';
   const actSel = document.getElementById('ec-metric-activity');
-  actSel.innerHTML = DB.activities.length===0
-    ? '<option value="">— Add an activity first —</option>'
-    : DB.activities.map(a=>`<option value="${a.id}" ${m&&m.activityId===a.id?'selected':''}>${a.name}</option>`).join('');
+  actSel.innerHTML = DB.activities.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  actSel.value = actId;
   document.getElementById('ec-metric-name').value = m ? m.name : '';
   document.getElementById('ec-metric-unit').value = m ? (m.unit||'') : '';
   document.getElementById('ec-metric-direction').value = m ? (m.direction||'up') : 'up';
@@ -2093,19 +2129,20 @@ function openECMetricModal(editId) {
 function saveECMetric() {
   const name = document.getElementById('ec-metric-name').value.trim();
   const actId = document.getElementById('ec-metric-activity').value;
-  if (!name||!actId) { alert('Please enter a metric name and select an activity.'); return; }
+  if (!name||!actId) { alert('Please enter a metric name.'); return; }
   const editId = document.getElementById('ec-metric-edit-id').value;
   const metric = { id:editId||uid(), activityId:actId, name, unit:document.getElementById('ec-metric-unit').value.trim(), direction:document.getElementById('ec-metric-direction').value };
   const idx = editId ? DB.ecMetrics.findIndex(m=>m.id===editId) : -1;
   if (idx>=0) DB.ecMetrics[idx]=metric; else DB.ecMetrics.push(metric);
-  save(); closeModal('ec-metric-modal'); renderECMetrics();
+  save(); closeModal('ec-metric-modal'); renderECDetail(actId); renderActivities();
 }
 
 function deleteECMetric(id) {
   if (!confirm('Delete this metric and all its logged data?')) return;
+  const m = DB.ecMetrics.find(x=>x.id===id);
   DB.ecMetrics = DB.ecMetrics.filter(m=>m.id!==id);
   delete DB.ecLog[id];
-  save(); renderECMetrics();
+  save(); if(m) renderECDetail(m.activityId); renderActivities();
 }
 
 function openECLogModal(metricId, entryId) {
@@ -2132,78 +2169,75 @@ function saveECLogEntry() {
   const idx = entryId ? DB.ecLog[metricId].findIndex(e=>e.id===entryId) : -1;
   if (idx>=0) DB.ecLog[metricId][idx]=entry; else DB.ecLog[metricId].push(entry);
   DB.ecLog[metricId].sort((a,b)=>a.date.localeCompare(b.date));
-  save(); closeModal('ec-log-modal'); renderECMetrics();
+  save(); closeModal('ec-log-modal');
+  const m = DB.ecMetrics.find(x=>x.id===metricId); if(m) renderECDetail(m.activityId);
 }
 
 function deleteECLogEntry(metricId, entryId) {
   DB.ecLog[metricId] = (DB.ecLog[metricId]||[]).filter(e=>e.id!==entryId);
-  save(); renderECMetrics();
+  save();
+  const m = DB.ecMetrics.find(x=>x.id===metricId); if(m) renderECDetail(m.activityId);
 }
 
-function renderECMetrics() {
-  const container = document.getElementById('ec-metrics-list'); if(!container) return;
-  if (DB.activities.length===0) { container.innerHTML='<div class="empty-state card"><div class="ei">🏆</div><p>Add an activity first, then come back to track metrics.</p></div>'; return; }
-  if (DB.ecMetrics.length===0) { container.innerHTML='<div class="empty-state card"><div class="ei">📊</div><p>No metrics yet. Add a metric to start tracking growth for an activity.</p></div>'; return; }
+function renderECDetail(activityId) {
+  const container = document.getElementById('ec-detail-content'); if(!container) return;
+  const metrics = DB.ecMetrics.filter(m=>m.activityId===activityId);
+  if (metrics.length===0) { container.innerHTML='<div class="empty-state" style="padding:24px 0;"><div class="ei">📊</div><p>No metrics yet for this activity. Hit "+ Add Metric" to start tracking growth.</p></div>'; return; }
 
-  // Group metrics by activity
-  const byActivity = {};
-  DB.activities.forEach(a => { byActivity[a.id] = { act:a, metrics:[] }; });
-  DB.ecMetrics.forEach(m => { if(byActivity[m.activityId]) byActivity[m.activityId].metrics.push(m); });
+  container.innerHTML = metrics.map(m => {
+    const log = (DB.ecLog[m.id]||[]);
+    const sorted = [...log].sort((a,b)=>a.date.localeCompare(b.date));
+    const latest = sorted[sorted.length-1];
+    const prev = sorted[sorted.length-2];
+    const peak = sorted.length ? (m.direction==='up' ? Math.max(...sorted.map(e=>e.value)) : Math.min(...sorted.map(e=>e.value))) : null;
+    const start = sorted[0];
+    let changeBadge = '';
+    if (latest && prev) {
+      const diff = latest.value - prev.value;
+      const pct = prev.value !== 0 ? Math.abs(diff/prev.value*100).toFixed(1) : null;
+      const up = diff > 0;
+      changeBadge = `<span style="font-size:11px;font-weight:600;color:${(up&&m.direction==='up')||((!up)&&m.direction==='down')?'var(--green)':'var(--red)'};">${up?'▲':'▼'} ${pct?pct+'%':Math.abs(diff)+(m.unit?' '+m.unit:'')} since last</span>`;
+    }
+    let totalChange = '';
+    if (latest && start && start!==latest) {
+      const diff = latest.value - start.value;
+      const up = diff > 0;
+      totalChange = `<div class="sp-stat"><div class="sp-stat-label">SINCE START</div><div class="sp-stat-val" style="color:${(up&&m.direction==='up')||((!up)&&m.direction==='down')?'var(--green)':diff===0?'inherit':'var(--red)'};">${diff>0?'+':''}${diff}${m.unit?' '+m.unit:''}</div></div>`;
+    }
 
-  container.innerHTML = DB.activities.filter(a=>byActivity[a.id].metrics.length>0).map(a => {
-    const metrics = byActivity[a.id].metrics;
-    const metricsHtml = metrics.map(m => {
-      const log = (DB.ecLog[m.id]||[]);
-      const sorted = [...log].sort((a,b)=>a.date.localeCompare(b.date));
-      const latest = sorted[sorted.length-1];
-      const prev = sorted[sorted.length-2];
-      const peak = sorted.length ? (m.direction==='up' ? Math.max(...sorted.map(e=>e.value)) : Math.min(...sorted.map(e=>e.value))) : null;
-      let changeBadge = '';
-      if (latest && prev) {
-        const diff = latest.value - prev.value;
-        const pct = prev.value !== 0 ? Math.abs(diff/prev.value*100).toFixed(1) : null;
-        const up = diff > 0;
-        changeBadge = `<span style="font-size:11px;font-weight:600;color:${(up&&m.direction==='up')||((!up)&&m.direction==='down')?'var(--green)':'var(--red)'};">${up?'▲':'▼'} ${pct?pct+'%':Math.abs(diff)+(m.unit?' '+m.unit:'')}</span>`;
-      }
+    const historyRows = [...sorted].reverse().map(e=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:12px;">
+        <span style="color:var(--text-muted);min-width:80px;">${new Date(e.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'})}</span>
+        <span style="font-weight:700;min-width:60px;">${e.value}${m.unit?' '+m.unit:''}</span>
+        <span style="flex:1;color:var(--text-secondary);">${e.note||''}</span>
+        <button class="btn btn-secondary btn-xs" onclick="openECLogModal('${m.id}','${e.id}')">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteECLogEntry('${m.id}','${e.id}')">🗑</button>
+      </div>`).join('');
 
-      const historyRows = [...sorted].reverse().map(e=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:12px;">
-          <span style="color:var(--text-muted);min-width:80px;">${new Date(e.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'})}</span>
-          <span style="font-weight:700;min-width:60px;">${e.value}${m.unit?' '+m.unit:''}</span>
-          <span style="flex:1;color:var(--text-secondary);">${e.note||''}</span>
-          <button class="btn btn-secondary btn-xs" onclick="openECLogModal('${m.id}','${e.id}')">✏️</button>
-          <button class="btn btn-danger btn-xs" onclick="deleteECLogEntry('${m.id}','${e.id}')">🗑</button>
-        </div>`).join('');
-
-      return `<div style="background:var(--bg);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
-          <div>
-            <span style="font-weight:700;font-size:14px;">${m.name}</span>
-            ${m.unit?`<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">${m.unit}</span>`:''}
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            ${latest?`<span style="font-size:18px;font-weight:800;color:var(--accent);">${latest.value}${m.unit?' '+m.unit:''}</span>`:'<span style="color:var(--text-muted);font-size:13px;">No data yet</span>'}
-            ${changeBadge}
-            <button class="btn btn-primary btn-xs" onclick="openECLogModal('${m.id}')">+ Log</button>
-            <button class="btn btn-secondary btn-xs" onclick="openECMetricModal('${m.id}')">✏️</button>
-            <button class="btn btn-danger btn-xs" onclick="deleteECMetric('${m.id}')">🗑</button>
-          </div>
+    return `<div style="background:var(--bg);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <div>
+          <span style="font-weight:700;font-size:14px;">${m.name}</span>
+          ${m.unit?`<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">${m.unit}</span>`:''}
         </div>
-        ${peak!==null?`<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Peak: <strong>${peak}${m.unit?' '+m.unit:''}</strong> · ${sorted.length} entr${sorted.length===1?'y':'ies'}</div>`:''}
-        ${sorted.length>0?`<div style="max-height:200px;overflow-y:auto;">${historyRows}</div>`:'<div style="font-size:12px;color:var(--text-muted);">No entries logged yet. Hit "+ Log" to record your first value.</div>'}
-      </div>`;
-    }).join('');
-
-    return `<div class="card" style="margin-bottom:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-weight:700;font-size:15px;">${a.name} <span class="badge badge-gray" style="font-size:11px;">${a.category}</span></div>
-        <button class="btn btn-secondary btn-xs" onclick="openECMetricModal()">+ Metric</button>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          ${latest?`<span style="font-size:18px;font-weight:800;color:var(--accent);">${latest.value}${m.unit?' '+m.unit:''}</span>`:'<span style="color:var(--text-muted);font-size:13px;">No data yet</span>'}
+          ${changeBadge}
+          <button class="btn btn-primary btn-xs" onclick="openECLogModal('${m.id}')">+ Log</button>
+          <button class="btn btn-secondary btn-xs" onclick="openECMetricModal('${m.id}')">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteECMetric('${m.id}')">🗑</button>
+        </div>
       </div>
-      ${metricsHtml}
+      ${sorted.length>=2?metricChartSvg(sorted,m):''}
+      ${peak!==null?`<div class="sp-stat-grid" style="margin-top:8px;margin-bottom:10px;">
+        <div class="sp-stat"><div class="sp-stat-label">LATEST</div><div class="sp-stat-val">${latest.value}${m.unit?' '+m.unit:''}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label">PEAK</div><div class="sp-stat-val">${peak}${m.unit?' '+m.unit:''}</div></div>
+        ${totalChange}
+        <div class="sp-stat"><div class="sp-stat-label">ENTRIES</div><div class="sp-stat-val">${sorted.length}</div></div>
+      </div>`:''}
+      ${sorted.length>0?`<div style="max-height:200px;overflow-y:auto;">${historyRows}</div>`:'<div style="font-size:12px;color:var(--text-muted);">No entries logged yet. Hit "+ Log" to record your first value.</div>'}
     </div>`;
   }).join('');
-
-  if (!container.innerHTML) container.innerHTML='<div class="empty-state card"><div class="ei">📊</div><p>No metrics defined yet. Hit "+ Add Metric" to get started.</p></div>';
 }
 
 // ============================================================
