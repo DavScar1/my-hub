@@ -604,16 +604,19 @@ a:hover{text-decoration:underline;}
   <!-- Colleges -->
   <div class="page" id="page-c-colleges">
     <div class="page-header"><h2>Colleges</h2><p>Track each school, deadlines, and application status.</p></div>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value" id="col-stat-total">0</div><div class="stat-label">Total Schools</div><div class="stat-sub" id="col-stat-submitted">0 submitted</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-reach" style="color:var(--red);">0</div><div class="stat-label">Reach</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-match" style="color:var(--amber);">0</div><div class="stat-label">Match</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-safety" style="color:var(--green);">0</div><div class="stat-label">Safety</div></div>
+    </div>
     <div class="section-header">
       <select id="college-filter" onchange="renderColleges()" style="width:auto;padding:6px 10px;">
         <option value="">All Schools</option><option>Reach</option><option>Match</option><option>Safety</option>
       </select>
       <button class="btn btn-primary" onclick="openModal('college-modal')">+ Add College</button>
     </div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <table><thead><tr><th>School</th><th>Type</th><th>Deadline</th><th>Status</th><th>Notes</th><th></th></tr></thead>
-      <tbody id="colleges-table"><tr><td colspan="6"><div class="empty-state"><div class="ei">🎓</div><p>Add your first college above.</p></div></td></tr></tbody></table>
-    </div>
+    <div id="colleges-groups"></div>
   </div>
 
   <!-- Leaving Cert -->
@@ -1834,16 +1837,55 @@ function deleteCollege(id) {
   DB.colleges=DB.colleges.filter(c=>c.id!==id); save(); renderColleges();
 }
 
+function collegesTableHtml(list) {
+  return `<div class="card" style="padding:0;overflow:hidden;">
+    <table><thead><tr><th>School</th><th>Type</th><th>Deadline</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${list.map(c => {
+      const deadline = c.deadline ? new Date(c.deadline+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const nameCell = c.portal ? `<a href="${c.portal}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">${c.name}</a>` : `<strong>${c.name}</strong>`;
+      return `<tr><td>${nameCell}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.appType||''} ${c.satRange?'· SAT: '+c.satRange:''}</div></td><td>${typeBadge(c.type)}</td><td>${deadline}</td><td>${statusBadge(c.status)}</td><td style="max-width:200px;font-size:12px;color:var(--text-secondary);">${c.notes?c.notes.slice(0,60)+(c.notes.length>60?'…':''):''}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editCollege('${c.id}')" title="Edit">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteCollege('${c.id}')" title="Delete">🗑</button></div></td></tr>`;
+    }).join('')}</tbody></table>
+  </div>`;
+}
+
 function renderColleges() {
   const filter = document.getElementById('college-filter').value;
+
+  // Summary stat cards (always reflect all colleges, regardless of filter)
+  document.getElementById('col-stat-total').textContent = DB.colleges.length;
+  const submittedCount = DB.colleges.filter(c => ['Submitted','Interview','Accepted','Waitlisted','Deferred','Rejected'].includes(c.status)).length;
+  document.getElementById('col-stat-submitted').textContent = `${submittedCount} submitted`;
+  document.getElementById('col-stat-reach').textContent = DB.colleges.filter(c=>c.type==='Reach').length;
+  document.getElementById('col-stat-match').textContent = DB.colleges.filter(c=>c.type==='Match').length;
+  document.getElementById('col-stat-safety').textContent = DB.colleges.filter(c=>c.type==='Safety').length;
+
+  const groups = document.getElementById('colleges-groups');
   const list = filter ? DB.colleges.filter(c=>c.type===filter) : DB.colleges;
-  const tbody = document.getElementById('colleges-table');
-  if (list.length===0) { tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎓</div><p>Add your first college.</p></div></td></tr>`; return; }
-  tbody.innerHTML = list.map(c => {
-    const deadline = c.deadline ? new Date(c.deadline+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-    const nameCell = c.portal ? `<a href="${c.portal}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">${c.name}</a>` : `<strong>${c.name}</strong>`;
-    return `<tr><td>${nameCell}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.appType||''} ${c.satRange?'· SAT: '+c.satRange:''}</div></td><td>${typeBadge(c.type)}</td><td>${deadline}</td><td>${statusBadge(c.status)}</td><td style="max-width:200px;font-size:12px;color:var(--text-secondary);">${c.notes?c.notes.slice(0,60)+(c.notes.length>60?'…':''):''}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editCollege('${c.id}')" title="Edit">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteCollege('${c.id}')" title="Delete">🗑</button></div></td></tr>`;
+  if (list.length===0) { groups.innerHTML=`<div class="card"><div class="empty-state"><div class="empty-icon">🎓</div><p>Add your first college.</p></div></div>`; return; }
+
+  if (filter) {
+    groups.innerHTML = collegesTableHtml(list);
+    return;
+  }
+
+  const types = ['Reach','Match','Safety'];
+  groups.innerHTML = types.map(type => {
+    const items = DB.colleges.filter(c=>c.type===type);
+    if (items.length===0) return '';
+    return `<div style="margin-bottom:20px;">
+      <div class="section-header" style="margin-bottom:10px;">${typeBadge(type)}<span style="font-size:12px;color:var(--text-muted);">${items.length} school${items.length!==1?'s':''}</span></div>
+      ${collegesTableHtml(items)}
+    </div>`;
   }).join('');
+
+  // Any colleges with no/unknown type
+  const other = DB.colleges.filter(c=>!types.includes(c.type));
+  if (other.length) {
+    groups.innerHTML += `<div style="margin-bottom:20px;">
+      <div class="section-header" style="margin-bottom:10px;"><span class="badge badge-gray">Other</span><span style="font-size:12px;color:var(--text-muted);">${other.length} school${other.length!==1?'s':''}</span></div>
+      ${collegesTableHtml(other)}
+    </div>`;
+  }
 }
 
 // ============================================================
