@@ -1226,7 +1226,7 @@ a:hover{text-decoration:underline;}
       <div class="form-group"><label>To *</label><input type="date" id="plan-end"></div>
     </div>
     <div class="form-group"><label>Title</label><input type="text" id="plan-title" placeholder="e.g. Essay push week"></div>
-    <div class="form-group"><label>Tasks (one per line)</label><textarea id="plan-tasks" rows="5" placeholder="John Locke essay&#10;Common App essay&#10;Website"></textarea></div>
+    <div class="form-group"><label>Activities &amp; target hours (one per line, e.g. "Common App essay, 5")</label><textarea id="plan-tasks" rows="5" placeholder="John Locke essay, 6&#10;Common App essay, 4&#10;Website, 2"></textarea></div>
     <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancel</button><button class="btn btn-primary" onclick="savePlanBlock()">Save</button></div>
   </div>
 </div>
@@ -2348,7 +2348,7 @@ function editPlanBlock(id) {
   document.getElementById('plan-modal-title').textContent='Edit Plan';
   document.getElementById('plan-start').value=p.start;document.getElementById('plan-end').value=p.end;
   document.getElementById('plan-title').value=p.title||'';
-  document.getElementById('plan-tasks').value=(p.tasks||[]).map(t=>t.text).join('\n');
+  document.getElementById('plan-tasks').value=(p.tasks||[]).map(t=>t.text+(t.hours?', '+t.hours:'')).join('\n');
   openModal('plan-modal',id);
   document.getElementById('plan-edit-id').value=id;
 }
@@ -2356,31 +2356,36 @@ function savePlanBlock() {
   const start=document.getElementById('plan-start').value;const end=document.getElementById('plan-end').value;
   if(!start||!end){alert('Please enter both a start and end date.');return;}
   const id=document.getElementById('plan-edit-id').value||uid();
-  const existing=DB.planner.find(p=>p.id===id);
-  const oldTasks=existing?existing.tasks||[]:[];
   const lines=document.getElementById('plan-tasks').value.split('\n').map(t=>t.trim()).filter(Boolean);
-  const tasks=lines.map(text=>{const match=oldTasks.find(t=>t.text===text);return match||{id:uid(),text,done:false};});
+  const tasks=lines.map(line=>{
+    const idx=line.lastIndexOf(',');
+    let text=line, hours=0;
+    if(idx>=0){
+      const hVal=parseFloat(line.slice(idx+1).trim());
+      if(!isNaN(hVal)){text=line.slice(0,idx).trim();hours=hVal;}
+    }
+    return {id:uid(),text,hours};
+  });
   const block={id,start,end,title:document.getElementById('plan-title').value.trim(),tasks};
   const i=DB.planner.findIndex(p=>p.id===id);
   if(i>=0)DB.planner[i]=block;else DB.planner.push(block);
-  save();closeModal('plan-modal');renderPlanner();
+  save();closeModal('plan-modal');renderPlanner();renderDashboardPlanner();
 }
-function deletePlanBlock(id) { if(!confirm('Delete this plan?'))return; DB.planner=DB.planner.filter(p=>p.id!==id);save();renderPlanner(); }
-function togglePlanTask(blockId,taskId) {
-  const b=DB.planner.find(b=>b.id===blockId);if(!b)return;
-  const t=b.tasks.find(t=>t.id===taskId);if(!t)return;
-  t.done=!t.done;save();renderPlanner();renderDashboardPlanner();
-}
-function planTaskListHtml(p) {
-  const done=(p.tasks||[]).filter(t=>t.done).length;const total=(p.tasks||[]).length;
-  const pct=total?Math.round(done/total*100):0;
+function deletePlanBlock(id) { if(!confirm('Delete this plan?'))return; DB.planner=DB.planner.filter(p=>p.id!==id);save();renderPlanner();renderDashboardPlanner(); }
+function planHoursListHtml(p) {
   const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+  const tasks=p.tasks||[];
+  const total=tasks.reduce((s,t)=>s+(t.hours||0),0);
+  const max=Math.max(...tasks.map(t=>t.hours||0),1);
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
       <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${p.title?` · ${p.title}`:''}</div>
+      ${total?`<div style="font-size:12px;color:var(--text-muted);font-weight:600;">${total}h planned</div>`:''}
     </div>
-    ${total?`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;"><span>${done} of ${total} done</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>`:''}
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      ${(p.tasks||[]).map(t=>`<div class="check-item${t.done?' checked':''}"><input type="checkbox" id="dpt-${t.id}" ${t.done?'checked':''} onchange="togglePlanTask('${p.id}','${t.id}')"><label for="dpt-${t.id}">${t.text}</label></div>`).join('')}
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${tasks.map(t=>{const pct=Math.round((t.hours||0)/max*100);return `<div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${t.text}</span><span style="font-weight:700;">${t.hours||0}h</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>`;}).join('')}
     </div>`;
 }
 function renderDashboardPlanner() {
@@ -2393,11 +2398,11 @@ function renderDashboardPlanner() {
   const content=document.getElementById('dash-planner-content');
   if(active.length){
     card.style.display='';title.textContent='Current Plan';
-    content.innerHTML=active.map((p,i)=>`<div${i>0?' style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);"':''}>${planTaskListHtml(p)}</div>`).join('');
+    content.innerHTML=active.map((p,i)=>`<div${i>0?' style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);"':''}>${planHoursListHtml(p)}</div>`).join('');
   } else if(upcoming.length){
     const p=upcoming[0];
     card.style.display='';title.textContent='Next Plan';
-    content.innerHTML=planTaskListHtml(p);
+    content.innerHTML=planHoursListHtml(p);
   } else {
     card.style.display='none';
   }
@@ -2410,8 +2415,6 @@ function renderPlanner() {
   list.innerHTML=sorted.map(p=>{
     const startD=new Date(p.start+'T12:00:00');const endD=new Date(p.end+'T23:59:59');
     const active=now>=startD&&now<=endD;
-    const done=(p.tasks||[]).filter(t=>t.done).length;const total=(p.tasks||[]).length;
-    const pct=total?Math.round(done/total*100):0;
     return `<div class="card" style="margin-bottom:14px;${active?'border-color:var(--accent);':''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
         <div>
@@ -2420,10 +2423,7 @@ function renderPlanner() {
         </div>
         <div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
       </div>
-      ${total?`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;"><span>${done} of ${total} done</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>`:''}
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        ${(p.tasks||[]).map(t=>`<div class="check-item${t.done?' checked':''}"><input type="checkbox" id="pt-${t.id}" ${t.done?'checked':''} onchange="togglePlanTask('${p.id}','${t.id}')"><label for="pt-${t.id}">${t.text}</label></div>`).join('')}
-      </div>
+      ${planHoursListHtml(p)}
     </div>`;
   }).join('');
 }
