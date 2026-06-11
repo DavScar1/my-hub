@@ -1628,6 +1628,8 @@ function ensureDBDefaults() {
   if (!DB.nutritionLog) DB.nutritionLog = {};
   if (!DB.ecMetrics) DB.ecMetrics = [];
   if (!DB.ecLog) DB.ecLog = {};
+  if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
+  DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
 }
 
 function load() {
@@ -1848,6 +1850,39 @@ function collegesTableHtml(list) {
   </div>`;
 }
 
+function collegeRowHtml(c, applying) {
+  const deadline = c.deadline ? new Date(c.deadline+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+  const nameCell = c.portal ? `<a href="${c.portal}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">${c.name}</a>` : `<strong>${c.name}</strong>`;
+  const toggleBtn = applying
+    ? `<button class="btn btn-secondary btn-xs" onclick="setCollegeApplying('${c.id}',false)" title="Move to Considering">→ Considering</button>`
+    : `<button class="btn btn-primary btn-xs" onclick="setCollegeApplying('${c.id}',true)" title="Move to Applying">← Applying</button>`;
+  return `<div class="wish-item">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;">${nameCell}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${deadline} · ${statusBadge(c.status)}</div>
+    </div>
+    ${toggleBtn}
+    <button class="btn btn-secondary btn-xs" onclick="editCollege('${c.id}')" title="Edit">✏️</button>
+    <button class="btn btn-danger btn-xs" onclick="deleteCollege('${c.id}')" title="Delete">🗑</button>
+  </div>`;
+}
+
+function collegeColumnHtml(label, list, applying) {
+  return `<div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:8px;">${label} (${list.length})</div>
+    <div class="card">${list.length ? list.map(c=>collegeRowHtml(c,applying)).join('') : `<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">None</div>`}</div>
+  </div>`;
+}
+
+function setCollegeApplying(id, applying) {
+  const c = DB.colleges.find(c=>c.id===id); if (!c) return;
+  c.applying = applying; save(); renderColleges();
+}
+
+function setCollegeTarget(type, value) {
+  const n = parseInt(value); DB.collegeTargets[type] = isNaN(n) ? 0 : n; save(); renderColleges();
+}
+
 function renderColleges() {
   const filter = document.getElementById('college-filter').value;
 
@@ -1872,9 +1907,20 @@ function renderColleges() {
   groups.innerHTML = types.map(type => {
     const items = DB.colleges.filter(c=>c.type===type);
     if (items.length===0) return '';
-    return `<div style="margin-bottom:20px;">
-      <div class="section-header" style="margin-bottom:10px;">${typeBadge(type)}<span style="font-size:12px;color:var(--text-muted);">${items.length} school${items.length!==1?'s':''}</span></div>
-      ${collegesTableHtml(items)}
+    const applying = items.filter(c=>c.applying);
+    const considering = items.filter(c=>!c.applying);
+    const target = DB.collegeTargets[type] ?? 0;
+    return `<div style="margin-bottom:24px;">
+      <div class="section-header" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">${typeBadge(type)}<span style="font-size:12px;color:var(--text-muted);">${items.length} school${items.length!==1?'s':''}</span></div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+          <span style="font-weight:700;color:${applying.length>target&&target>0?'var(--red)':'var(--text)'};">${applying.length}</span> / <input type="number" min="0" value="${target}" onchange="setCollegeTarget('${type}',this.value)" style="width:46px;padding:3px 6px;font-size:12px;"> applying
+        </div>
+      </div>
+      <div class="grid-2">
+        ${collegeColumnHtml('Applying', applying, true)}
+        ${collegeColumnHtml('Considering', considering, false)}
+      </div>
     </div>`;
   }).join('');
 
