@@ -284,6 +284,14 @@ tr:hover .row-actions{opacity:1;}
 .ta-row{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;transition:all .18s;cursor:default;}
 .ta-row:hover{border-color:#b0c8b8;box-shadow:0 2px 8px rgba(74,120,86,.08);}
 .ta-row.timing{border-color:var(--l-accent);background:var(--l-accent-light);box-shadow:0 2px 12px rgba(74,120,86,.15);}
+.ta-row.dragging{opacity:.4;}
+.ta-row.drag-over{border-top:2px solid var(--l-accent);}
+.ta-drag-handle{cursor:grab;color:var(--border);font-size:16px;flex-shrink:0;line-height:1;touch-action:none;}
+.ta-drag-handle:hover{color:var(--text-muted);}
+/* Today tab */
+.tdy-row{display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;}
+.tdy-bar-track{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.tdy-bar-fill{height:100%;background:var(--l-accent);border-radius:4px;}
 .ta-icon-wrap{position:relative;width:40px;height:40px;background:var(--bg);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .ta-pulse{position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:var(--l-accent);border-radius:50%;border:2px solid white;animation:pulse-ring 1.4s ease infinite;}
 @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(74,120,86,.6);}70%{box-shadow:0 0 0 6px rgba(74,120,86,0);}100%{box-shadow:0 0 0 0 rgba(74,120,86,0);}}
@@ -814,7 +822,13 @@ a:hover{text-decoration:underline;}
 
       <div class="tabs" style="margin-bottom:14px;">
         <button class="tab-btn active" id="tt-tab-activities-btn" onclick="switchTTTab('activities',this)">Activities</button>
+        <button class="tab-btn" id="tt-tab-today-btn" onclick="switchTTTab('today',this)">Today</button>
         <button class="tab-btn" id="tt-tab-groups-btn" onclick="switchTTTab('groups',this)">Groups</button>
+      </div>
+
+      <!-- Today tab -->
+      <div id="tt-tab-today" style="display:none;">
+        <div id="tt-today-list"></div>
       </div>
 
       <!-- Activities tab -->
@@ -2892,10 +2906,12 @@ function renderJournal() {
 
 function switchTTTab(tab, btn) {
   document.getElementById('tt-tab-activities').style.display = tab === 'activities' ? '' : 'none';
+  document.getElementById('tt-tab-today').style.display = tab === 'today' ? '' : 'none';
   document.getElementById('tt-tab-groups').style.display = tab === 'groups' ? '' : 'none';
   document.querySelectorAll('#page-l-habits .tabs .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   if (tab === 'groups') renderGroupsTab();
+  if (tab === 'today') renderTodayTab();
 }
 
 function openGroupModal(editId) {
@@ -3529,7 +3545,10 @@ function _startTimerUI() {
     const elapsed = Math.floor((Date.now() - t.startTs) / 1000);
     document.getElementById('timer-bar-display').textContent = fmtHMS(elapsed);
     // refresh habit page if visible
-    if (document.getElementById('page-l-habits').classList.contains('active')) renderTimeTracker();
+    if (document.getElementById('page-l-habits').classList.contains('active')) {
+      renderTimeTracker();
+      if (document.getElementById('tt-tab-today').style.display !== 'none') renderTodayTab();
+    }
   }, 1000);
   renderTimeTracker();
 }
@@ -3821,7 +3840,8 @@ function renderTimeTracker() {
     const baseline = a.baselineSecs || 0;
     const grandTotal = baseline + trackedSecs;
 
-    return `<div class="ta-row ${isRunning?'timing':''}">
+    return `<div class="ta-row ${isRunning?'timing':''}" draggable="true" data-activity-id="${a.id}" ondragstart="taDragStart(event)" ondragover="taDragOver(event)" ondrop="taDrop(event)" ondragend="taDragEnd(event)">
+      <div class="ta-drag-handle" title="Drag to reorder">⠿</div>
       <div class="ta-icon-wrap">
         ${a.icon}
         ${isRunning ? '<span class="ta-pulse"></span>' : ''}
@@ -3847,6 +3867,83 @@ function renderTimeTracker() {
       <button onclick="deleteFocusActivity('${a.id}')" style="background:none;border:none;cursor:pointer;color:var(--border);font-size:14px;padding:4px;border-radius:4px;transition:color .15s;" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--border)'" title="Delete activity">✕</button>
     </div>`;
   }).join('');
+}
+
+// ---- Drag-to-reorder activities ----
+let _taDragId = null;
+
+function taDragStart(e) {
+  _taDragId = e.currentTarget.dataset.activityId;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function taDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const row = e.currentTarget;
+  if (row.dataset.activityId !== _taDragId) row.classList.add('drag-over');
+}
+
+function taDrop(e) {
+  e.preventDefault();
+  const row = e.currentTarget;
+  row.classList.remove('drag-over');
+  const targetId = row.dataset.activityId;
+  if (!_taDragId || _taDragId === targetId) return;
+  const from = DB.focusActivities.findIndex(a => a.id === _taDragId);
+  const to = DB.focusActivities.findIndex(a => a.id === targetId);
+  if (from < 0 || to < 0) return;
+  const [moved] = DB.focusActivities.splice(from, 1);
+  DB.focusActivities.splice(to, 0, moved);
+  save(); renderTimeTracker();
+}
+
+function taDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.ta-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+  _taDragId = null;
+}
+
+// ---- Today tab ----
+function renderTodayTab() {
+  const list = document.getElementById('tt-today-list');
+  if (!list) return;
+  const todayStr = today();
+  const activeId = DB.activeTimer ? DB.activeTimer.activityId : null;
+
+  const totals = DB.focusActivities.map(a => {
+    const isRunning = a.id === activeId;
+    const elapsed = isRunning ? Math.floor((Date.now() - DB.activeTimer.startTs) / 1000) : 0;
+    const secs = todayTotalFor(a.id) + elapsed;
+    return { activity: a, secs, isRunning };
+  }).filter(t => t.secs > 0).sort((a,b) => b.secs - a.secs);
+
+  if (totals.length === 0) {
+    list.innerHTML = `<div class="empty-state card"><div class="empty-icon">📅</div><p>Nothing tracked yet today. Start a timer or log a session to see it here.</p></div>`;
+    return;
+  }
+
+  const grandTotal = totals.reduce((a,t) => a+t.secs, 0);
+  const maxSecs = Math.max(...totals.map(t => t.secs), 1);
+
+  list.innerHTML = `<div class="tt-summary" style="grid-template-columns:1fr;margin-bottom:14px;">
+      <div class="tt-sum-card accent">
+        <div class="tt-sum-label">TOTAL TODAY</div>
+        <div class="tt-sum-val">${fmtDuration(grandTotal)}</div>
+      </div>
+    </div>` +
+    totals.map(t => `<div class="tdy-row">
+      <div class="ta-icon-wrap">${t.activity.icon}${t.isRunning ? '<span class="ta-pulse"></span>' : ''}</div>
+      <div class="ta-info">
+        <div class="ta-name">${t.activity.name}</div>
+        <div class="tdy-bar-track" style="margin-top:6px;"><div class="tdy-bar-fill" style="width:${Math.round(t.secs/maxSecs*100)}%"></div></div>
+      </div>
+      <div class="ta-time-col">
+        <div class="ta-elapsed" style="${t.isRunning?'':'font-size:16px;'}">${t.isRunning ? fmtHMS(Math.floor((Date.now()-DB.activeTimer.startTs)/1000)) : fmtDuration(t.secs)}</div>
+        <div class="ta-today-lbl">${t.isRunning?'running':''}</div>
+      </div>
+    </div>`).join('');
 }
 
 // ============================================================
