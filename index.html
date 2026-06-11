@@ -508,6 +508,7 @@ a:hover{text-decoration:underline;}
     <button class="nav-item" onclick="showPage('c-recs')"><span class="icon">✉️</span>Letters of Rec</button>
 
     <div class="nav-section">Planning</div>
+    <button class="nav-item" onclick="showPage('c-planner')"><span class="icon">🗓️</span>Planner</button>
     <button class="nav-item" onclick="showPage('c-deadlines')"><span class="icon">📅</span>Deadlines</button>
     <button class="nav-item" onclick="showPage('c-notes')"><span class="icon">🗒️</span>Notes</button>
   </div>
@@ -705,6 +706,13 @@ a:hover{text-decoration:underline;}
     <div class="page-header"><h2>Letters of Recommendation</h2><p>Most schools require 2 teacher recs + 1 counsellor rec.</p></div>
     <div class="section-header"><h3></h3><button class="btn btn-primary" onclick="openModal('rec-modal')">+ Add Recommender</button></div>
     <div id="recs-list"><div class="empty-state card"><div class="ei">✉️</div><p>Add recommenders and track letter status.</p></div></div>
+  </div>
+
+  <!-- Planner -->
+  <div class="page" id="page-c-planner">
+    <div class="page-header"><h2>Planner</h2><p>Plan what you'll work on during each time period.</p></div>
+    <div class="section-header"><h3></h3><button class="btn btn-primary" onclick="openAddPlanBlock()">+ Add Plan</button></div>
+    <div id="planner-list"><div class="empty-state card"><div class="ei">🗓️</div><p>Add a plan for an upcoming time period.</p></div></div>
   </div>
 
   <!-- Deadlines -->
@@ -1175,7 +1183,8 @@ a:hover{text-decoration:underline;}
     </div>
     <div class="form-group"><label>Status</label><select id="essay-status"><option>Not Started</option><option>Brainstorming</option><option>Outlining</option><option>First Draft</option><option>Revising</option><option>Final Review</option><option>Complete</option></select></div>
     <div class="form-group"><label>Prompt / Topic</label><textarea id="essay-prompt" placeholder="Paste the prompt or describe your topic…"></textarea></div>
-    <div class="form-group"><label>Notes</label><textarea id="essay-notes" placeholder="Ideas, feedback received, next steps…"></textarea></div>
+    <div class="form-group"><label>Brainstorm Ideas</label><textarea id="essay-ideas" placeholder="Different ideas/angles for this essay — one per line…"></textarea></div>
+    <div class="form-group"><label>Notes</label><textarea id="essay-notes" placeholder="Feedback received, next steps…"></textarea></div>
     <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('essay-modal')">Cancel</button><button class="btn btn-primary" onclick="saveEssay()">Save</button></div>
   </div>
 </div>
@@ -1197,6 +1206,21 @@ a:hover{text-decoration:underline;}
     <div class="form-group"><label>Schools This Rec Is For</label><input type="text" id="rec-schools" placeholder="All schools / Harvard, MIT…"></div>
     <div class="form-group"><label>Notes</label><textarea id="rec-notes" placeholder="Info to share with them, follow-up reminders…"></textarea></div>
     <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('rec-modal')">Cancel</button><button class="btn btn-primary" onclick="saveRec()">Save</button></div>
+  </div>
+</div>
+
+<!-- Plan block modal -->
+<div class="modal-overlay" id="plan-modal">
+  <div class="modal">
+    <h3 id="plan-modal-title">Add Plan</h3>
+    <input type="hidden" id="plan-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>From *</label><input type="date" id="plan-start"></div>
+      <div class="form-group"><label>To *</label><input type="date" id="plan-end"></div>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="plan-title" placeholder="e.g. Essay push week"></div>
+    <div class="form-group"><label>Tasks (one per line)</label><textarea id="plan-tasks" rows="5" placeholder="John Locke essay&#10;Common App essay&#10;Website"></textarea></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancel</button><button class="btn btn-primary" onclick="savePlanBlock()">Save</button></div>
   </div>
 </div>
 
@@ -1546,7 +1570,7 @@ function dateStr(d) {
 const DB = {
   // College
   colleges: [], subjects: null, sat: [], activities: [], essays: [],
-  recs: [], deadlines: [], checklist: {}, satGoal: {}, collegeNotes: '',
+  recs: [], deadlines: [], checklist: {}, satGoal: {}, collegeNotes: '', planner: [],
   // Life
   routines: { morning:[], evening:[], gym:[], weekly:[] },
   habits: [], habitLog: {}, habitViewMonth: null,
@@ -1565,6 +1589,7 @@ function ensureDBDefaults() {
   ['skincare','clothes','supps'].forEach(k => { if (!DB.products[k]) DB.products[k] = []; });
   if (!DB.outfits) DB.outfits = [];
   if (!DB.journal) DB.journal = [];
+  if (!DB.planner) DB.planner = [];
   if (!DB.routineChecks) DB.routineChecks = {};
   if (!DB.weekPlanner) DB.weekPlanner = {};
   if (!DB.gymDays) DB.gymDays = [];
@@ -1630,6 +1655,7 @@ function renderPage(id) {
   if (id === 'c-sat') renderSAT();
   if (id === 'c-activities') { renderActivities(); renderECMetrics(); }
   if (id === 'c-essays') renderEssays();
+  if (id === 'c-planner') renderPlanner();
   if (id === 'c-recs') renderRecs();
   if (id === 'c-deadlines') renderDeadlines();
   if (id === 'c-notes') { const el = document.getElementById('notes-content'); if(el) el.value = DB.collegeNotes||''; }
@@ -2188,7 +2214,7 @@ function saveEssay() {
   if(!college){alert('Please enter a college.');return;}
   const id=document.getElementById('essay-edit-id').value||uid();
   const existing=DB.essays.findIndex(e=>e.id===id);
-  const essay={id,college,type:document.getElementById('essay-type').value,wordLimit:document.getElementById('essay-wordlimit').value,wordCount:document.getElementById('essay-wordcount').value,status:document.getElementById('essay-status').value,prompt:document.getElementById('essay-prompt').value,notes:document.getElementById('essay-notes').value};
+  const essay={id,college,type:document.getElementById('essay-type').value,wordLimit:document.getElementById('essay-wordlimit').value,wordCount:document.getElementById('essay-wordcount').value,status:document.getElementById('essay-status').value,prompt:document.getElementById('essay-prompt').value,ideas:document.getElementById('essay-ideas').value,notes:document.getElementById('essay-notes').value};
   if(existing>=0)DB.essays[existing]=essay;else DB.essays.push(essay);
   save();closeModal('essay-modal');renderEssays();updateEssayCollegeFilter();
 }
@@ -2198,6 +2224,7 @@ function editEssay(id) {
   document.getElementById('essay-college').value=e.college;document.getElementById('essay-type').value=e.type;
   document.getElementById('essay-wordlimit').value=e.wordLimit||'';document.getElementById('essay-wordcount').value=e.wordCount||'';
   document.getElementById('essay-status').value=e.status;document.getElementById('essay-prompt').value=e.prompt||'';
+  document.getElementById('essay-ideas').value=e.ideas||'';
   document.getElementById('essay-notes').value=e.notes||'';openModal('essay-modal',id);
 }
 function deleteEssay(id) { if(!confirm('Delete this essay?'))return; DB.essays=DB.essays.filter(e=>e.id!==id);save();renderEssays(); }
@@ -2267,6 +2294,68 @@ function renderDeadlines() {
   document.getElementById('deadlines-past').innerHTML=renderList(past);
 }
 function saveNotes() { DB.collegeNotes=document.getElementById('notes-content').value; save(); }
+
+// ============================================================
+// COLLEGE — PLANNER
+// ============================================================
+function openAddPlanBlock() {
+  document.getElementById('plan-modal-title').textContent='Add Plan';
+  openModal('plan-modal');
+  document.getElementById('plan-edit-id').value='';
+}
+function editPlanBlock(id) {
+  const p=DB.planner.find(p=>p.id===id);if(!p)return;
+  document.getElementById('plan-modal-title').textContent='Edit Plan';
+  document.getElementById('plan-start').value=p.start;document.getElementById('plan-end').value=p.end;
+  document.getElementById('plan-title').value=p.title||'';
+  document.getElementById('plan-tasks').value=(p.tasks||[]).map(t=>t.text).join('\n');
+  openModal('plan-modal',id);
+  document.getElementById('plan-edit-id').value=id;
+}
+function savePlanBlock() {
+  const start=document.getElementById('plan-start').value;const end=document.getElementById('plan-end').value;
+  if(!start||!end){alert('Please enter both a start and end date.');return;}
+  const id=document.getElementById('plan-edit-id').value||uid();
+  const existing=DB.planner.find(p=>p.id===id);
+  const oldTasks=existing?existing.tasks||[]:[];
+  const lines=document.getElementById('plan-tasks').value.split('\n').map(t=>t.trim()).filter(Boolean);
+  const tasks=lines.map(text=>{const match=oldTasks.find(t=>t.text===text);return match||{id:uid(),text,done:false};});
+  const block={id,start,end,title:document.getElementById('plan-title').value.trim(),tasks};
+  const i=DB.planner.findIndex(p=>p.id===id);
+  if(i>=0)DB.planner[i]=block;else DB.planner.push(block);
+  save();closeModal('plan-modal');renderPlanner();
+}
+function deletePlanBlock(id) { if(!confirm('Delete this plan?'))return; DB.planner=DB.planner.filter(p=>p.id!==id);save();renderPlanner(); }
+function togglePlanTask(blockId,taskId) {
+  const b=DB.planner.find(b=>b.id===blockId);if(!b)return;
+  const t=b.tasks.find(t=>t.id===taskId);if(!t)return;
+  t.done=!t.done;save();renderPlanner();
+}
+function renderPlanner() {
+  const list=document.getElementById('planner-list');
+  if(DB.planner.length===0){list.innerHTML='<div class="empty-state card"><div class="ei">🗓️</div><p>Add a plan for an upcoming time period.</p></div>';return;}
+  const now=new Date();const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const sorted=[...DB.planner].sort((a,b)=>new Date(a.start)-new Date(b.start));
+  list.innerHTML=sorted.map(p=>{
+    const startD=new Date(p.start+'T12:00:00');const endD=new Date(p.end+'T23:59:59');
+    const active=now>=startD&&now<=endD;
+    const done=(p.tasks||[]).filter(t=>t.done).length;const total=(p.tasks||[]).length;
+    const pct=total?Math.round(done/total*100):0;
+    return `<div class="card" style="margin-bottom:14px;${active?'border-color:var(--accent);':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${active?' <span class="badge badge-green" style="margin-left:6px;">Active</span>':''}</div>
+          ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
+        </div>
+        <div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
+      </div>
+      ${total?`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;"><span>${done} of ${total} done</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>`:''}
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${(p.tasks||[]).map(t=>`<div class="check-item${t.done?' checked':''}"><input type="checkbox" id="pt-${t.id}" ${t.done?'checked':''} onchange="togglePlanTask('${p.id}','${t.id}')"><label for="pt-${t.id}">${t.text}</label></div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
 
 // ============================================================
 // LIFE — DATE GREETING
