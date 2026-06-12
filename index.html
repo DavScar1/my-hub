@@ -2804,14 +2804,9 @@ function deleteGymDay(id) {
 
 function openGymExerciseModal(dayId, exId) {
   document.getElementById('gym-exercise-modal-title').textContent = exId ? 'Edit Exercise' : 'Add Exercise';
+  openModal('gym-exercise-modal', exId || null);
   document.getElementById('gym-ex-day-id').value = dayId;
   document.getElementById('gym-ex-edit-id').value = exId || '';
-  document.getElementById('gym-ex-name').value = '';
-  document.getElementById('gym-ex-sets').value = '';
-  document.getElementById('gym-ex-reps').value = '';
-  document.getElementById('gym-ex-weight').value = '';
-  document.getElementById('gym-ex-rest').value = '';
-  document.getElementById('gym-ex-notes').value = '';
   if (exId) {
     const day = DB.gymDays.find(d => d.id === dayId);
     const ex = (day && day.exercises || []).find(e => e.id === exId);
@@ -2824,7 +2819,6 @@ function openGymExerciseModal(dayId, exId) {
       document.getElementById('gym-ex-notes').value = ex.notes || '';
     }
   }
-  openModal('gym-exercise-modal', exId || null);
 }
 
 function saveGymExercise() {
