@@ -704,6 +704,23 @@ a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <div class="page" id="page-c-essay-writer">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+      <div>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('c-essays')" style="margin-bottom:8px;">← Back to Essays</button>
+        <h2 id="essay-writer-title">Essay</h2>
+        <p id="essay-writer-prompt" style="white-space:pre-wrap;"></p>
+      </div>
+      <div style="text-align:right;">
+        <div id="essay-writer-count" style="font-size:13px;font-weight:700;"></div>
+        <div id="essay-writer-saved" style="font-size:11px;color:var(--text-muted);margin-top:2px;"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;">
+      <textarea id="essay-writer-content" oninput="onEssayWriterInput()" placeholder="Start writing your essay here…" style="width:100%;min-height:60vh;border:none;border-radius:var(--radius-lg);padding:20px;font-size:15px;line-height:1.7;font-family:inherit;resize:vertical;background:transparent;"></textarea>
+    </div>
+  </div>
+
   <!-- Recs -->
   <div class="page" id="page-c-recs">
     <div class="page-header"><h2>Letters of Recommendation</h2><p>Most schools require 2 teacher recs + 1 counsellor rec.</p></div>
@@ -1203,7 +1220,7 @@ a:hover{text-decoration:underline;}
     </div>
     <div class="form-row">
       <div class="form-group"><label>Word Limit</label><input type="number" id="essay-wordlimit" placeholder="650"></div>
-      <div class="form-group"><label>Current Word Count</label><input type="number" id="essay-wordcount" placeholder="0"></div>
+      <div class="form-group"><label>Current Word Count</label><input type="number" id="essay-wordcount" placeholder="0" readonly title="Auto-calculated from what you write in the Write tab"></div>
     </div>
     <div class="form-group"><label>Status</label><select id="essay-status"><option>Not Started</option><option>Brainstorming</option><option>Outlining</option><option>First Draft</option><option>Revising</option><option>Final Review</option><option>Complete</option></select></div>
     <div class="form-group"><label>Prompt / Topic</label><textarea id="essay-prompt" placeholder="Paste the prompt or describe your topic…"></textarea></div>
@@ -2356,7 +2373,8 @@ function saveEssay() {
   if(!college){alert('Please enter a college.');return;}
   const id=document.getElementById('essay-edit-id').value||uid();
   const existing=DB.essays.findIndex(e=>e.id===id);
-  const essay={id,college,type:document.getElementById('essay-type').value,wordLimit:document.getElementById('essay-wordlimit').value,wordCount:document.getElementById('essay-wordcount').value,status:document.getElementById('essay-status').value,prompt:document.getElementById('essay-prompt').value,ideas:document.getElementById('essay-ideas').value,notes:document.getElementById('essay-notes').value};
+  const prev=existing>=0?DB.essays[existing]:null;
+  const essay={id,college,type:document.getElementById('essay-type').value,wordLimit:document.getElementById('essay-wordlimit').value,wordCount:prev?prev.wordCount:'0',content:prev?prev.content:'',status:document.getElementById('essay-status').value,prompt:document.getElementById('essay-prompt').value,ideas:document.getElementById('essay-ideas').value,notes:document.getElementById('essay-notes').value};
   if(existing>=0)DB.essays[existing]=essay;else DB.essays.push(essay);
   save();closeModal('essay-modal');renderEssays();updateEssayCollegeFilter();
 }
@@ -2378,8 +2396,47 @@ function renderEssays() {
   if(list.length===0){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📝</div><p>Add your essays above.</p></div></td></tr>`;return;}
   tbody.innerHTML=list.map(e=>{
     const wl=e.wordLimit?parseInt(e.wordLimit):null;const wc=e.wordCount?parseInt(e.wordCount):0;const pct=wl?Math.min(100,Math.round(wc/wl*100)):0;
-    return `<tr><td><strong>${e.college}</strong></td><td><span class="badge badge-gray">${e.type}</span></td><td style="max-width:220px;font-size:12px;color:var(--text-secondary);">${e.prompt?e.prompt.slice(0,60)+(e.prompt.length>60?'…':''):'—'}</td><td>${wl?`<div style="font-size:12px;">${wc}/${wl}</div><div class="progress-bar" style="margin-top:4px;width:80px;"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>`:'—'}</td><td>${statusBadge(e.status)}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editEssay('${e.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEssay('${e.id}')">🗑</button></div></td></tr>`;
+    return `<tr><td><strong>${e.college}</strong></td><td><span class="badge badge-gray">${e.type}</span></td><td style="max-width:220px;font-size:12px;color:var(--text-secondary);">${e.prompt?e.prompt.slice(0,60)+(e.prompt.length>60?'…':''):'—'}</td><td>${wl?`<div style="font-size:12px;">${wc}/${wl}</div><div class="progress-bar" style="margin-top:4px;width:80px;"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>`:'—'}</td><td>${statusBadge(e.status)}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="openEssayWriter('${e.id}')" title="Write">✍️</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editEssay('${e.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEssay('${e.id}')">🗑</button></div></td></tr>`;
   }).join('');
+}
+
+let _essayWriterId = null;
+let _essayWriterSaveTimer = null;
+function openEssayWriter(id) {
+  const e = DB.essays.find(e => e.id === id); if (!e) return;
+  _essayWriterId = id;
+  document.getElementById('essay-writer-title').textContent = `${e.college} — ${e.type}`;
+  document.getElementById('essay-writer-prompt').textContent = e.prompt || '';
+  document.getElementById('essay-writer-content').value = e.content || '';
+  document.getElementById('essay-writer-saved').textContent = '';
+  updateEssayWriterCount();
+  showPage('c-essay-writer');
+  document.getElementById('essay-writer-content').focus();
+}
+function essayWordCount(text) {
+  const words = (text || '').trim().split(/\s+/).filter(Boolean);
+  return words.length;
+}
+function updateEssayWriterCount() {
+  const e = DB.essays.find(e => e.id === _essayWriterId); if (!e) return;
+  const text = document.getElementById('essay-writer-content').value;
+  const wc = essayWordCount(text);
+  const wl = e.wordLimit ? parseInt(e.wordLimit) : null;
+  document.getElementById('essay-writer-count').textContent = wl ? `${wc} / ${wl} words` : `${wc} words`;
+}
+function onEssayWriterInput() {
+  updateEssayWriterCount();
+  document.getElementById('essay-writer-saved').textContent = 'Saving…';
+  clearTimeout(_essayWriterSaveTimer);
+  _essayWriterSaveTimer = setTimeout(saveEssayWriterContent, 800);
+}
+function saveEssayWriterContent() {
+  const e = DB.essays.find(e => e.id === _essayWriterId); if (!e) return;
+  e.content = document.getElementById('essay-writer-content').value;
+  e.wordCount = String(essayWordCount(e.content));
+  save();
+  renderEssays();
+  document.getElementById('essay-writer-saved').textContent = 'Saved at ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 // ============================================================
