@@ -1778,7 +1778,8 @@ function renderDashboard() {
 
   // Deadlines
   const now = new Date();
-  const upcoming = DB.deadlines.filter(d => new Date(d.date+'T12:00:00') >= now).sort((a,b) => new Date(a.date+'T12:00:00')-new Date(b.date+'T12:00:00')).slice(0,5);
+  const threeMonthsOut = new Date(now); threeMonthsOut.setMonth(threeMonthsOut.getMonth()+3);
+  const upcoming = DB.deadlines.filter(d => { const dt = new Date(d.date+'T12:00:00'); return dt >= now && dt <= threeMonthsOut; }).sort((a,b) => new Date(a.date+'T12:00:00')-new Date(b.date+'T12:00:00'));
   const dlContainer = document.getElementById('dash-deadlines-list');
   if (upcoming.length === 0) {
     dlContainer.innerHTML = `<div class="empty-state" style="padding:24px 0;"><div class="empty-icon">📅</div><p>No upcoming deadlines.</p></div>`;
