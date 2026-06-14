@@ -1113,7 +1113,7 @@ a:hover{text-decoration:underline;}
         </div>
       </div>
 
-      <button class="btn btn-primary" onclick="saveWeeklyReview()" style="width:100%;">Save Review</button>
+      <button class="btn btn-primary" onclick="saveWeeklyReview(event)" style="width:100%;">Save Review</button>
 
     </div>
 
@@ -4016,7 +4016,7 @@ function _loadPastReview(weekStart) {
   document.getElementById('journal-tab-weekly').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-function saveWeeklyReview() {
+function saveWeeklyReview(event) {
   const ws = _weekStart(_wrWeekOffset);
   const we = new Date(ws); we.setDate(ws.getDate() + 6);
   const wsStr = _dateStrWR(ws), weStr = _dateStrWR(we);
@@ -4039,9 +4039,11 @@ function saveWeeklyReview() {
   DB.weeklyReviews = DB.weeklyReviews.filter(r => r.weekStart !== wsStr);
   DB.weeklyReviews.push(review);
   save();
-  const btn = event.currentTarget;
-  btn.textContent = 'Saved ✓';
-  setTimeout(() => { btn.textContent = 'Save Review'; }, 2000);
+  const btn = event?.currentTarget;
+  if (btn) {
+    btn.textContent = 'Saved ✓';
+    setTimeout(() => { btn.textContent = 'Save Review'; }, 2000);
+  }
 
   // Reset the on-screen boxes after saving, while the data above stays saved
   const emptyAreaEntries = {};
