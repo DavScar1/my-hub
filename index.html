@@ -332,6 +332,54 @@ tr:hover .row-actions{opacity:1;}
 .sl-btn:hover{background:var(--border-light);color:var(--text);}
 
 /* ============================================================
+   TO DO (life)
+============================================================ */
+.todo-layout{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;min-height:560px;box-shadow:var(--shadow);}
+.todo-sidebar{width:220px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.todo-nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text);}
+.todo-nav-item:hover{background:var(--surface);}
+.todo-nav-item.active{background:var(--surface);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.todo-nav-item .tcount{margin-left:auto;font-size:11px;color:var(--text-muted);font-weight:600;}
+.todo-list-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.todo-lists-divider{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:14px 12px 6px;}
+.todo-main{flex:1;min-width:0;padding:20px 24px;position:relative;display:flex;flex-direction:column;}
+.todo-main-header{margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.todo-main-header h3{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.todo-add-row{display:flex;gap:8px;margin-bottom:16px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px;}
+.todo-add-row input{border:none;background:none;padding:0;flex:1;}
+.todo-add-row input:focus{box-shadow:none;}
+.todo-task{display:flex;align-items:flex-start;gap:12px;padding:11px 8px;border-bottom:1px solid var(--border-light);cursor:pointer;}
+.todo-task:hover{background:var(--bg);}
+.todo-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:transparent;font-size:11px;transition:all .12s;background:none;}
+.todo-check:hover{border-color:var(--l-accent);}
+.todo-check.checked{background:var(--l-accent);border-color:var(--l-accent);color:#fff;}
+.todo-task-body{flex:1;min-width:0;}
+.todo-task-title{font-size:13.5px;}
+.todo-task.completed .todo-task-title{text-decoration:line-through;color:var(--text-muted);}
+.todo-task-meta{display:flex;gap:8px;margin-top:3px;font-size:11px;color:var(--text-muted);align-items:center;flex-wrap:wrap;}
+.todo-task-meta .overdue{color:var(--red);font-weight:600;}
+.todo-star{font-size:17px;color:var(--border);cursor:pointer;flex-shrink:0;margin-top:1px;background:none;border:none;line-height:1;}
+.todo-star.active{color:#eab308;}
+.todo-completed-toggle{font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;padding:10px 8px;display:flex;align-items:center;gap:6px;user-select:none;}
+.todo-group-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 4px;}
+.todo-group-label:first-child{margin-top:0;}
+.todo-empty{color:var(--text-muted);font-size:13px;padding:30px 8px;text-align:center;}
+/* Detail panel */
+.todo-detail{position:absolute;top:0;right:0;bottom:0;width:340px;max-width:100%;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 16px rgba(0,0,0,.06);padding:18px;overflow-y:auto;z-index:5;}
+.todo-detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.todo-detail-step{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;}
+.todo-detail-step.done span{text-decoration:line-through;color:var(--text-muted);}
+.todo-color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.todo-color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.todo-color-swatch.selected{border-color:var(--text);}
+@media(max-width:800px){
+  .todo-layout{flex-direction:column;min-height:0;}
+  .todo-sidebar{width:auto;flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--border);}
+  .todo-lists-divider{width:100%;padding-top:8px;}
+  .todo-detail{position:fixed;inset:0;width:auto;z-index:1001;border-left:none;}
+}
+
+/* ============================================================
    PRODUCT CARDS (life)
 ============================================================ */
 .product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow);}
@@ -526,6 +574,7 @@ a:hover{text-decoration:underline;}
   <div class="sidebar-nav" id="nav-life" style="display:none;">
     <div class="nav-section">Overview</div>
     <button class="nav-item" onclick="showPage('l-today')"><span class="icon">🏠</span>Today</button>
+    <button class="nav-item" onclick="showPage('l-todo')"><span class="icon">✅</span>To Do</button>
 
     <div class="nav-section">Routines</div>
     <button class="nav-item" onclick="showPage('l-morning')"><span class="icon">🌅</span>Morning</button>
@@ -770,6 +819,35 @@ a:hover{text-decoration:underline;}
     <div class="grid-2">
       <div id="today-gym-card" class="today-card"></div>
       <div id="today-weekly-card" class="today-card"></div>
+    </div>
+  </div>
+
+  <!-- To Do -->
+  <div class="page" id="page-l-todo">
+    <div class="page-header"><h2>✅ To Do</h2><p>Plan your day, your way.</p></div>
+    <div class="todo-layout">
+      <div class="todo-sidebar">
+        <div class="todo-nav-item" id="todo-nav-myday" onclick="selectTodoView('myday')"><span>☀️</span><span>My Day</span><span class="tcount" id="todo-count-myday"></span></div>
+        <div class="todo-nav-item" id="todo-nav-important" onclick="selectTodoView('important')"><span>⭐</span><span>Important</span><span class="tcount" id="todo-count-important"></span></div>
+        <div class="todo-nav-item" id="todo-nav-planned" onclick="selectTodoView('planned')"><span>📅</span><span>Planned</span><span class="tcount" id="todo-count-planned"></span></div>
+        <div class="todo-nav-item" id="todo-nav-all" onclick="selectTodoView('all')"><span>📋</span><span>Tasks</span><span class="tcount" id="todo-count-all"></span></div>
+        <div class="todo-lists-divider">My Lists</div>
+        <div id="todo-custom-lists"></div>
+        <button class="btn-ghost" style="width:100%;text-align:left;" onclick="openTodoListModal()">+ New list</button>
+      </div>
+      <div class="todo-main">
+        <div class="todo-main-header">
+          <h3 id="todo-view-title">My Day</h3>
+          <div class="row-actions" style="opacity:1;" id="todo-list-actions"></div>
+        </div>
+        <div id="todo-add-row" class="todo-add-row">
+          <span style="font-size:16px;">+</span>
+          <input type="text" id="todo-new-task" placeholder="Add a task" onkeydown="if(event.key==='Enter')addTodoTask()">
+          <button class="btn btn-primary btn-sm" onclick="addTodoTask()">Add</button>
+        </div>
+        <div id="todo-tasks-list"></div>
+        <div id="todo-completed-list"></div>
+      </div>
     </div>
   </div>
 
@@ -1451,6 +1529,17 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Todo list modal -->
+<div class="modal-overlay" id="todo-list-modal">
+  <div class="modal">
+    <h3 id="todo-list-modal-title">New List</h3>
+    <input type="hidden" id="todo-list-edit-id">
+    <div class="form-group"><label>List Name *</label><input type="text" id="todo-list-name" placeholder="e.g. Groceries, School, Pokémon"></div>
+    <div class="form-group"><label>Color</label><div class="todo-color-grid" id="todo-list-color-grid"></div></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('todo-list-modal')">Cancel</button><button class="btn btn-primary" onclick="saveTodoList()">Save</button></div>
+  </div>
+</div>
+
 <!-- Habit modal -->
 <div class="modal-overlay" id="habit-modal">
   <div class="modal">
@@ -1645,6 +1734,8 @@ function ensureDBDefaults() {
   if (!DB.nutritionLog) DB.nutritionLog = {};
   if (!DB.ecMetrics) DB.ecMetrics = [];
   if (!DB.ecLog) DB.ecLog = {};
+  if (!DB.todoLists) DB.todoLists = [{ id:'default', name:'Tasks', color:'#4a7856' }];
+  if (!DB.todoTasks) DB.todoTasks = [];
   if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
   DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
 }
@@ -1704,6 +1795,7 @@ function renderPage(id) {
   if (id === 'c-notes') { const el = document.getElementById('notes-content'); if(el) el.value = DB.collegeNotes||''; }
   // Life pages (prefixed l-)
   if (id === 'l-today') renderToday();
+  if (id === 'l-todo') renderTodo();
   if (id === 'l-morning') renderRoutinePage('morning');
   if (id === 'l-evening') renderRoutinePage('evening');
   if (id === 'l-gym') renderGymPage();
@@ -2702,6 +2794,263 @@ function saveStep() {
 }
 function deleteStep(key,id) { if(!confirm('Delete this step?'))return; DB.routines[key]=(DB.routines[key]||[]).filter(s=>s.id!==id);save();renderRoutinePage(key); }
 function moveStep(key,id,dir) { const arr=DB.routines[key];const i=arr.findIndex(s=>s.id===id);const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];save();renderRoutinePage(key); }
+
+// ============================================================
+// LIFE — TO DO
+// ============================================================
+const TODO_COLORS=['#4a7856','#2563eb','#7c3aed','#dc2626','#b5620d','#16a34a','#0d9488','#db2777','#475569'];
+let _todoView='myday';
+let _todoOpenTaskId=null;
+
+function escapeHtml(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function todoDefaultListId() { return (DB.todoLists[0]||{id:'default'}).id; }
+
+function todoTasksForView(view) {
+  const all=DB.todoTasks;
+  if(view==='myday') return all.filter(t=>t.myDay===today());
+  if(view==='important') return all.filter(t=>t.important);
+  if(view==='planned') return all.filter(t=>t.dueDate);
+  if(view==='all') return all;
+  return all.filter(t=>t.listId===view);
+}
+
+function selectTodoView(view) {
+  _todoView=view;
+  closeTodoDetail();
+  renderTodo();
+}
+
+function todoFormatDate(d) {
+  const dt=new Date(d+'T12:00:00');
+  if(d===today()) return 'Today';
+  if(d===dateStr(new Date(Date.now()+86400000))) return 'Tomorrow';
+  return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function todoTaskRowHtml(t) {
+  const overdue = t.dueDate && t.dueDate < today() && !t.completed;
+  const steps=t.steps||[];
+  const stepsDone=steps.filter(s=>s.completed).length;
+  const metaParts=[];
+  if(t.dueDate) metaParts.push(`<span class="${overdue?'overdue':''}">📅 ${todoFormatDate(t.dueDate)}</span>`);
+  if(steps.length) metaParts.push(`<span>☑️ ${stepsDone}/${steps.length}</span>`);
+  if(_todoView!=='default' && DB.todoLists.length>1 && _todoView!==t.listId) {
+    const l=DB.todoLists.find(l=>l.id===t.listId);
+    if(l) metaParts.push(`<span><span class="todo-list-dot" style="display:inline-block;width:7px;height:7px;background:${l.color};vertical-align:middle;margin-right:3px;"></span>${escapeHtml(l.name)}</span>`);
+  }
+  return `<div class="todo-task${t.completed?' completed':''}">
+    <button class="todo-check${t.completed?' checked':''}" onclick="event.stopPropagation();toggleTodoComplete('${t.id}')">✓</button>
+    <div class="todo-task-body" onclick="openTodoDetail('${t.id}')">
+      <div class="todo-task-title">${escapeHtml(t.title)}</div>
+      ${metaParts.length?`<div class="todo-task-meta">${metaParts.join('')}</div>`:''}
+    </div>
+    <button class="todo-star${t.important?' active':''}" onclick="event.stopPropagation();toggleTodoImportant('${t.id}')">${t.important?'★':'☆'}</button>
+  </div>`;
+}
+
+function todoRenderPlannedGroups(tasks) {
+  const sorted=[...tasks].sort((a,b)=>a.dueDate<b.dueDate?-1:a.dueDate>b.dueDate?1:0);
+  const groups={Overdue:[],Today:[],Tomorrow:[],Later:[]};
+  const t=today(); const tm=dateStr(new Date(Date.now()+86400000));
+  sorted.forEach(task=>{
+    if(task.dueDate<t) groups.Overdue.push(task);
+    else if(task.dueDate===t) groups.Today.push(task);
+    else if(task.dueDate===tm) groups.Tomorrow.push(task);
+    else groups.Later.push(task);
+  });
+  return Object.entries(groups).filter(([,arr])=>arr.length).map(([label,arr])=>
+    `<div class="todo-group-label">${label}</div>${arr.map(t=>todoTaskRowHtml(t)).join('')}`
+  ).join('');
+}
+
+function renderTodo() {
+  ['myday','important','planned','all'].forEach(v=>{
+    const c=todoTasksForView(v).filter(t=>!t.completed).length;
+    const el=document.getElementById('todo-count-'+v);
+    if(el) el.textContent=c||'';
+    const navEl=document.getElementById('todo-nav-'+v);
+    if(navEl) navEl.classList.toggle('active',_todoView===v);
+  });
+
+  let list=null;
+  if(!['myday','important','planned','all'].includes(_todoView)) {
+    list=DB.todoLists.find(l=>l.id===_todoView);
+    if(!list) _todoView='all';
+  }
+
+  document.getElementById('todo-custom-lists').innerHTML=DB.todoLists.map(l=>{
+    const c=DB.todoTasks.filter(t=>t.listId===l.id && !t.completed).length;
+    return `<div class="todo-nav-item${_todoView===l.id?' active':''}" onclick="selectTodoView('${l.id}')"><span class="todo-list-dot" style="background:${l.color}"></span><span>${escapeHtml(l.name)}</span><span class="tcount">${c||''}</span></div>`;
+  }).join('');
+
+  const titles={myday:'☀️ My Day',important:'⭐ Important',planned:'📅 Planned',all:'📋 Tasks'};
+  let title=titles[_todoView]||(list?escapeHtml(list.name):'Tasks');
+  if(_todoView==='myday') title += ' — '+new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  document.getElementById('todo-view-title').textContent=title;
+
+  const actionsEl=document.getElementById('todo-list-actions');
+  actionsEl.innerHTML = list ? `<button class="btn btn-secondary btn-sm btn-icon" onclick="openTodoListModal('${list.id}')">✏️</button>${DB.todoLists.length>1?`<button class="btn btn-danger btn-sm btn-icon" onclick="deleteTodoList('${list.id}')">🗑</button>`:''}` : '';
+
+  document.getElementById('todo-add-row').style.display = _todoView==='planned' ? 'none' : 'flex';
+
+  const tasks=todoTasksForView(_todoView);
+  const incomplete=tasks.filter(t=>!t.completed);
+  const completed=tasks.filter(t=>t.completed);
+  const listEl=document.getElementById('todo-tasks-list');
+  const completedEl=document.getElementById('todo-completed-list');
+
+  if(_todoView==='planned') {
+    listEl.innerHTML = incomplete.length===0 ? `<div class="todo-empty">No tasks with due dates. Open a task and set a due date to see it here.</div>` : todoRenderPlannedGroups(incomplete);
+  } else if(incomplete.length===0 && completed.length===0) {
+    listEl.innerHTML=`<div class="todo-empty">No tasks yet. Add one above to get started.</div>`;
+  } else {
+    listEl.innerHTML=incomplete.map(t=>todoTaskRowHtml(t)).join('');
+  }
+
+  if(completed.length>0 && _todoView!=='planned') {
+    completedEl.innerHTML=`<div class="todo-completed-toggle" onclick="const p=this.nextElementSibling;p.style.display=p.style.display==='none'?'block':'none';">▸ Completed (${completed.length})</div><div style="display:none;">${completed.map(t=>todoTaskRowHtml(t)).join('')}</div>`;
+  } else {
+    completedEl.innerHTML='';
+  }
+
+  if(_todoOpenTaskId) renderTodoDetail(); else closeTodoDetailPanel();
+}
+
+function addTodoTask() {
+  const input=document.getElementById('todo-new-task');
+  const title=input.value.trim(); if(!title) return;
+  const task={id:uid(),listId:todoDefaultListId(),title,completed:false,important:false,dueDate:'',myDay:'',repeat:'none',notes:'',steps:[]};
+  if(_todoView==='myday') task.myDay=today();
+  else if(_todoView==='important') task.important=true;
+  else if(DB.todoLists.some(l=>l.id===_todoView)) task.listId=_todoView;
+  DB.todoTasks.push(task);
+  save(); input.value=''; renderTodo();
+}
+function toggleTodoComplete(id) {
+  const t=DB.todoTasks.find(t=>t.id===id); if(!t) return;
+  t.completed=!t.completed; save(); renderTodo();
+}
+function toggleTodoImportant(id) {
+  const t=DB.todoTasks.find(t=>t.id===id); if(!t) return;
+  t.important=!t.important; save(); renderTodo();
+}
+function toggleTodoMyDay(id) {
+  const t=DB.todoTasks.find(t=>t.id===id); if(!t) return;
+  t.myDay = t.myDay===today() ? '' : today(); save(); renderTodo();
+}
+function deleteTodoTask(id) {
+  if(!confirm('Delete this task?')) return;
+  DB.todoTasks=DB.todoTasks.filter(t=>t.id!==id);
+  save(); closeTodoDetail();
+}
+
+function openTodoDetail(id) { _todoOpenTaskId=id; renderTodo(); }
+function closeTodoDetail() { _todoOpenTaskId=null; closeTodoDetailPanel(); renderTodo(); }
+function closeTodoDetailPanel() { const el=document.getElementById('todo-detail'); if(el) el.remove(); }
+
+function renderTodoDetail() {
+  const t=DB.todoTasks.find(t=>t.id===_todoOpenTaskId); if(!t) { _todoOpenTaskId=null; closeTodoDetailPanel(); return; }
+  closeTodoDetailPanel();
+  const steps=t.steps||[];
+  const stepsHtml=steps.map(s=>`<div class="todo-detail-step${s.completed?' done':''}">
+    <button class="todo-check${s.completed?' checked':''}" style="width:16px;height:16px;font-size:9px;" onclick="toggleTodoStep('${t.id}','${s.id}')">✓</button>
+    <span style="flex:1;">${escapeHtml(s.name)}</span>
+    <button class="btn-ghost" onclick="deleteTodoStep('${t.id}','${s.id}')">🗑</button>
+  </div>`).join('');
+  const panel=document.createElement('div');
+  panel.className='todo-detail'; panel.id='todo-detail';
+  panel.innerHTML=`
+    <div class="todo-detail-header">
+      <button class="todo-check${t.completed?' checked':''}" onclick="toggleTodoComplete('${t.id}')">✓</button>
+      <button class="btn-ghost" onclick="closeTodoDetail()" style="font-size:18px;">✕</button>
+    </div>
+    <div class="form-group"><input type="text" value="${escapeHtml(t.title)}" onchange="updateTodoField('${t.id}','title',this.value)" style="font-weight:700;font-size:15px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="toggleTodoImportant('${t.id}')">${t.important?'★ Important':'☆ Mark important'}</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleTodoMyDay('${t.id}')">${t.myDay===today()?'☀️ In My Day':'+ Add to My Day'}</button>
+    </div>
+    <div class="card-title">Steps</div>
+    <div style="margin-bottom:6px;">${stepsHtml}</div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;">
+      <input type="text" id="todo-new-step" placeholder="Add a step" onkeydown="if(event.key==='Enter')addTodoStep('${t.id}')">
+      <button class="btn btn-secondary btn-sm" onclick="addTodoStep('${t.id}')">Add</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Due Date</label><input type="date" value="${t.dueDate||''}" onchange="updateTodoField('${t.id}','dueDate',this.value)"></div>
+      <div class="form-group"><label>Repeat</label><select onchange="updateTodoField('${t.id}','repeat',this.value)">
+        <option value="none"${t.repeat==='none'?' selected':''}>Does not repeat</option>
+        <option value="daily"${t.repeat==='daily'?' selected':''}>Daily</option>
+        <option value="weekday"${t.repeat==='weekday'?' selected':''}>Weekdays</option>
+        <option value="weekly"${t.repeat==='weekly'?' selected':''}>Weekly</option>
+        <option value="monthly"${t.repeat==='monthly'?' selected':''}>Monthly</option>
+        <option value="yearly"${t.repeat==='yearly'?' selected':''}>Yearly</option>
+      </select></div>
+    </div>
+    <div class="form-group"><label>List</label><select onchange="updateTodoField('${t.id}','listId',this.value)">
+      ${DB.todoLists.map(l=>`<option value="${l.id}"${t.listId===l.id?' selected':''}>${escapeHtml(l.name)}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label>Notes</label><textarea onchange="updateTodoField('${t.id}','notes',this.value)" rows="4" placeholder="Add notes…">${escapeHtml(t.notes)}</textarea></div>
+    <button class="btn btn-danger btn-sm" onclick="deleteTodoTask('${t.id}')">🗑 Delete task</button>
+  `;
+  document.querySelector('.todo-main').appendChild(panel);
+}
+function updateTodoField(id,field,value) {
+  const t=DB.todoTasks.find(t=>t.id===id); if(!t) return;
+  t[field]=value; save(); renderTodo();
+}
+function addTodoStep(taskId) {
+  const input=document.getElementById('todo-new-step');
+  const name=input.value.trim(); if(!name) return;
+  const t=DB.todoTasks.find(t=>t.id===taskId); if(!t) return;
+  if(!t.steps) t.steps=[];
+  t.steps.push({id:uid(),name,completed:false});
+  save(); renderTodo();
+}
+function toggleTodoStep(taskId,stepId) {
+  const t=DB.todoTasks.find(t=>t.id===taskId); if(!t) return;
+  const s=(t.steps||[]).find(s=>s.id===stepId); if(!s) return;
+  s.completed=!s.completed; save(); renderTodo();
+}
+function deleteTodoStep(taskId,stepId) {
+  const t=DB.todoTasks.find(t=>t.id===taskId); if(!t) return;
+  t.steps=(t.steps||[]).filter(s=>s.id!==stepId); save(); renderTodo();
+}
+
+let _todoListColor=TODO_COLORS[0];
+function openTodoListModal(editId) {
+  openModal('todo-list-modal',editId||null);
+  document.getElementById('todo-list-modal-title').textContent=editId?'Edit List':'New List';
+  document.getElementById('todo-list-edit-id').value=editId||'';
+  const list=editId?DB.todoLists.find(l=>l.id===editId):null;
+  document.getElementById('todo-list-name').value=list?list.name:'';
+  _todoListColor=list?list.color:TODO_COLORS[0];
+  document.getElementById('todo-list-color-grid').innerHTML=TODO_COLORS.map(c=>`<div class="todo-color-swatch${c===_todoListColor?' selected':''}" style="background:${c}" onclick="selectTodoListColor('${c}',this)"></div>`).join('');
+}
+function selectTodoListColor(c,el) {
+  _todoListColor=c;
+  document.querySelectorAll('#todo-list-color-grid .todo-color-swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function saveTodoList() {
+  const name=document.getElementById('todo-list-name').value.trim(); if(!name){alert('Please enter a list name.');return;}
+  const editId=document.getElementById('todo-list-edit-id').value;
+  if(editId) {
+    const l=DB.todoLists.find(l=>l.id===editId); if(l){l.name=name;l.color=_todoListColor;}
+  } else {
+    const list={id:uid(),name,color:_todoListColor};
+    DB.todoLists.push(list);
+    _todoView=list.id;
+  }
+  save(); closeModal('todo-list-modal'); renderTodo();
+}
+function deleteTodoList(id) {
+  if(!confirm('Delete this list? Its tasks will move to "'+DB.todoLists[0].name+'".')) return;
+  const fallback=DB.todoLists.find(l=>l.id!==id);
+  DB.todoTasks.forEach(t=>{ if(t.listId===id) t.listId=fallback.id; });
+  DB.todoLists=DB.todoLists.filter(l=>l.id!==id);
+  _todoView='all';
+  save(); renderTodo();
+}
 
 // ============================================================
 // LIFE — HABITS
