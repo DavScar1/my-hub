@@ -2672,6 +2672,10 @@ function renderRoutinePage(key) {
     const pct=Math.round(done/steps.length*100);
     html+=`<div class="card" style="margin-top:16px;"><div class="card-title">Today's Progress</div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;"><span>${done} of ${steps.length} steps done today</span><span style="font-weight:700;color:var(--accent);">${pct}%</span></div><div class="progress-bar" style="height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:4px;transition:width 0.3s;"></div></div></div>`;
   }
+  if(key==='evening'){
+    const freeTimeGroups=['Buy Clothes + needs','College application','Pokémon, building and geography','Coding + tricks','Movie'];
+    html+=`<div class="card" style="margin-top:16px;"><div class="card-title">✅ When everything is done...</div><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">${freeTimeGroups.map((g,i)=>`<div style="font-size:14px;font-weight:600;">${i+1}. ${g}</div>`).join('')}</div></div>`;
+  }
   container.innerHTML=html;
 }
 function toggleStep(routineKey,stepId,el) {
