@@ -1729,6 +1729,7 @@ function ensureDBDefaults() {
   if (!DB.activeTimer) DB.activeTimer = null;
   if (!DB.weeklyReviews) DB.weeklyReviews = [];
   if (!DB.weeklyReviewAreas) DB.weeklyReviewAreas = [];
+  if (!DB.weeklyReviewDrafts) DB.weeklyReviewDrafts = {};
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -3724,7 +3725,6 @@ function renderNutrition() {
 // WEEKLY REVIEW
 // ============================================================
 let _wrWeekOffset = 0;
-let _wrDrafts = {};
 let _wrLastWeek = null;
 
 function _captureWRDraftFromDOM() {
@@ -3739,12 +3739,13 @@ function _captureWRDraftFromDOM() {
       plans:    document.getElementById(`wr-area-plans-${area.id}`)?.value    ?? '',
     };
   });
-  _wrDrafts[_wrLastWeek] = {
+  DB.weeklyReviewDrafts[_wrLastWeek] = {
     wentWell: wentWellEl.value,
     improve: document.getElementById('wr-improve')?.value ?? '',
     goals: document.getElementById('wr-goals')?.value ?? '',
     areaEntries,
   };
+  save();
 }
 
 function _weekStart(offset) {
@@ -3857,7 +3858,7 @@ function renderWeeklyReview() {
       <div style="font-size:17px;font-weight:700;">${s.value}</div>
     </div>`).join('');
 
-  const draft = _wrDrafts[wsStr];
+  const draft = DB.weeklyReviewDrafts[wsStr];
   const data = draft || review;
   const areaEntries = data.areaEntries || {};
   const areasEl = document.getElementById('wr-areas-list');
@@ -4010,7 +4011,8 @@ function _loadPastReview(weekStart) {
   const ws = new Date(weekStart + 'T12:00:00');
   const nowMonday = _weekStart(0);
   const diffWeeks = Math.round((nowMonday - ws) / (7 * 24 * 3600 * 1000));
-  delete _wrDrafts[weekStart];
+  delete DB.weeklyReviewDrafts[weekStart];
+  save();
   _wrWeekOffset = -diffWeeks;
   renderWeeklyReview();
   document.getElementById('journal-tab-weekly').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -4038,17 +4040,18 @@ function saveWeeklyReview(event) {
   };
   DB.weeklyReviews = DB.weeklyReviews.filter(r => r.weekStart !== wsStr);
   DB.weeklyReviews.push(review);
+
+  // Reset the on-screen boxes after saving, while the data above stays saved
+  const emptyAreaEntries = {};
+  DB.weeklyReviewAreas.forEach(area => { emptyAreaEntries[area.id] = { happened:'', metrics:'', plans:'' }; });
+  DB.weeklyReviewDrafts[wsStr] = { wentWell:'', improve:'', goals:'', areaEntries: emptyAreaEntries };
+
   save();
   const btn = event?.currentTarget;
   if (btn) {
     btn.textContent = 'Saved ✓';
     setTimeout(() => { btn.textContent = 'Save Review'; }, 2000);
   }
-
-  // Reset the on-screen boxes after saving, while the data above stays saved
-  const emptyAreaEntries = {};
-  DB.weeklyReviewAreas.forEach(area => { emptyAreaEntries[area.id] = { happened:'', metrics:'', plans:'' }; });
-  _wrDrafts[wsStr] = { wentWell:'', improve:'', goals:'', areaEntries: emptyAreaEntries };
 
   renderWeeklyReview();
 }
