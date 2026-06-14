@@ -243,6 +243,8 @@ tr:hover .row-actions{opacity:1;}
 .routine-step.done .step-name{text-decoration:line-through;color:var(--text-muted);}
 .routine-step input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
 .step-name{flex:1;font-size:13.5px;}
+#goal-modal-steps input[type=checkbox],
+input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
 .step-time{font-size:11px;color:var(--text-muted);}
 
 /* ============================================================
@@ -575,6 +577,7 @@ a:hover{text-decoration:underline;}
     <div class="nav-section">Overview</div>
     <button class="nav-item" onclick="showPage('l-today')"><span class="icon">🏠</span>Today</button>
     <button class="nav-item" onclick="showPage('l-todo')"><span class="icon">✅</span>To Do</button>
+    <button class="nav-item" onclick="showPage('l-goals')"><span class="icon">🎯</span>Goals</button>
 
     <div class="nav-section">Routines</div>
     <button class="nav-item" onclick="showPage('l-morning')"><span class="icon">🌅</span>Morning</button>
@@ -849,6 +852,19 @@ a:hover{text-decoration:underline;}
         <div id="todo-completed-list"></div>
       </div>
     </div>
+  </div>
+
+  <!-- Goals -->
+  <div class="page" id="page-l-goals">
+    <div class="page-header"><h2>🎯 Goals</h2><p>Track your goals with categories, milestones, and target dates.</p></div>
+    <div class="section-header">
+      <div style="color:var(--text-secondary);font-size:13px;" id="goals-summary"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="openGoalCategoryModal()">+ Category</button>
+        <button class="btn btn-primary" onclick="openGoalModal()">+ Add Goal</button>
+      </div>
+    </div>
+    <div id="goals-list"></div>
   </div>
 
   <!-- Morning -->
@@ -1529,6 +1545,50 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Goal modal -->
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <h3 id="goal-modal-title">Goal</h3>
+    <input type="hidden" id="goal-edit-id">
+    <div class="form-group"><label>Goal Title *</label><input type="text" id="goal-title" placeholder="e.g. Get into my top-choice college"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Category</label><select id="goal-category"></select></div>
+      <div class="form-group"><label>Target Date (optional)</label><input type="date" id="goal-target-date"></div>
+    </div>
+    <div class="form-group"><label>Description / Notes</label><textarea id="goal-description" rows="2" placeholder="Why this matters, details…"></textarea></div>
+    <div class="form-group">
+      <label>Milestones / Steps</label>
+      <div id="goal-modal-steps" style="margin-bottom:8px;"></div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="goal-modal-step-input" placeholder="Add a milestone…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addGoalModalStep();}">
+        <button class="btn btn-secondary btn-sm" onclick="addGoalModalStep()">Add</button>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger" id="goal-delete-btn" onclick="deleteGoal()" style="display:none;margin-right:auto;">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('goal-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGoal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal category modal -->
+<div class="modal-overlay" id="goal-category-modal">
+  <div class="modal">
+    <h3>Goal Category</h3>
+    <input type="hidden" id="goal-category-edit-id">
+    <div class="form-row">
+      <div class="form-group" style="max-width:90px;"><label>Icon</label><input type="text" id="goal-category-icon" maxlength="4" placeholder="🎯"></div>
+      <div class="form-group"><label>Name *</label><input type="text" id="goal-category-name" placeholder="e.g. College, Fitness, Coding"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger" id="goal-category-delete-btn" onclick="deleteGoalCategory()" style="display:none;margin-right:auto;">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('goal-category-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGoalCategory()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Todo list modal -->
 <div class="modal-overlay" id="todo-list-modal">
   <div class="modal">
@@ -1730,6 +1790,8 @@ function ensureDBDefaults() {
   if (!DB.weeklyReviews) DB.weeklyReviews = [];
   if (!DB.weeklyReviewAreas) DB.weeklyReviewAreas = [];
   if (!DB.weeklyReviewDrafts) DB.weeklyReviewDrafts = {};
+  if (!DB.goalCategories) DB.goalCategories = [];
+  if (!DB.goals) DB.goals = [];
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -1797,6 +1859,7 @@ function renderPage(id) {
   // Life pages (prefixed l-)
   if (id === 'l-today') renderToday();
   if (id === 'l-todo') renderTodo();
+  if (id === 'l-goals') renderGoals();
   if (id === 'l-morning') renderRoutinePage('morning');
   if (id === 'l-evening') renderRoutinePage('evening');
   if (id === 'l-gym') renderGymPage();
@@ -3051,6 +3114,177 @@ function deleteTodoList(id) {
   DB.todoLists=DB.todoLists.filter(l=>l.id!==id);
   _todoView='all';
   save(); renderTodo();
+}
+
+// ============================================================
+// LIFE — GOALS
+// ============================================================
+let _goalModalSteps = [];
+
+function renderGoals() {
+  const el = document.getElementById('goals-list');
+  if (!el) return;
+
+  const total = DB.goals.length;
+  const done = DB.goals.filter(g => _goalProgress(g) >= 100).length;
+  document.getElementById('goals-summary').textContent = total ? `${done} of ${total} goals completed` : '';
+
+  if (DB.goalCategories.length === 0 && DB.goals.length === 0) {
+    el.innerHTML = `<div class="empty-state card"><div class="ei">🎯</div><p>Add a category and your first goal to get started.</p></div>`;
+    return;
+  }
+
+  const catIds = new Set(DB.goalCategories.map(c => c.id));
+  const groups = DB.goalCategories.map(c => ({ cat: c, goals: DB.goals.filter(g => g.categoryId === c.id) }));
+  const uncategorized = DB.goals.filter(g => !catIds.has(g.categoryId));
+  if (uncategorized.length) groups.push({ cat: { id:'', name:'Uncategorized', icon:'📌' }, goals: uncategorized });
+
+  if (groups.length === 0) {
+    el.innerHTML = `<div class="empty-state card"><div class="ei">🎯</div><p>No categories yet — add one to start organizing your goals.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = groups.map(({cat, goals}) => {
+    const goalsHtml = goals.length === 0
+      ? `<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">No goals yet.</div>`
+      : goals.map(g => _goalRowHtml(g)).join('');
+    return `<div class="card" style="margin-bottom:16px;">
+      <div class="section-header" style="margin-bottom:${goals.length ? '10px' : '0'};">
+        <div class="card-title" style="margin:0;">${cat.icon} ${escapeHtml(cat.name)}</div>
+        ${cat.id ? `<button class="btn btn-secondary btn-sm" onclick="openGoalCategoryModal('${cat.id}')">Edit</button>` : ''}
+      </div>
+      ${goalsHtml}
+    </div>`;
+  }).join('');
+}
+
+function _goalProgress(g) {
+  const steps = g.steps || [];
+  if (steps.length) return Math.round(steps.filter(s => s.completed).length / steps.length * 100);
+  return g.completed ? 100 : 0;
+}
+
+function _goalRowHtml(g) {
+  const steps = g.steps || [];
+  const doneSteps = steps.filter(s => s.completed).length;
+  const pct = _goalProgress(g);
+  const overdue = g.targetDate && g.targetDate < today() && pct < 100;
+  return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;" onclick="openGoalModal('${g.id}')">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+        ${steps.length === 0 ? `<input type="checkbox" class="goal-step-row" ${g.completed?'checked':''} onclick="event.stopPropagation();toggleGoalComplete('${g.id}')">` : ''}
+        <div style="font-weight:600;font-size:14px;${pct>=100?'text-decoration:line-through;color:var(--text-muted);':''}">${escapeHtml(g.title)}</div>
+      </div>
+      ${g.targetDate ? `<span class="badge ${overdue?'badge-red':'badge-gray'}" style="font-size:11px;flex-shrink:0;">${todoFormatDate(g.targetDate)}</span>` : ''}
+    </div>
+    ${steps.length ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+      <div class="progress-bar" style="flex:1;height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px;"></div></div>
+      <span style="font-size:11px;color:var(--text-muted);">${doneSteps}/${steps.length}</span>
+    </div>` : ''}
+    ${g.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px;">${escapeHtml(g.description)}</div>` : ''}
+  </div>`;
+}
+
+function toggleGoalComplete(id) {
+  const g = DB.goals.find(x => x.id === id);
+  if (!g) return;
+  g.completed = !g.completed;
+  save(); renderGoals();
+}
+
+function _populateGoalCategorySelect(selectedId) {
+  const sel = document.getElementById('goal-category');
+  sel.innerHTML = DB.goalCategories.map(c => `<option value="${c.id}">${c.icon} ${escapeHtml(c.name)}</option>`).join('');
+  sel.value = selectedId || (DB.goalCategories[0] ? DB.goalCategories[0].id : '');
+}
+
+function openGoalModal(editId) {
+  openModal('goal-modal', editId || null);
+  const goal = editId ? DB.goals.find(g => g.id === editId) : null;
+  document.getElementById('goal-modal-title').textContent = editId ? 'Edit Goal' : 'New Goal';
+  document.getElementById('goal-edit-id').value = editId || '';
+  document.getElementById('goal-title').value = goal ? goal.title : '';
+  document.getElementById('goal-description').value = goal ? (goal.description || '') : '';
+  document.getElementById('goal-target-date').value = goal ? (goal.targetDate || '') : '';
+  _populateGoalCategorySelect(goal ? goal.categoryId : '');
+  _goalModalSteps = goal ? JSON.parse(JSON.stringify(goal.steps || [])) : [];
+  document.getElementById('goal-delete-btn').style.display = editId ? '' : 'none';
+  renderGoalModalSteps();
+}
+
+function renderGoalModalSteps() {
+  const el = document.getElementById('goal-modal-steps');
+  if (_goalModalSteps.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = _goalModalSteps.map((s,i) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <input type="checkbox" ${s.completed?'checked':''} onchange="toggleGoalModalStep(${i})">
+    <span style="flex:1;font-size:13px;${s.completed?'text-decoration:line-through;color:var(--text-muted);':''}">${escapeHtml(s.text)}</span>
+    <button class="btn btn-danger btn-xs" onclick="deleteGoalModalStep(${i})">🗑</button>
+  </div>`).join('');
+}
+function toggleGoalModalStep(i) { _goalModalSteps[i].completed = !_goalModalSteps[i].completed; renderGoalModalSteps(); }
+function deleteGoalModalStep(i) { _goalModalSteps.splice(i,1); renderGoalModalSteps(); }
+function addGoalModalStep() {
+  const input = document.getElementById('goal-modal-step-input');
+  const text = input.value.trim();
+  if (!text) return;
+  _goalModalSteps.push({ id: uid(), text, completed: false });
+  input.value = '';
+  renderGoalModalSteps();
+}
+
+function saveGoal() {
+  const title = document.getElementById('goal-title').value.trim();
+  if (!title) { alert('Please enter a goal title.'); return; }
+  const editId = document.getElementById('goal-edit-id').value;
+  const existing = editId ? DB.goals.find(g => g.id === editId) : null;
+  const goal = {
+    id: editId || uid(),
+    title,
+    categoryId: document.getElementById('goal-category').value,
+    description: document.getElementById('goal-description').value.trim(),
+    targetDate: document.getElementById('goal-target-date').value,
+    steps: _goalModalSteps,
+    completed: existing ? existing.completed : false,
+    createdAt: existing ? existing.createdAt : Date.now(),
+  };
+  if (editId) { const i = DB.goals.findIndex(g => g.id === editId); if (i>=0) DB.goals[i] = goal; }
+  else DB.goals.push(goal);
+  save(); closeModal('goal-modal'); renderGoals();
+}
+
+function deleteGoal() {
+  const editId = document.getElementById('goal-edit-id').value;
+  if (!editId) return;
+  if (!confirm('Delete this goal?')) return;
+  DB.goals = DB.goals.filter(g => g.id !== editId);
+  save(); closeModal('goal-modal'); renderGoals();
+}
+
+function openGoalCategoryModal(editId) {
+  openModal('goal-category-modal', editId || null);
+  const cat = editId ? DB.goalCategories.find(c => c.id === editId) : null;
+  document.getElementById('goal-category-edit-id').value = editId || '';
+  document.getElementById('goal-category-name').value = cat ? cat.name : '';
+  document.getElementById('goal-category-icon').value = cat ? cat.icon : '🎯';
+  document.getElementById('goal-category-delete-btn').style.display = editId ? '' : 'none';
+}
+
+function saveGoalCategory() {
+  const name = document.getElementById('goal-category-name').value.trim();
+  if (!name) { alert('Please enter a category name.'); return; }
+  const editId = document.getElementById('goal-category-edit-id').value;
+  const cat = { id: editId || uid(), name, icon: document.getElementById('goal-category-icon').value.trim() || '🎯' };
+  if (editId) { const i = DB.goalCategories.findIndex(c => c.id === editId); if (i>=0) DB.goalCategories[i] = cat; }
+  else DB.goalCategories.push(cat);
+  save(); closeModal('goal-category-modal'); renderGoals();
+}
+
+function deleteGoalCategory() {
+  const editId = document.getElementById('goal-category-edit-id').value;
+  if (!editId) return;
+  if (!confirm('Delete this category? Its goals will move to Uncategorized.')) return;
+  DB.goalCategories = DB.goalCategories.filter(c => c.id !== editId);
+  save(); closeModal('goal-category-modal'); renderGoals();
 }
 
 // ============================================================
