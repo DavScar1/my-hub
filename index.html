@@ -3724,6 +3724,28 @@ function renderNutrition() {
 // WEEKLY REVIEW
 // ============================================================
 let _wrWeekOffset = 0;
+let _wrDrafts = {};
+let _wrLastWeek = null;
+
+function _captureWRDraftFromDOM() {
+  if (!_wrLastWeek) return;
+  const wentWellEl = document.getElementById('wr-went-well');
+  if (!wentWellEl) return;
+  const areaEntries = {};
+  DB.weeklyReviewAreas.forEach(area => {
+    areaEntries[area.id] = {
+      happened: document.getElementById(`wr-area-happened-${area.id}`)?.value ?? '',
+      metrics:  document.getElementById(`wr-area-metrics-${area.id}`)?.value  ?? '',
+      plans:    document.getElementById(`wr-area-plans-${area.id}`)?.value    ?? '',
+    };
+  });
+  _wrDrafts[_wrLastWeek] = {
+    wentWell: wentWellEl.value,
+    improve: document.getElementById('wr-improve')?.value ?? '',
+    goals: document.getElementById('wr-goals')?.value ?? '',
+    areaEntries,
+  };
+}
 
 function _weekStart(offset) {
   const d = new Date();
@@ -3749,6 +3771,7 @@ function switchJournalTab(tab, btn) {
 function navWeeklyReview(dir) {
   const newOffset = _wrWeekOffset + dir;
   if (newOffset > 0) return;
+  _captureWRDraftFromDOM();
   _wrWeekOffset = newOffset;
   renderWeeklyReview();
 }
@@ -3771,6 +3794,20 @@ function _getWeekStats(wsDate, weDate) {
   const timeTotal = weekSessions.reduce((acc,s) => acc+s.duration, 0);
   const gymSessions = Object.entries(DB.gymLog).filter(([k,v]) => k >= wsStr && k <= weStr && v).length;
   return { habitsDone, habitsTotal, timeByActivity, timeTotal, gymSessions };
+}
+
+function _weekNutritionAverages(wsStr, weStr) {
+  const wanted = { water:'water', protein:'protein', potassium:'potassium', sodium:'sodium' };
+  const result = {};
+  Object.entries(wanted).forEach(([key, nameLc]) => {
+    const metric = DB.nutritionMetrics.find(m => m.name.toLowerCase() === nameLc);
+    if (!metric) { result[key] = null; return; }
+    const dates = Object.keys(DB.nutritionLog).filter(d => d >= wsStr && d <= weStr && DB.nutritionLog[d][metric.id] !== undefined);
+    if (dates.length === 0) { result[key] = null; return; }
+    const sum = dates.reduce((a,d) => a + (DB.nutritionLog[d][metric.id]||0), 0);
+    result[key] = { value: Math.round(sum / dates.length * 10) / 10, unit: metric.unit, label: metric.name };
+  });
+  return result;
 }
 
 function renderWeeklyReview() {
@@ -3800,6 +3837,19 @@ function renderWeeklyReview() {
   const statCards = wrGroupCards.length > 0 ? wrGroupCards : [
     { icon:'⏱', label:'Time Tracked', value: stats.timeTotal > 0 ? fmtDuration(stats.timeTotal) : '—' },
   ];
+
+  const nutriAvgs = _weekNutritionAverages(wsStr, weStr);
+  const nutriMeta = [
+    { key:'water',     icon:'💧', label:'Water (avg/day)' },
+    { key:'protein',   icon:'🥩', label:'Protein (avg/day)' },
+    { key:'potassium', icon:'🍌', label:'Potassium (avg/day)' },
+    { key:'sodium',    icon:'🧂', label:'Sodium (avg/day)' },
+  ];
+  nutriMeta.forEach(({key, icon, label}) => {
+    const n = nutriAvgs[key];
+    statCards.push({ icon, label, value: n ? `${n.value} ${n.unit}` : '—' });
+  });
+
   document.getElementById('wr-auto-stats').innerHTML = statCards.map(s =>
     `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;">
       <div style="font-size:18px;margin-bottom:4px;">${s.icon}</div>
@@ -3807,7 +3857,9 @@ function renderWeeklyReview() {
       <div style="font-size:17px;font-weight:700;">${s.value}</div>
     </div>`).join('');
 
-  const areaEntries = review.areaEntries || {};
+  const draft = _wrDrafts[wsStr];
+  const data = draft || review;
+  const areaEntries = data.areaEntries || {};
   const areasEl = document.getElementById('wr-areas-list');
   if (DB.weeklyReviewAreas.length === 0) {
     areasEl.innerHTML = `<div class="empty-state" style="padding:16px 0;"><p>Add an area to track — e.g. Website, Business, Studies</p></div>`;
@@ -3835,10 +3887,11 @@ function renderWeeklyReview() {
     }).join('');
   }
 
-  document.getElementById('wr-went-well').value = review.wentWell || '';
-  document.getElementById('wr-improve').value = review.improve || '';
-  document.getElementById('wr-goals').value = review.goals || '';
+  document.getElementById('wr-went-well').value = data.wentWell || '';
+  document.getElementById('wr-improve').value = data.improve || '';
+  document.getElementById('wr-goals').value = data.goals || '';
 
+  _wrLastWeek = wsStr;
 }
 
 function renderPastReviews() {
@@ -3860,11 +3913,11 @@ function renderPastReviews() {
       return e && (e.happened || e.metrics || e.plans);
     }).map(a => {
       const e = areaEntries[a.id];
-      return `<div style="margin-bottom:14px;">
-        <div style="font-weight:600;font-size:13px;margin-bottom:6px;">${a.icon} ${a.name}</div>
-        ${e.happened ? `<div style="margin-bottom:4px;"><span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">What happened</span><p style="margin:3px 0 0;font-size:13px;white-space:pre-wrap;">${e.happened}</p></div>` : ''}
-        ${e.metrics  ? `<div style="margin-bottom:4px;"><span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">${a.metricLabel||'Metrics'}</span><p style="margin:3px 0 0;font-size:13px;white-space:pre-wrap;">${e.metrics}</p></div>` : ''}
-        ${e.plans    ? `<div><span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Plans</span><p style="margin:3px 0 0;font-size:13px;white-space:pre-wrap;">${e.plans}</p></div>` : ''}
+      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;">${a.icon} ${a.name}</div>
+        ${e.happened ? `<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">What happened</div><p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.5;">${e.happened}</p></div>` : ''}
+        ${e.metrics  ? `<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">${a.metricLabel||'Metrics'}</div><p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.5;">${e.metrics}</p></div>` : ''}
+        ${e.plans    ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Plans for next week</div><p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.5;">${e.plans}</p></div>` : ''}
       </div>`;
     }).join('');
 
@@ -3887,17 +3940,34 @@ function renderPastReviews() {
         </div>`;
       }).filter(Boolean).join('');
       if (!rows) return '';
-      return `<div style="margin-bottom:16px;">
-        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Daily Average by Group</div>
+      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Daily Average by Group</div>
         ${rows}
       </div>`;
     })();
 
+    // Nutrition averages chips
+    const nutriMeta = [
+      { key:'water',     icon:'💧', label:'Water' },
+      { key:'protein',   icon:'🥩', label:'Protein' },
+      { key:'potassium', icon:'🍌', label:'Potassium' },
+      { key:'sodium',    icon:'🧂', label:'Sodium' },
+    ];
+    const nutriAvgs = r.nutritionAvgs || {};
+    const nutriChips = nutriMeta.filter(({key}) => nutriAvgs[key]).map(({key, icon, label}) => {
+      const n = nutriAvgs[key];
+      return `<div style="display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;">
+        <span>${icon}</span><span style="color:var(--text-muted);">${label}</span><span style="font-weight:700;">${n.value} ${n.unit}/day</span>
+      </div>`;
+    }).join('');
+    const nutriHtml = nutriChips ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">${nutriChips}</div>` : '';
+
     const reflectHtml = [
-      r.wentWell ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">What went well</div><p style="margin:0;font-size:13px;white-space:pre-wrap;">${r.wentWell}</p></div>` : '',
-      r.improve  ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">What to improve</div><p style="margin:0;font-size:13px;white-space:pre-wrap;">${r.improve}</p></div>` : '',
-      r.goals    ? `<div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Goals for next week</div><p style="margin:0;font-size:13px;white-space:pre-wrap;">${r.goals}</p></div>` : '',
+      r.wentWell ? `<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">✅ What went well</div><p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.5;">${r.wentWell}</p></div>` : '',
+      r.improve  ? `<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">🔧 What to improve</div><p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.5;">${r.improve}</p></div>` : '',
+      r.goals    ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">🎯 Goals for next week</div><p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.5;">${r.goals}</p></div>` : '',
     ].filter(Boolean).join('');
+    const reflectBlock = reflectHtml ? `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;">${reflectHtml}</div>` : '';
 
     const hasContent = areasHtml || reflectHtml;
 
@@ -3909,10 +3979,10 @@ function renderPastReviews() {
         </div>
         <span id="ar-${i}-chevron" style="font-size:12px;color:var(--text-muted);flex-shrink:0;">▼</span>
       </button>
-      <div id="ar-${i}" style="display:none;padding:16px 18px;border-top:1px solid var(--border);">
-        ${groupStatsHtml}${hasContent ? (areasHtml ? `<div style="margin-bottom:${reflectHtml?'18px':'0'}">${areasHtml}</div>` : '') + reflectHtml
+      <div id="ar-${i}" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:var(--card-bg);">
+        ${nutriHtml}${groupStatsHtml}${hasContent ? `${areasHtml}${reflectBlock}`
           : '<div style="color:var(--text-muted);font-size:13px;">No content saved for this week.</div>'}
-        <div style="margin-top:14px;display:flex;gap:8px;">
+        <div style="margin-top:4px;display:flex;gap:8px;">
           <button class="btn btn-primary btn-sm" onclick="switchJournalTab('weekly',document.getElementById('journal-tab-weekly-btn'));_loadPastReview('${r.weekStart}')">Edit this review</button>
           <button class="btn btn-secondary btn-sm" onclick="deleteWeeklyReview('${r.weekStart}')">Delete</button>
         </div>
@@ -3940,6 +4010,7 @@ function _loadPastReview(weekStart) {
   const ws = new Date(weekStart + 'T12:00:00');
   const nowMonday = _weekStart(0);
   const diffWeeks = Math.round((nowMonday - ws) / (7 * 24 * 3600 * 1000));
+  delete _wrDrafts[weekStart];
   _wrWeekOffset = -diffWeeks;
   renderWeeklyReview();
   document.getElementById('journal-tab-weekly').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -3947,7 +4018,8 @@ function _loadPastReview(weekStart) {
 
 function saveWeeklyReview() {
   const ws = _weekStart(_wrWeekOffset);
-  const wsStr = _dateStrWR(ws);
+  const we = new Date(ws); we.setDate(ws.getDate() + 6);
+  const wsStr = _dateStrWR(ws), weStr = _dateStrWR(we);
   const areaEntries = {};
   DB.weeklyReviewAreas.forEach(area => {
     areaEntries[area.id] = {
@@ -3962,6 +4034,7 @@ function saveWeeklyReview() {
     improve:  document.getElementById('wr-improve').value.trim(),
     goals:    document.getElementById('wr-goals').value.trim(),
     areaEntries, savedAt: Date.now(),
+    nutritionAvgs: _weekNutritionAverages(wsStr, weStr),
   };
   DB.weeklyReviews = DB.weeklyReviews.filter(r => r.weekStart !== wsStr);
   DB.weeklyReviews.push(review);
@@ -3969,6 +4042,12 @@ function saveWeeklyReview() {
   const btn = event.currentTarget;
   btn.textContent = 'Saved ✓';
   setTimeout(() => { btn.textContent = 'Save Review'; }, 2000);
+
+  // Reset the on-screen boxes after saving, while the data above stays saved
+  const emptyAreaEntries = {};
+  DB.weeklyReviewAreas.forEach(area => { emptyAreaEntries[area.id] = { happened:'', metrics:'', plans:'' }; });
+  _wrDrafts[wsStr] = { wentWell:'', improve:'', goals:'', areaEntries: emptyAreaEntries };
+
   renderWeeklyReview();
 }
 
@@ -3989,13 +4068,17 @@ function saveWRArea() {
   const area = { id: editId || uid(), name, icon: document.getElementById('wr-area-icon').value.trim() || '📌', metricLabel: document.getElementById('wr-area-metric-label').value.trim() };
   if (editId) { const i = DB.weeklyReviewAreas.findIndex(a => a.id === editId); if (i>=0) DB.weeklyReviewAreas[i]=area; }
   else DB.weeklyReviewAreas.push(area);
-  save(); closeModal('wr-area-modal'); renderWeeklyReview();
+  save(); closeModal('wr-area-modal');
+  _captureWRDraftFromDOM();
+  renderWeeklyReview();
 }
 
 function deleteWRArea(id) {
   if (!confirm('Delete this area?')) return;
   DB.weeklyReviewAreas = DB.weeklyReviewAreas.filter(a => a.id !== id);
-  save(); closeModal('wr-area-modal'); renderWeeklyReview();
+  save(); closeModal('wr-area-modal');
+  _captureWRDraftFromDOM();
+  renderWeeklyReview();
 }
 
 // ============================================================
