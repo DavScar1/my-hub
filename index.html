@@ -2777,11 +2777,11 @@ function toggleStep(routineKey,stepId,el) {
   save();renderRoutinePage(routineKey);
 }
 function openStepModal(routineKey,stepId) {
+  openModal('step-modal',stepId||null);
   document.getElementById('step-routine-key').value=routineKey;document.getElementById('step-edit-id').value=stepId||'';
   document.getElementById('step-modal-title').textContent=stepId?'Edit Step':'Add Step';
   if(stepId){const s=(DB.routines[routineKey]||[]).find(x=>x.id===stepId);if(s){document.getElementById('step-name').value=s.name;document.getElementById('step-duration').value=s.duration||'';document.getElementById('step-category').value=s.category||'';document.getElementById('step-notes').value=s.notes||'';}}
   else{document.getElementById('step-name').value='';document.getElementById('step-duration').value='';document.getElementById('step-category').value='';document.getElementById('step-notes').value='';}
-  openModal('step-modal',stepId||null);
 }
 function saveStep() {
   const name=document.getElementById('step-name').value.trim();if(!name){alert('Please enter a step name.');return;}
