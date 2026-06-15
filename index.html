@@ -4134,6 +4134,13 @@ function _weekNutritionAverages(wsStr, weStr) {
     const sum = dates.reduce((a,d) => a + (DB.nutritionLog[d][metric.id]||0), 0);
     result[key] = { value: Math.round(sum / dates.length * 10) / 10, unit: metric.unit, label: metric.name };
   });
+  const calDates = Object.keys(DB.nutritionLog).filter(d => d >= wsStr && d <= weStr && (DB.nutritionLog[d].caloriesConsumed !== undefined || DB.nutritionLog[d].caloriesBurned !== undefined));
+  if (calDates.length === 0) {
+    result.netCalories = null;
+  } else {
+    const sum = calDates.reduce((a,d) => a + _netCaloriesFor(d), 0);
+    result.netCalories = { value: Math.round(sum / calDates.length), unit: 'kcal', label: 'Net Calories' };
+  }
   return result;
 }
 
@@ -4171,6 +4178,7 @@ function renderWeeklyReview() {
     { key:'protein',   icon:'🥩', label:'Protein (avg/day)' },
     { key:'potassium', icon:'🍌', label:'Potassium (avg/day)' },
     { key:'sodium',    icon:'🧂', label:'Sodium (avg/day)' },
+    { key:'netCalories', icon:'🔥', label:'Net Calories (avg/day)' },
   ];
   nutriMeta.forEach(({key, icon, label}) => {
     const n = nutriAvgs[key];
@@ -4279,6 +4287,7 @@ function renderPastReviews() {
       { key:'protein',   icon:'🥩', label:'Protein' },
       { key:'potassium', icon:'🍌', label:'Potassium' },
       { key:'sodium',    icon:'🧂', label:'Sodium' },
+      { key:'netCalories', icon:'🔥', label:'Net Calories' },
     ];
     const nutriAvgs = r.nutritionAvgs || {};
     const nutriChips = nutriMeta.filter(({key}) => nutriAvgs[key]).map(({key, icon, label}) => {
