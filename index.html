@@ -30,6 +30,10 @@
   --l-accent: #4a7856;
   --l-accent-light: #eef5f1;
   --l-accent-hover: #3a6044;
+  /* Business accent (purple) */
+  --b-accent: #7c3aed;
+  --b-accent-light: #f5f3ff;
+  --b-accent-hover: #6d28d9;
   /* Active accent — set by JS */
   --accent: #2563eb;
   --accent-light: #eff6ff;
@@ -82,6 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;
 .mode-btn.active{color:#fff;}
 .mode-btn.college-btn.active{background:var(--c-accent);}
 .mode-btn.life-btn.active{background:var(--l-accent);}
+.mode-btn.business-btn.active{background:var(--b-accent);}
 
 .sidebar-sub{padding:10px 16px;border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-secondary);min-height:38px;}
 
@@ -334,6 +339,28 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .sl-btn:hover{background:var(--border-light);color:var(--text);}
 
 /* ============================================================
+   BUSINESS
+============================================================ */
+.biz-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.biz-cal-dow{font-size:11px;font-weight:700;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding-bottom:4px;}
+.biz-cal-day{min-height:64px;border:1px solid var(--border);border-radius:8px;padding:6px;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surface);}
+.biz-cal-day:hover{border-color:var(--b-accent);}
+.biz-cal-day.empty{background:none;border:none;cursor:default;}
+.biz-cal-day.today{border-color:var(--b-accent);box-shadow:0 0 0 1px var(--b-accent) inset;}
+.biz-cal-daynum{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;}
+.biz-cal-day.today .biz-cal-daynum{color:var(--b-accent);}
+.biz-cal-order{font-size:10px;background:var(--b-accent-light);color:var(--b-accent);border-radius:5px;padding:2px 5px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+.biz-bar-chart{display:flex;align-items:flex-end;gap:10px;height:140px;margin-bottom:8px;}
+.biz-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;height:100%;justify-content:flex-end;}
+.biz-bar-pair{display:flex;align-items:flex-end;gap:2px;width:100%;height:100%;justify-content:center;}
+.biz-bar{width:40%;border-radius:3px 3px 0 0;transition:height .3s;cursor:default;}
+.biz-bar.revenue{background:var(--b-accent);opacity:.85;}
+.biz-bar.profit{background:var(--green);opacity:.85;}
+.biz-bar-lbl{font-size:10px;color:var(--text-muted);margin-top:6px;white-space:nowrap;}
+.biz-legend{display:flex;gap:16px;font-size:11px;color:var(--text-muted);align-items:center;}
+.biz-legend-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle;}
+
+/* ============================================================
    TO DO (life)
 ============================================================ */
 .todo-layout{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;min-height:560px;box-shadow:var(--shadow);}
@@ -547,6 +574,7 @@ a:hover{text-decoration:underline;}
   <div class="mode-switcher">
     <button class="mode-btn college-btn active" onclick="setMode('college')">🎓 College</button>
     <button class="mode-btn life-btn" onclick="setMode('life')">🌿 Life</button>
+    <button class="mode-btn business-btn" onclick="setMode('business')">💼 Business</button>
   </div>
 
   <div class="sidebar-sub" id="sb-sub">Class of 2027</div>
@@ -593,6 +621,23 @@ a:hover{text-decoration:underline;}
     </button>
     <button class="nav-item" onclick="showPage('l-wardrobe')"><span class="icon">👕</span>Wardrobe</button>
     <button class="nav-item" onclick="showPage('l-journal')"><span class="icon">📓</span>Journal</button>
+  </div>
+
+  <!-- Business nav -->
+  <div class="sidebar-nav" id="nav-business" style="display:none;">
+    <div class="nav-section">Overview</div>
+    <button class="nav-item" onclick="showPage('b-dashboard')"><span class="icon">📊</span>Dashboard</button>
+
+    <div class="nav-section">Operations</div>
+    <button class="nav-item" onclick="showPage('b-sales')"><span class="icon">💰</span>Sales Log</button>
+    <button class="nav-item" onclick="showPage('b-inventory')">
+      <span class="icon">📦</span>Inventory
+      <span class="nbadge" id="nav-biz-low-badge" style="display:none;"></span>
+    </button>
+    <button class="nav-item" onclick="showPage('b-calendar')">
+      <span class="icon">🗓️</span>Supplier Calendar
+      <span class="nbadge" id="nav-biz-order-badge" style="display:none;"></span>
+    </button>
   </div>
 
   <div class="sidebar-footer">
@@ -1138,6 +1183,98 @@ a:hover{text-decoration:underline;}
       <div id="wr-archive-list"></div>
     </div>
   </div>
+
+  <!-- ======================================================
+       BUSINESS PAGES
+  ====================================================== -->
+
+  <!-- Business Dashboard -->
+  <div class="page" id="page-b-dashboard">
+    <div class="page-header"><h2>📊 Business Dashboard</h2><p>Your business at a glance — revenue, profit, stock and upcoming orders.</p></div>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value" id="biz-stat-revenue">€0</div><div class="stat-label">Total Revenue</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-stat-profit">€0</div><div class="stat-label">Total Profit</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-stat-inventory-value">€0</div><div class="stat-label">Inventory Value</div><div class="stat-sub" id="biz-stat-inventory-sub">0 items</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-stat-upcoming">0</div><div class="stat-label">Upcoming Orders</div><div class="stat-sub">Next 30 days</div></div>
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="section-header">
+        <div class="card-title" style="margin:0;">Revenue &amp; Profit — Last 6 Months</div>
+        <div class="biz-legend">
+          <span><span class="biz-legend-dot" style="background:var(--b-accent);"></span>Revenue</span>
+          <span><span class="biz-legend-dot" style="background:var(--green);"></span>Profit</span>
+        </div>
+      </div>
+      <div id="biz-revenue-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Upcoming Supplier Orders</div>
+      <div id="biz-upcoming-orders" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- Sales Log -->
+  <div class="page" id="page-b-sales">
+    <div class="section-header" style="margin-bottom:18px;">
+      <div>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">💰 Sales Log</h2>
+        <p style="color:var(--text-secondary);margin-top:4px;font-size:13px;">Track every sale — revenue, item cost and profit.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openSaleModal()">+ Log Sale</button>
+    </div>
+    <div class="grid-4" style="margin-bottom:18px;">
+      <div class="stat-card"><div class="stat-value" id="biz-sales-revenue">€0</div><div class="stat-label">Revenue</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-sales-cost">€0</div><div class="stat-label">Item Cost</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-sales-profit">€0</div><div class="stat-label">Profit</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-sales-count">0</div><div class="stat-label">Sales Logged</div><div class="stat-sub">All time</div></div>
+    </div>
+    <div class="card">
+      <div id="biz-sales-list"></div>
+    </div>
+  </div>
+
+  <!-- Inventory -->
+  <div class="page" id="page-b-inventory">
+    <div class="section-header" style="margin-bottom:18px;">
+      <div>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">📦 Inventory</h2>
+        <p style="color:var(--text-secondary);margin-top:4px;font-size:13px;">Track stock levels, costs and inventory value.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openInventoryModal()">+ Add Item</button>
+    </div>
+    <div class="grid-4" style="margin-bottom:18px;">
+      <div class="stat-card"><div class="stat-value" id="biz-inv-value">€0</div><div class="stat-label">Total Value</div><div class="stat-sub">Stock × unit cost</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-inv-units">0</div><div class="stat-label">Units in Stock</div><div class="stat-sub" id="biz-inv-items-sub">0 items</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-inv-low">0</div><div class="stat-label">Low Stock</div><div class="stat-sub">At or below threshold</div></div>
+      <div class="stat-card"><div class="stat-value" id="biz-inv-out">0</div><div class="stat-label">Out of Stock</div><div class="stat-sub">0 units left</div></div>
+    </div>
+    <div class="card">
+      <div id="biz-inventory-list"></div>
+    </div>
+  </div>
+
+  <!-- Supplier Calendar -->
+  <div class="page" id="page-b-calendar">
+    <div class="section-header" style="margin-bottom:18px;">
+      <div>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">🗓️ Supplier Calendar</h2>
+        <p style="color:var(--text-secondary);margin-top:4px;font-size:13px;">Plan and track when you need to order from suppliers.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openOrderModal(null, today())">+ Add Order</button>
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="section-header">
+        <button class="btn btn-secondary btn-sm" onclick="changeBizCalMonth(-1)">← Prev</button>
+        <div class="card-title" style="margin:0;" id="biz-cal-month-label"></div>
+        <button class="btn btn-secondary btn-sm" onclick="changeBizCalMonth(1)">Next →</button>
+      </div>
+      <div class="biz-cal-grid" id="biz-cal-grid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Upcoming &amp; Past Orders</div>
+      <div id="biz-orders-list" style="margin-top:10px;"></div>
+    </div>
+  </div>
 </main>
 
 </div><!-- end .app -->
@@ -1443,6 +1580,75 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Sale modal -->
+<div class="modal-overlay" id="sale-modal">
+  <div class="modal">
+    <h3 id="sale-modal-title">Log Sale</h3>
+    <input type="hidden" id="sale-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Date *</label><input type="date" id="sale-date"></div>
+      <div class="form-group"><label>Item *</label><input type="text" id="sale-item" list="biz-inv-datalist" placeholder="e.g. Charizard VMAX Booster Box" oninput="onSaleItemInput()"><datalist id="biz-inv-datalist"></datalist></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Quantity *</label><input type="number" id="sale-qty" min="1" value="1" oninput="onSaleQtyChange()"></div>
+      <div class="form-group"><label>Sale Price (€) *<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> — total</span></label><input type="number" id="sale-price" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label>Item Cost (€)<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> — total</span></label><input type="number" id="sale-cost" min="0" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="sale-notes" rows="2" placeholder="Buyer, platform, condition notes…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('sale-modal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="sale-delete-btn" style="display:none;" onclick="deleteSale(document.getElementById('sale-edit-id').value)">Delete</button>
+      <button class="btn btn-primary" onclick="saveSale()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory item modal -->
+<div class="modal-overlay" id="biz-item-modal">
+  <div class="modal">
+    <h3 id="biz-item-modal-title">Add Inventory Item</h3>
+    <input type="hidden" id="biz-item-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Item Name *</label><input type="text" id="biz-item-name" placeholder="e.g. Charizard VMAX Booster Box"></div>
+      <div class="form-group"><label>Category</label><input type="text" id="biz-item-category" placeholder="e.g. Booster Boxes" style="width:160px;"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Quantity in Stock *</label><input type="number" id="biz-item-qty" min="0" value="0"></div>
+      <div class="form-group"><label>Unit Cost (€) *</label><input type="number" id="biz-item-cost" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label>Low Stock Alert</label><input type="number" id="biz-item-threshold" min="0" value="0"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('biz-item-modal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="biz-item-delete-btn" style="display:none;" onclick="deleteInventoryItem(document.getElementById('biz-item-edit-id').value)">Delete</button>
+      <button class="btn btn-primary" onclick="saveInventoryItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supplier order modal -->
+<div class="modal-overlay" id="biz-order-modal">
+  <div class="modal">
+    <h3 id="biz-order-modal-title">Add Supplier Order</h3>
+    <input type="hidden" id="biz-order-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Date *</label><input type="date" id="biz-order-date"></div>
+      <div class="form-group"><label>Supplier *</label><input type="text" id="biz-order-supplier" placeholder="e.g. Pokémon Center, Cardmarket…"></div>
+    </div>
+    <div class="form-group"><label>Item / Notes</label><textarea id="biz-order-notes" rows="2" placeholder="What to order, quantities, links…"></textarea></div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;cursor:pointer;">
+        <input type="checkbox" id="biz-order-done">
+        Mark as completed
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('biz-order-modal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="biz-order-delete-btn" style="display:none;" onclick="deleteOrder(document.getElementById('biz-order-edit-id').value)">Delete</button>
+      <button class="btn btn-primary" onclick="saveOrder()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Weekly Review — area modal -->
 <div class="modal-overlay" id="wr-area-modal">
   <div class="modal">
@@ -1687,8 +1893,9 @@ let currentMode = 'college';
 
 function setMode(mode) {
   currentMode = mode;
-  document.getElementById('nav-college').style.display = mode==='college' ? '' : 'none';
-  document.getElementById('nav-life').style.display   = mode==='life'    ? '' : 'none';
+  document.getElementById('nav-college').style.display  = mode==='college'  ? '' : 'none';
+  document.getElementById('nav-life').style.display     = mode==='life'     ? '' : 'none';
+  document.getElementById('nav-business').style.display = mode==='business' ? '' : 'none';
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.'+mode+'-btn').classList.add('active');
   // Swap accent colour
@@ -1698,6 +1905,11 @@ function setMode(mode) {
     root.style.setProperty('--accent-light', 'var(--c-accent-light)');
     root.style.setProperty('--accent-hover', 'var(--c-accent-hover)');
     document.getElementById('sb-sub').textContent = 'Class of 2027';
+  } else if (mode === 'business') {
+    root.style.setProperty('--accent',       'var(--b-accent)');
+    root.style.setProperty('--accent-light', 'var(--b-accent-light)');
+    root.style.setProperty('--accent-hover', 'var(--b-accent-hover)');
+    document.getElementById('sb-sub').textContent = 'DD Collectables';
   } else {
     root.style.setProperty('--accent',       'var(--l-accent)');
     root.style.setProperty('--accent-light', 'var(--l-accent-light)');
@@ -1705,7 +1917,7 @@ function setMode(mode) {
     document.getElementById('sb-sub').textContent = greetingText();
   }
   // Go to the default page for each mode
-  showPage(mode === 'college' ? 'c-dashboard' : 'l-today');
+  showPage(mode === 'college' ? 'c-dashboard' : mode === 'business' ? 'b-dashboard' : 'l-today');
 }
 
 function greetingText() {
@@ -1796,6 +2008,10 @@ function ensureDBDefaults() {
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
   if (DB.calorieGoal === undefined) DB.calorieGoal = 0;
+  if (!DB.bizSales) DB.bizSales = [];
+  if (!DB.bizInventory) DB.bizInventory = [];
+  if (!DB.bizOrders) DB.bizOrders = [];
+  if (!DB.bizCalMonth) DB.bizCalMonth = today().slice(0,7);
   if (!DB.ecMetrics) DB.ecMetrics = [];
   if (!DB.ecLog) DB.ecLog = {};
   if (!DB.todoLists) DB.todoLists = [{ id:'default', name:'Tasks', color:'#4a7856' }];
@@ -1869,6 +2085,11 @@ function renderPage(id) {
   if (id === 'l-products') renderProducts();
   if (id === 'l-wardrobe') renderWardrobe();
   if (id === 'l-journal') renderJournal();
+  // Business pages (prefixed b-)
+  if (id === 'b-dashboard') renderBizDashboard();
+  if (id === 'b-sales') renderBizSales();
+  if (id === 'b-inventory') renderBizInventory();
+  if (id === 'b-calendar') renderBizCalendar();
 }
 
 // ============================================================
@@ -4875,6 +5096,338 @@ function renderTodayTab() {
 }
 
 // ============================================================
+// BUSINESS
+// ============================================================
+function _bizFmt(n) {
+  return '€' + (Math.round((n||0)*100)/100).toLocaleString('en-IE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function updateBizBadges() {
+  const lowBadge = document.getElementById('nav-biz-low-badge');
+  if (lowBadge) {
+    const lowCount = DB.bizInventory.filter(i => i.qty===0 || (i.threshold>0 && i.qty<=i.threshold)).length;
+    if (lowCount>0) { lowBadge.textContent=lowCount; lowBadge.style.display=''; } else lowBadge.style.display='none';
+  }
+  const orderBadge = document.getElementById('nav-biz-order-badge');
+  if (orderBadge) {
+    const todayStr = today();
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()+30);
+    const upcomingCount = DB.bizOrders.filter(o => !o.done && o.date>=todayStr && o.date<=dateStr(cutoff)).length;
+    if (upcomingCount>0) { orderBadge.textContent=upcomingCount; orderBadge.style.display=''; } else orderBadge.style.display='none';
+  }
+}
+
+// ---- Sales ----
+function _populateBizInvDatalist() {
+  const dl = document.getElementById('biz-inv-datalist');
+  if (dl) dl.innerHTML = DB.bizInventory.map(i => `<option value="${i.name}">`).join('');
+}
+
+function _updateSaleCostFromInventory() {
+  const name = document.getElementById('sale-item').value.trim();
+  const item = DB.bizInventory.find(i => i.name.toLowerCase() === name.toLowerCase());
+  if (!item) return;
+  const qty = parseFloat(document.getElementById('sale-qty').value) || 0;
+  document.getElementById('sale-cost').value = (item.unitCost * qty).toFixed(2);
+}
+function onSaleItemInput() { _updateSaleCostFromInventory(); }
+function onSaleQtyChange() { _updateSaleCostFromInventory(); }
+
+function openSaleModal(editId) {
+  const s = editId ? DB.bizSales.find(x => x.id === editId) : null;
+  document.getElementById('sale-modal-title').textContent = s ? 'Edit Sale' : 'Log Sale';
+  document.getElementById('sale-edit-id').value = editId || '';
+  openModal('sale-modal', editId);
+  _populateBizInvDatalist();
+  document.getElementById('sale-date').value = s ? s.date : today();
+  document.getElementById('sale-item').value = s ? s.item : '';
+  document.getElementById('sale-qty').value = s ? s.qty : 1;
+  document.getElementById('sale-price').value = s ? s.price : '';
+  document.getElementById('sale-cost').value = s ? s.cost : '';
+  document.getElementById('sale-notes').value = s ? (s.notes || '') : '';
+  document.getElementById('sale-delete-btn').style.display = editId ? '' : 'none';
+}
+
+function saveSale() {
+  const date = document.getElementById('sale-date').value;
+  const item = document.getElementById('sale-item').value.trim();
+  const qty = parseFloat(document.getElementById('sale-qty').value) || 0;
+  const price = parseFloat(document.getElementById('sale-price').value) || 0;
+  const cost = parseFloat(document.getElementById('sale-cost').value) || 0;
+  const notes = document.getElementById('sale-notes').value.trim();
+  if (!date || !item || qty <= 0) { alert('Please enter a date, item and quantity.'); return; }
+  const editId = document.getElementById('sale-edit-id').value;
+  const sale = { id: editId || uid(), date, item, qty, price, cost, notes };
+  if (editId) {
+    const i = DB.bizSales.findIndex(x => x.id === editId);
+    if (i >= 0) DB.bizSales[i] = sale;
+  } else {
+    DB.bizSales.push(sale);
+    const invItem = DB.bizInventory.find(x => x.name.toLowerCase() === item.toLowerCase());
+    if (invItem) invItem.qty = Math.max(0, invItem.qty - qty);
+  }
+  save(); closeModal('sale-modal'); renderBizSales(); renderBizInventory(); renderBizDashboard();
+}
+
+function deleteSale(id) {
+  if (!confirm('Delete this sale?')) return;
+  DB.bizSales = DB.bizSales.filter(x => x.id !== id);
+  save(); closeModal('sale-modal'); renderBizSales(); renderBizDashboard();
+}
+
+function renderBizSales() {
+  const listEl = document.getElementById('biz-sales-list');
+  if (!listEl) return;
+  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; return acc; }, { revenue: 0, cost: 0 });
+  const profit = totals.revenue - totals.cost;
+  document.getElementById('biz-sales-revenue').textContent = _bizFmt(totals.revenue);
+  document.getElementById('biz-sales-cost').textContent = _bizFmt(totals.cost);
+  document.getElementById('biz-sales-profit').textContent = _bizFmt(profit);
+  document.getElementById('biz-sales-count').textContent = DB.bizSales.length;
+
+  if (DB.bizSales.length === 0) {
+    listEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No sales logged yet. Click <strong>+ Log Sale</strong> to get started.</p></div>`;
+    return;
+  }
+  const sorted = [...DB.bizSales].sort((a, b) => b.date.localeCompare(a.date));
+  listEl.innerHTML = sorted.map(s => {
+    const p = s.price - s.cost;
+    const dateLbl = new Date(s.date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openSaleModal('${s.id}')">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;">${s.item} <span style="color:var(--text-muted);font-weight:400;">×${s.qty}</span></div>
+        <div style="font-size:11px;color:var(--text-muted);">${dateLbl}${s.notes ? ' · ' + s.notes : ''}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-weight:700;font-size:13px;">${_bizFmt(s.price)}</div>
+        <div style="font-size:11px;color:${p >= 0 ? 'var(--green)' : 'var(--red)'};">${p >= 0 ? '+' : ''}${_bizFmt(p)} profit</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---- Inventory ----
+function openInventoryModal(editId) {
+  const it = editId ? DB.bizInventory.find(x => x.id === editId) : null;
+  document.getElementById('biz-item-modal-title').textContent = it ? 'Edit Item' : 'Add Inventory Item';
+  document.getElementById('biz-item-edit-id').value = editId || '';
+  openModal('biz-item-modal', editId);
+  document.getElementById('biz-item-name').value = it ? it.name : '';
+  document.getElementById('biz-item-category').value = it ? (it.category || '') : '';
+  document.getElementById('biz-item-qty').value = it ? it.qty : 0;
+  document.getElementById('biz-item-cost').value = it ? it.unitCost : '';
+  document.getElementById('biz-item-threshold').value = it ? (it.threshold || 0) : 0;
+  document.getElementById('biz-item-delete-btn').style.display = editId ? '' : 'none';
+}
+
+function saveInventoryItem() {
+  const name = document.getElementById('biz-item-name').value.trim();
+  if (!name) { alert('Please enter an item name.'); return; }
+  const category = document.getElementById('biz-item-category').value.trim();
+  const qty = parseFloat(document.getElementById('biz-item-qty').value) || 0;
+  const unitCost = parseFloat(document.getElementById('biz-item-cost').value) || 0;
+  const threshold = parseFloat(document.getElementById('biz-item-threshold').value) || 0;
+  const editId = document.getElementById('biz-item-edit-id').value;
+  const item = { id: editId || uid(), name, category, qty, unitCost, threshold };
+  if (editId) { const i = DB.bizInventory.findIndex(x => x.id === editId); if (i >= 0) DB.bizInventory[i] = item; }
+  else DB.bizInventory.push(item);
+  save(); closeModal('biz-item-modal'); renderBizInventory(); renderBizDashboard(); updateBizBadges();
+}
+
+function deleteInventoryItem(id) {
+  if (!confirm('Delete this inventory item?')) return;
+  DB.bizInventory = DB.bizInventory.filter(x => x.id !== id);
+  save(); closeModal('biz-item-modal'); renderBizInventory(); renderBizDashboard(); updateBizBadges();
+}
+
+function renderBizInventory() {
+  const listEl = document.getElementById('biz-inventory-list');
+  if (!listEl) return;
+  const totalValue = DB.bizInventory.reduce((a, i) => a + i.qty * i.unitCost, 0);
+  const totalUnits = DB.bizInventory.reduce((a, i) => a + i.qty, 0);
+  const lowCount = DB.bizInventory.filter(i => i.qty > 0 && i.threshold > 0 && i.qty <= i.threshold).length;
+  const outCount = DB.bizInventory.filter(i => i.qty === 0).length;
+  document.getElementById('biz-inv-value').textContent = _bizFmt(totalValue);
+  document.getElementById('biz-inv-units').textContent = totalUnits;
+  document.getElementById('biz-inv-items-sub').textContent = `${DB.bizInventory.length} item${DB.bizInventory.length === 1 ? '' : 's'}`;
+  document.getElementById('biz-inv-low').textContent = lowCount;
+  document.getElementById('biz-inv-out').textContent = outCount;
+
+  if (DB.bizInventory.length === 0) {
+    listEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No inventory items yet. Click <strong>+ Add Item</strong> to get started.</p></div>`;
+    return;
+  }
+  const sorted = [...DB.bizInventory].sort((a, b) => a.name.localeCompare(b.name));
+  listEl.innerHTML = sorted.map(i => {
+    const value = i.qty * i.unitCost;
+    let stockBadge = '';
+    if (i.qty === 0) stockBadge = `<span class="badge badge-red">Out of stock</span>`;
+    else if (i.threshold > 0 && i.qty <= i.threshold) stockBadge = `<span class="badge badge-amber">Low stock</span>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openInventoryModal('${i.id}')">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;">${i.name} ${stockBadge}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${i.category ? i.category + ' · ' : ''}${i.qty} in stock @ ${_bizFmt(i.unitCost)} each</div>
+      </div>
+      <div style="font-weight:700;font-size:13px;">${_bizFmt(value)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---- Supplier Calendar ----
+function changeBizCalMonth(dir) {
+  const [y, m] = DB.bizCalMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + dir, 1);
+  DB.bizCalMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  save();
+  renderBizCalendar();
+}
+
+function openOrderModal(editId, dateDefault) {
+  const o = editId ? DB.bizOrders.find(x => x.id === editId) : null;
+  document.getElementById('biz-order-modal-title').textContent = o ? 'Edit Supplier Order' : 'Add Supplier Order';
+  document.getElementById('biz-order-edit-id').value = editId || '';
+  openModal('biz-order-modal', editId);
+  document.getElementById('biz-order-date').value = o ? o.date : (dateDefault || today());
+  document.getElementById('biz-order-supplier').value = o ? o.supplier : '';
+  document.getElementById('biz-order-notes').value = o ? (o.notes || '') : '';
+  document.getElementById('biz-order-done').checked = o ? !!o.done : false;
+  document.getElementById('biz-order-delete-btn').style.display = editId ? '' : 'none';
+}
+
+function saveOrder() {
+  const date = document.getElementById('biz-order-date').value;
+  const supplier = document.getElementById('biz-order-supplier').value.trim();
+  if (!date || !supplier) { alert('Please enter a date and supplier.'); return; }
+  const notes = document.getElementById('biz-order-notes').value.trim();
+  const done = document.getElementById('biz-order-done').checked;
+  const editId = document.getElementById('biz-order-edit-id').value;
+  const order = { id: editId || uid(), date, supplier, notes, done };
+  if (editId) { const i = DB.bizOrders.findIndex(x => x.id === editId); if (i >= 0) DB.bizOrders[i] = order; }
+  else DB.bizOrders.push(order);
+  save(); closeModal('biz-order-modal'); renderBizCalendar(); renderBizDashboard();
+}
+
+function deleteOrder(id) {
+  if (!confirm('Delete this supplier order?')) return;
+  DB.bizOrders = DB.bizOrders.filter(x => x.id !== id);
+  save(); closeModal('biz-order-modal'); renderBizCalendar(); renderBizDashboard();
+}
+
+function toggleOrderDone(id) {
+  const o = DB.bizOrders.find(x => x.id === id); if (!o) return;
+  o.done = !o.done;
+  save(); renderBizCalendar(); renderBizDashboard();
+}
+
+function renderBizOrdersList() {
+  const el = document.getElementById('biz-orders-list');
+  if (!el) return;
+  if (DB.bizOrders.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No supplier orders yet. Click a calendar day or <strong>+ Add Order</strong> to schedule one.</p></div>`;
+    return;
+  }
+  const sorted = [...DB.bizOrders].sort((a, b) => a.date.localeCompare(b.date));
+  el.innerHTML = sorted.map(o => {
+    const dateLbl = new Date(o.date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);">
+      <input type="checkbox" ${o.done ? 'checked' : ''} onchange="toggleOrderDone('${o.id}')" style="width:18px;height:18px;accent-color:var(--b-accent);cursor:pointer;flex-shrink:0;">
+      <div style="flex:1;min-width:0;${o.done ? 'opacity:.5;text-decoration:line-through;' : ''}">
+        <div style="font-weight:600;font-size:13px;">${o.supplier}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${dateLbl}${o.notes ? ' · ' + o.notes : ''}</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Edit</button>
+    </div>`;
+  }).join('');
+}
+
+function renderBizCalendar() {
+  const [y, m] = DB.bizCalMonth.split('-').map(Number);
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  document.getElementById('biz-cal-month-label').textContent = `${monthNames[m - 1]} ${y}`;
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const leadingBlank = (firstDow + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = today();
+  const dow = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  let html = dow.map(d => `<div class="biz-cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < leadingBlank; i++) html += `<div class="biz-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const orders = DB.bizOrders.filter(o => o.date === ds);
+    html += `<div class="biz-cal-day ${ds === todayStr ? 'today' : ''}" onclick="openOrderModal(null,'${ds}')">
+      <div class="biz-cal-daynum">${d}</div>
+      ${orders.map(o => `<div class="biz-cal-order" onclick="event.stopPropagation();openOrderModal('${o.id}')" style="${o.done ? 'opacity:.5;text-decoration:line-through;' : ''}" title="${o.supplier}${o.notes ? ' — ' + o.notes : ''}">${o.supplier}</div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('biz-cal-grid').innerHTML = html;
+  renderBizOrdersList();
+}
+
+// ---- Dashboard ----
+function renderBizDashboard() {
+  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; return acc; }, { revenue: 0, cost: 0 });
+  const profit = totals.revenue - totals.cost;
+  document.getElementById('biz-stat-revenue').textContent = _bizFmt(totals.revenue);
+  document.getElementById('biz-stat-profit').textContent = _bizFmt(profit);
+
+  const invValue = DB.bizInventory.reduce((a, i) => a + i.qty * i.unitCost, 0);
+  document.getElementById('biz-stat-inventory-value').textContent = _bizFmt(invValue);
+  document.getElementById('biz-stat-inventory-sub').textContent = `${DB.bizInventory.length} item${DB.bizInventory.length === 1 ? '' : 's'}`;
+
+  const todayStr = today();
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() + 30);
+  const upcomingOrders = DB.bizOrders.filter(o => !o.done && o.date >= todayStr && o.date <= dateStr(cutoff)).sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('biz-stat-upcoming').textContent = upcomingOrders.length;
+
+  // Revenue & profit chart — last 6 months
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: d.toLocaleDateString('en-IE', { month: 'short' }) });
+  }
+  const monthData = months.map(mo => {
+    const sales = DB.bizSales.filter(s => s.date.startsWith(mo.key));
+    const rev = sales.reduce((a, s) => a + s.price, 0);
+    const prof = sales.reduce((a, s) => a + (s.price - s.cost), 0);
+    return { ...mo, rev, prof };
+  });
+  const maxVal = Math.max(...monthData.map(mo => Math.max(mo.rev, mo.prof)), 1);
+  const chartEl = document.getElementById('biz-revenue-chart');
+  if (monthData.every(mo => mo.rev === 0 && mo.prof === 0)) {
+    chartEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No sales data yet — log a sale to see your trend.</p></div>`;
+  } else {
+    chartEl.innerHTML = `<div class="biz-bar-chart">
+      ${monthData.map(mo => `<div class="biz-bar-group">
+        <div class="biz-bar-pair">
+          <div class="biz-bar revenue" style="height:${Math.max(mo.rev / maxVal * 100, mo.rev > 0 ? 2 : 0)}%;" title="Revenue: ${_bizFmt(mo.rev)}"></div>
+          <div class="biz-bar profit" style="height:${Math.max(mo.prof / maxVal * 100, mo.prof > 0 ? 2 : 0)}%;" title="Profit: ${_bizFmt(mo.prof)}"></div>
+        </div>
+        <div class="biz-bar-lbl">${mo.label}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Upcoming orders list (next 5)
+  const upcomingEl = document.getElementById('biz-upcoming-orders');
+  if (upcomingOrders.length === 0) {
+    upcomingEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No upcoming supplier orders in the next 30 days.</p></div>`;
+  } else {
+    upcomingEl.innerHTML = upcomingOrders.slice(0, 5).map(o => {
+      const dateObj = new Date(o.date + 'T12:00:00');
+      const days = Math.ceil((dateObj - new Date()) / 86400000);
+      const dateLbl = dateObj.toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);">
+        <div><div style="font-weight:600;font-size:13px;">${o.supplier}</div><div style="font-size:11px;color:var(--text-muted);">${o.notes || ''}</div></div>
+        <div style="text-align:right;font-size:11px;color:var(--text-muted);"><div style="font-weight:700;color:var(--b-accent);">${dateLbl}</div>${days}d</div>
+      </div>`;
+    }).join('');
+  }
+
+  updateBizBadges();
+}
+
+// ============================================================
 // INIT
 // ============================================================
 load();
@@ -4887,6 +5440,7 @@ renderToday();
 renderJournal();
 renderOutfits();
 updateNavBuyBadge(countNeedToBuy());
+updateBizBadges();
 if(DB.satGoal&&DB.satGoal.total){document.getElementById('sat-goal-total').value=DB.satGoal.total||'';document.getElementById('sat-goal-rw').value=DB.satGoal.rw||'';document.getElementById('sat-goal-math').value=DB.satGoal.math||'';}
 setInterval(initDateGreeting,60000);
 </script>
