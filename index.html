@@ -5244,11 +5244,17 @@ function _parseSaleImportRows(text) {
       return isNaN(n) ? 0 : n;
     };
     const price = toNum(cols[3]);
+    const actualShipping = toNum(cols[5]);
     const fees = toNum(cols[8]);
     const netRevenue = toNum(cols[9]);
-    const cost = toNum(cols[10]);
+    const itemCost = toNum(cols[10]);
+    const cost = itemCost + actualShipping + fees;
     if (price === 0 && cost === 0) continue;
-    const notes = fees > 0 ? `Net revenue: ${_bizFmt(netRevenue)}, Fees: ${_bizFmt(fees)}` : '';
+    const noteParts = [];
+    if (fees > 0) noteParts.push(`Fees: ${_bizFmt(fees)}`);
+    if (actualShipping > 0) noteParts.push(`Shipping: ${_bizFmt(actualShipping)}`);
+    if (netRevenue > 0) noteParts.push(`Net revenue: ${_bizFmt(netRevenue)}`);
+    const notes = noteParts.join(', ');
     sales.push({ date, item: desc || '(unlabeled)', qty: 1, price, cost, notes });
   }
   return sales;
