@@ -1066,7 +1066,7 @@ a:hover{text-decoration:underline;}
     </div>
     <div id="products-skincare-tab"><div id="products-skincare-list"></div></div>
     <div id="products-clothes-tab" style="display:none;"><div id="products-clothes-list"></div></div>
-    <div id="products-supps-tab" style="display:none;"><div id="products-supps-grid" class="grid-3"></div></div>
+    <div id="products-supps-tab" style="display:none;"><div id="products-supps-list"></div></div>
   </div>
 
   <!-- Wardrobe -->
@@ -3778,29 +3778,26 @@ function renderProducts() {
   }
 
   // --- Supps ---
-  const suGrid=document.getElementById('products-supps-grid');
+  const suList=document.getElementById('products-supps-list');
   const su=[...DB.products.supps].sort((a,b)=>_prodUrgencyScore(b,'supps')-_prodUrgencyScore(a,'supps'));
-  if(su.length===0){suGrid.innerHTML='<div class="empty-state card" style="grid-column:1/-1;"><div class="ei">💊</div><p>Add your supplements & vitamins.</p></div>';}
-  else suGrid.innerHTML=su.map(p=>{
+  if(su.length===0){suList.innerHTML='<div class="empty-state card"><div class="ei">💊</div><p>Add your supplements & vitamins.</p></div>';}
+  else suList.innerHTML=`<div class="card"><div>${su.map(p=>{
     const pct=stockPct[p.stock]||100;const urgent=p.stock==='empty'||p.stock==='low';
     const needByChip=_prodNeedByChip(p.needBy,urgent);
-    return `<div class="product-card ${urgent?(p.stock==='empty'?'urgent':'low'):''}" onclick="editProduct('supps','${p.id}')" style="cursor:pointer;">
-      <div>
-        <div class="product-name">${p.name}${needByChip}</div>
-        <div class="product-brand">${p.brand||''}${p.suppType?' · '+p.suppType:''}</div>
-        ${p.dose?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">📋 ${p.dose}</div>`:''}
+    const meta=[p.brand,p.suppType,p.dose?'📋 '+p.dose:''].filter(Boolean).join(' · ');
+    return `<div class="wish-item" onclick="editProduct('supps','${p.id}')" style="cursor:pointer;">
+      <div style="width:10px;height:10px;border-radius:50%;background:${stockDotColor[p.stock]||'var(--green)'};flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;">${p.name}${needByChip}</div>
+        ${meta?`<div style="font-size:12px;color:var(--text-muted);">${meta}</div>`:''}
+        ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.notes}</div>`:''}
       </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-          <span style="font-size:11px;color:var(--text-muted);">Stock</span>
-          <button onclick="quickCycleStock('supps','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
-        </div>
-        <div class="stock-bar ${stockCls[p.stock]||'stock-full'}"><div class="stock-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+        <button onclick="quickCycleStock('supps','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
+        ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
       </div>
-      ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);">${p.notes}</div>`:''}
-      ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗 Buy</a>`:''}
     </div>`;
-  }).join('');
+  }).join('')}</div></div>`;
 }
 
 // ============================================================
