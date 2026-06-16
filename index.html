@@ -3686,9 +3686,9 @@ function quickCycleStock(tab,id,e) {
   p.stock=cycle[p.stock]||'full';
   save();renderProducts();
 }
-function moveToBuying(id,e) { if(e)e.stopPropagation(); const p=DB.products.clothes.find(p=>p.id===id);if(!p)return; p.buying=true;save();renderProducts(); }
-function moveToWishlist(id,e) { if(e)e.stopPropagation(); const p=DB.products.clothes.find(p=>p.id===id);if(!p)return; p.buying=false;save();renderProducts(); }
-function markBought(id,e) { if(e)e.stopPropagation(); if(!confirm('Mark as bought and remove from list?'))return; DB.products.clothes=DB.products.clothes.filter(p=>p.id!==id);save();renderProducts(); }
+function moveToBuying(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=true;save();renderProducts(); }
+function moveToWishlist(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=false;save();renderProducts(); }
+function markBought(tab,id,e) { if(e)e.stopPropagation(); if(!confirm('Mark as bought and remove from list?'))return; DB.products[tab]=DB.products[tab].filter(p=>p.id!==id);save();renderProducts(); }
 
 function _prodNeedByChip(needBy, isUrgent) {
   if(!needBy) return '';
@@ -3725,7 +3725,7 @@ function renderProducts() {
   // --- Skincare ---
   const skList=document.getElementById('products-skincare-list');
   const stockDotColor={full:'var(--green)',medium:'var(--accent)',low:'var(--amber)',empty:'var(--red)'};
-  const mkStockRow=(p,tab)=>{
+  const mkStockRow=(p,tab,inBuying)=>{
     const urgent=p.stock==='empty'||p.stock==='low';
     const needByChip=_prodNeedByChip(p.needBy,urgent);
     const pct=stockPct[p.stock]||100;
@@ -3742,16 +3742,19 @@ function renderProducts() {
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
         <button onclick="quickCycleStock('${tab}','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
         ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
+        ${inBuying
+          ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('${tab}','${p.id}',event)" title="Move back">↩</button><button class="btn btn-primary btn-xs" onclick="markBought('${tab}','${p.id}',event)">✓ Bought</button>`
+          :`<button class="btn btn-secondary btn-xs" onclick="moveToBuying('${tab}','${p.id}',event)" title="Add to buying list">🛒</button>`}
       </div>
     </div>`;
   };
   const mkStockSections=(items,tab,emptyIcon,emptyMsg)=>{
     if(items.length===0) return `<div class="empty-state card"><div class="ei">${emptyIcon}</div><p>${emptyMsg}</p></div>`;
-    const buying=items.filter(p=>p.stock==='low'||p.stock==='empty').sort((a,b)=>_prodUrgencyScore(b,tab)-_prodUrgencyScore(a,tab));
-    const inStock=items.filter(p=>p.stock==='full'||p.stock==='medium').sort((a,b)=>a.name.localeCompare(b.name));
-    const buyingHtml=buying.length?`<div class="card" style="margin-bottom:14px;border-color:var(--red);"><div class="card-title" style="margin-bottom:10px;color:var(--red);">🛒 Buying Now</div><div>${buying.map(p=>mkStockRow(p,tab)).join('')}</div></div>`:'';
-    const inStockHtml=inStock.length?`<div class="card"><div class="card-title" style="margin-bottom:10px;">✓ In Stock</div><div>${inStock.map(p=>mkStockRow(p,tab)).join('')}</div></div>`:'';
-    return buyingHtml+inStockHtml;
+    const buying=items.filter(p=>p.buying).sort((a,b)=>a.name.localeCompare(b.name));
+    const rest=items.filter(p=>!p.buying).sort((a,b)=>_prodUrgencyScore(b,tab)-_prodUrgencyScore(a,tab)||a.name.localeCompare(b.name));
+    const buyingHtml=buying.length?`<div class="card" style="margin-bottom:14px;border-color:var(--accent);"><div class="card-title" style="margin-bottom:10px;">🛍️ Buying Now</div><div>${buying.map(p=>mkStockRow(p,tab,true)).join('')}</div></div>`:'';
+    const restHtml=rest.length?`<div class="card"><div>${rest.map(p=>mkStockRow(p,tab,false)).join('')}</div></div>`:'';
+    return buyingHtml+restHtml;
   };
   if(DB.products.skincare.length===0){skList.innerHTML='<div class="empty-state card"><div class="ei">🧴</div><p>Add your skincare & grooming products.</p></div>';}
   else skList.innerHTML=mkStockSections(DB.products.skincare,'skincare','🧴','Add your skincare & grooming products.');
@@ -3777,8 +3780,8 @@ function renderProducts() {
           ${!inBuying?`<span class="badge badge-${p.priority==='high'?'red':p.priority==='medium'?'amber':'green'}">${{high:'Need now',medium:'Want soon',low:'Wishlist'}[p.priority]||''}</span>`:''}
           ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
           ${inBuying
-            ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('${p.id}',event)">↩</button><button class="btn btn-primary btn-xs" onclick="markBought('${p.id}',event)">✓ Bought</button>`
-            :`<button class="btn btn-secondary btn-xs" onclick="moveToBuying('${p.id}',event)">🛒</button>`}
+            ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('clothes','${p.id}',event)">↩</button><button class="btn btn-primary btn-xs" onclick="markBought('clothes','${p.id}',event)">✓ Bought</button>`
+            :`<button class="btn btn-secondary btn-xs" onclick="moveToBuying('clothes','${p.id}',event)">🛒</button>`}
         </div>
       </div>`;
     };
