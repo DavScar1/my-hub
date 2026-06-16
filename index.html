@@ -370,6 +370,46 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .biz-margin{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;background:var(--b-accent-light);color:var(--b-accent);}
 
 /* ============================================================
+   BUSINESS ANALYTICS
+============================================================ */
+.an-section-title{font-size:13px;font-weight:800;letter-spacing:-.2px;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-light);}
+.an-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.an-kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;}
+.an-kpi-val{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text);}
+.an-kpi-val.green{color:var(--green);}
+.an-kpi-val.purple{color:var(--b-accent);}
+.an-kpi-val.amber{color:var(--amber);}
+.an-kpi-lbl{font-size:11px;color:var(--text-muted);margin-top:2px;font-weight:500;}
+.an-kpi-sub{font-size:10px;color:var(--text-muted);margin-top:3px;}
+.an-table{width:100%;border-collapse:collapse;font-size:12px;}
+.an-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:0 10px 8px 0;border-bottom:2px solid var(--border);}
+.an-table th.r,.an-table td.r{text-align:right;}
+.an-table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+.an-table tr:last-child td{border-bottom:none;}
+.an-bar-bg{background:var(--bg);border-radius:4px;height:6px;min-width:60px;margin-top:3px;overflow:hidden;}
+.an-bar-fill{height:6px;border-radius:4px;}
+.an-insight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.an-insight{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;}
+.an-insight-icon{font-size:22px;margin-bottom:6px;}
+.an-insight-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);}
+.an-insight-val{font-size:17px;font-weight:800;color:var(--text);margin-top:2px;}
+.an-insight-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.an-dow-chart{display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:12px;}
+.an-dow-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;}
+.an-dow-bar-wrap{flex:1;display:flex;align-items:flex-end;width:100%;}
+.an-dow-bar{width:100%;background:var(--b-accent);opacity:.8;border-radius:3px 3px 0 0;min-height:2px;}
+.an-dow-lbl{font-size:10px;color:var(--text-muted);margin-top:5px;}
+.an-trend-up{color:var(--green);font-size:11px;font-weight:700;}
+.an-trend-down{color:var(--red);font-size:11px;font-weight:700;}
+.an-trend-flat{color:var(--text-muted);font-size:11px;}
+.an-inv-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);}
+.an-inv-row:last-child{border-bottom:none;}
+.an-stock-days{font-size:18px;font-weight:800;}
+.an-stock-days.ok{color:var(--green);}
+.an-stock-days.warn{color:var(--amber);}
+.an-stock-days.low{color:var(--red);}
+
+/* ============================================================
    TO DO (life)
 ============================================================ */
 .todo-layout{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;min-height:560px;box-shadow:var(--shadow);}
@@ -647,6 +687,9 @@ a:hover{text-decoration:underline;}
       <span class="icon">🗓️</span>Supplier Calendar
       <span class="nbadge" id="nav-biz-order-badge" style="display:none;"></span>
     </button>
+
+    <div class="nav-section">Insights</div>
+    <button class="nav-item" onclick="showPage('b-analytics')"><span class="icon">📈</span>Analytics</button>
   </div>
 
   <div class="sidebar-footer">
@@ -1263,6 +1306,46 @@ a:hover{text-decoration:underline;}
     <div class="card">
       <div class="biz-cat-pills" id="biz-cat-pills" style="display:none;"></div>
       <div id="biz-inventory-list"></div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="page" id="page-b-analytics">
+    <div class="page-header"><h2>📈 Analytics</h2><p>Deep dive into your sales performance, product mix and inventory health.</p></div>
+
+    <!-- KPIs -->
+    <div class="an-kpi-grid" id="an-kpi-grid" style="margin-bottom:20px;grid-template-columns:repeat(3,1fr);"></div>
+
+    <!-- Two-column layout -->
+    <div class="grid-2" style="align-items:start;margin-bottom:20px;">
+      <!-- Product breakdown -->
+      <div class="card">
+        <div class="an-section-title">📦 Revenue by Product</div>
+        <div id="an-product-table"></div>
+      </div>
+      <!-- Monthly performance -->
+      <div class="card">
+        <div class="an-section-title">📅 Monthly Performance</div>
+        <div id="an-monthly-table"></div>
+      </div>
+    </div>
+
+    <!-- Insights row -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="an-section-title">⚡ Key Insights</div>
+      <div class="an-insight-grid" id="an-insights"></div>
+    </div>
+
+    <!-- Sales pattern + inventory -->
+    <div class="grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="an-section-title">📆 Sales by Day of Week</div>
+        <div class="an-dow-chart" id="an-dow-chart"></div>
+      </div>
+      <div class="card">
+        <div class="an-section-title">🏦 Inventory Intelligence</div>
+        <div id="an-inventory-intel"></div>
+      </div>
     </div>
   </div>
 
@@ -2136,6 +2219,7 @@ function renderPage(id) {
   if (id === 'b-sales') renderBizSales();
   if (id === 'b-inventory') renderBizInventory();
   if (id === 'b-calendar') renderBizCalendar();
+  if (id === 'b-analytics') renderBizAnalytics();
 }
 
 // ============================================================
@@ -5720,6 +5804,227 @@ function renderBizDashboard() {
   }
 
   updateBizBadges();
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderBizAnalytics() {
+  const sales = DB.bizSales;
+  const inv   = DB.bizInventory;
+
+  if (sales.length === 0) {
+    ['an-kpi-grid','an-product-table','an-monthly-table','an-insights','an-dow-chart','an-inventory-intel'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `<div class="empty-state" style="padding:16px 0;"><p>No sales data yet.</p></div>`;
+    });
+    return;
+  }
+
+  const totalRev    = sales.reduce((a, s) => a + s.price, 0);
+  const totalCost   = sales.reduce((a, s) => a + s.cost, 0);
+  const totalProfit = totalRev - totalCost;
+  const totalUnits  = sales.reduce((a, s) => a + (s.qty || 1), 0);
+  const margin      = totalRev > 0 ? totalProfit / totalRev * 100 : 0;
+  const avgSaleVal  = totalRev / sales.length;
+  const avgProfit   = totalProfit / sales.length;
+  const avgQty      = totalUnits / sales.length;
+
+  // Current & previous month
+  const now = new Date();
+  const curMo  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const prevD  = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const prevMo = `${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}`;
+  const curSales  = sales.filter(s => s.date.startsWith(curMo));
+  const prevSales = sales.filter(s => s.date.startsWith(prevMo));
+  const curRev    = curSales.reduce((a,s) => a+s.price, 0);
+  const prevRev   = prevSales.reduce((a,s) => a+s.price, 0);
+  const momChange = prevRev > 0 ? (curRev - prevRev) / prevRev * 100 : null;
+
+  // Best single sale
+  const bestSale = [...sales].sort((a,b) => (b.price-b.cost)-(a.price-a.cost))[0];
+  const bestSaleProfit = bestSale ? bestSale.price - bestSale.cost : 0;
+
+  // --- KPI grid ---
+  const kpiData = [
+    { val: margin.toFixed(1)+'%',       cls:'green',  lbl:'Overall Profit Margin',      sub:'Revenue minus all costs' },
+    { val: _bizFmt(avgProfit),           cls:'purple', lbl:'Avg Profit per Sale',         sub:`Over ${sales.length} sales` },
+    { val: _bizFmt(avgSaleVal),          cls:'',       lbl:'Avg Sale Value',              sub:'Mean revenue per transaction' },
+    { val: totalUnits,                   cls:'',       lbl:'Total Units Sold',            sub:`${avgQty.toFixed(1)} avg per sale` },
+    { val: _bizFmt(curRev),             cls:'',       lbl:'Revenue This Month',          sub: momChange !== null ? (momChange >= 0 ? `▲ ${momChange.toFixed(0)}% vs last month` : `▼ ${Math.abs(momChange).toFixed(0)}% vs last month`) : 'First month on record' },
+    { val: _bizFmt(totalRev / Math.max(_uniqueMonths(sales).length, 1)), cls:'', lbl:'Avg Monthly Revenue', sub:`${_uniqueMonths(sales).length} months of data` },
+  ];
+  document.getElementById('an-kpi-grid').innerHTML = kpiData.map(k =>
+    `<div class="an-kpi">
+      <div class="an-kpi-val ${k.cls}">${k.val}</div>
+      <div class="an-kpi-lbl">${k.lbl}</div>
+      <div class="an-kpi-sub">${k.sub}</div>
+    </div>`
+  ).join('');
+
+  // --- Product breakdown ---
+  const prodMap = {};
+  sales.forEach(s => {
+    const name = s.item || '(unlabeled)';
+    if (!prodMap[name]) prodMap[name] = { rev:0, cost:0, units:0, count:0 };
+    prodMap[name].rev   += s.price;
+    prodMap[name].cost  += s.cost;
+    prodMap[name].units += (s.qty || 1);
+    prodMap[name].count++;
+  });
+  const prods = Object.entries(prodMap).map(([name, d]) => ({
+    name, ...d, profit: d.rev - d.cost, margin: d.rev > 0 ? (d.rev-d.cost)/d.rev*100 : 0
+  })).sort((a,b) => b.rev - a.rev);
+  const maxProdRev = Math.max(...prods.map(p => p.rev), 1);
+  document.getElementById('an-product-table').innerHTML = `
+    <table class="an-table" style="width:100%;">
+      <thead><tr>
+        <th>Product</th>
+        <th class="r">Revenue</th>
+        <th class="r">Profit</th>
+        <th class="r">Margin</th>
+        <th class="r">Units</th>
+      </tr></thead>
+      <tbody>${prods.map(p => `<tr>
+        <td>
+          <div style="font-weight:600;font-size:12px;">${p.name}</div>
+          <div class="an-bar-bg"><div class="an-bar-fill" style="width:${p.rev/maxProdRev*100}%;background:var(--b-accent);"></div></div>
+        </td>
+        <td class="r" style="white-space:nowrap;">${_bizFmt(p.rev)}</td>
+        <td class="r" style="white-space:nowrap;color:${p.profit>=0?'var(--green)':'var(--red)'};">${_bizFmt(p.profit)}</td>
+        <td class="r" style="white-space:nowrap;font-weight:700;color:${p.margin>=30?'var(--green)':p.margin>=15?'var(--amber)':'var(--red)'};">${p.margin.toFixed(1)}%</td>
+        <td class="r">${p.units}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+
+  // --- Monthly performance ---
+  const allMonths = _uniqueMonths(sales).sort().reverse();
+  const monthRows = allMonths.map(mo => {
+    const ms = sales.filter(s => s.date.startsWith(mo));
+    const rev = ms.reduce((a,s) => a+s.price, 0);
+    const cost = ms.reduce((a,s) => a+s.cost, 0);
+    const prof = rev - cost;
+    const mgn  = rev > 0 ? prof/rev*100 : 0;
+    const units = ms.reduce((a,s) => a+(s.qty||1), 0);
+    const d = new Date(mo + '-01T12:00:00');
+    const lbl = d.toLocaleDateString('en-IE', { month:'short', year:'numeric' });
+    return { mo, lbl, rev, cost, prof, mgn, count:ms.length, units };
+  });
+  document.getElementById('an-monthly-table').innerHTML = `
+    <table class="an-table" style="width:100%;">
+      <thead><tr>
+        <th>Month</th>
+        <th class="r">Revenue</th>
+        <th class="r">Profit</th>
+        <th class="r">Margin</th>
+        <th class="r">Sales</th>
+      </tr></thead>
+      <tbody>${monthRows.map((r,i) => {
+        const momTrend = i < monthRows.length-1
+          ? (r.rev - monthRows[i+1].rev) / Math.max(monthRows[i+1].rev,1) * 100
+          : null;
+        const trendHtml = momTrend !== null
+          ? `<span class="${momTrend>=0?'an-trend-up':'an-trend-down'}" style="margin-left:4px;">${momTrend>=0?'▲':'▼'}${Math.abs(momTrend).toFixed(0)}%</span>`
+          : '';
+        return `<tr>
+          <td style="font-weight:600;white-space:nowrap;">${r.lbl}${trendHtml}</td>
+          <td class="r" style="white-space:nowrap;">${_bizFmt(r.rev)}</td>
+          <td class="r" style="white-space:nowrap;color:${r.prof>=0?'var(--green)':'var(--red)'};">${_bizFmt(r.prof)}</td>
+          <td class="r" style="font-weight:700;color:${r.mgn>=30?'var(--green)':r.mgn>=15?'var(--amber)':'var(--red)'};">${r.mgn.toFixed(1)}%</td>
+          <td class="r">${r.count}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+
+  // --- Key Insights ---
+  const bestRevMonth  = [...monthRows].sort((a,b)=>b.rev-a.rev)[0];
+  const bestProfMonth = [...monthRows].sort((a,b)=>b.prof-a.prof)[0];
+  const bestMarginMonth = [...monthRows].filter(r=>r.count>=2).sort((a,b)=>b.mgn-a.mgn)[0] || monthRows[0];
+  const biggestSale   = [...sales].sort((a,b)=>b.price-a.price)[0];
+  const avgDaysBetween = _avgDaysBetweenSales(sales);
+  const topProd = prods[0];
+  const insights = [
+    { icon:'🏆', lbl:'Best Revenue Month',    val: bestRevMonth ? bestRevMonth.lbl : '—',       sub: bestRevMonth ? _bizFmt(bestRevMonth.rev) + ' revenue' : '' },
+    { icon:'💰', lbl:'Best Profit Month',     val: bestProfMonth ? bestProfMonth.lbl : '—',     sub: bestProfMonth ? _bizFmt(bestProfMonth.prof) + ' profit' : '' },
+    { icon:'🎯', lbl:'Best Margin Month',     val: bestMarginMonth ? bestMarginMonth.lbl : '—', sub: bestMarginMonth ? bestMarginMonth.mgn.toFixed(1) + '% margin' : '' },
+    { icon:'💎', lbl:'Most Profitable Sale',  val: bestSale ? bestSale.item : '—',              sub: bestSale ? `${_bizFmt(bestSaleProfit)} profit on ${new Date(bestSale.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}` : '' },
+    { icon:'🧾', lbl:'Biggest Single Sale',   val: biggestSale ? _bizFmt(biggestSale.price) : '—', sub: biggestSale ? `${biggestSale.item} · ${new Date(biggestSale.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}` : '' },
+    { icon:'⭐', lbl:'Top Product by Revenue',val: topProd ? topProd.name : '—',                sub: topProd ? `${_bizFmt(topProd.rev)} · ${topProd.margin.toFixed(1)}% margin` : '' },
+    { icon:'📦', lbl:'Avg Units per Sale',    val: avgQty.toFixed(1),                           sub: `${totalUnits} units across ${sales.length} sales` },
+    { icon:'📆', lbl:'Avg Days Between Sales',val: avgDaysBetween !== null ? avgDaysBetween.toFixed(1) + 'd' : '—', sub: avgDaysBetween !== null ? `~${(30/Math.max(avgDaysBetween,0.1)).toFixed(1)} sales/month` : '' },
+  ];
+  document.getElementById('an-insights').innerHTML = insights.map(ins =>
+    `<div class="an-insight">
+      <div class="an-insight-icon">${ins.icon}</div>
+      <div class="an-insight-lbl">${ins.lbl}</div>
+      <div class="an-insight-val">${ins.val}</div>
+      <div class="an-insight-sub">${ins.sub}</div>
+    </div>`
+  ).join('');
+
+  // --- Day of week chart ---
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dowRev = [0,0,0,0,0,0,0];
+  const dowCount = [0,0,0,0,0,0,0];
+  sales.forEach(s => {
+    const d = new Date(s.date+'T12:00:00').getDay();
+    dowRev[d]   += s.price;
+    dowCount[d] += 1;
+  });
+  const maxDow = Math.max(...dowRev, 1);
+  document.getElementById('an-dow-chart').innerHTML = DAYS.map((day, i) =>
+    `<div class="an-dow-col">
+      <div class="an-dow-bar-wrap">
+        <div class="an-dow-bar" style="height:${dowRev[i]/maxDow*100}%;" title="${day}: ${dowCount[i]} sales · ${_bizFmt(dowRev[i])}"></div>
+      </div>
+      <div class="an-dow-lbl">${day}</div>
+    </div>`
+  ).join('');
+
+  // --- Inventory intelligence ---
+  const invEl = document.getElementById('an-inventory-intel');
+  if (inv.length === 0) {
+    invEl.innerHTML = `<div class="empty-state" style="padding:16px 0;"><p>No inventory items added yet.</p></div>`;
+  } else {
+    const dataMonths = _uniqueMonths(sales).length || 1;
+    invEl.innerHTML = inv.map(item => {
+      const unitsSold = sales
+        .filter(s => s.item && s.item.toLowerCase().includes(item.name.toLowerCase().split(' ')[0]))
+        .reduce((a,s) => a+(s.qty||1), 0);
+      const unitsPerMonth = unitsSold / dataMonths;
+      const daysStock = unitsPerMonth > 0 ? Math.round(item.qty / unitsPerMonth * 30) : null;
+      const stockCls  = daysStock === null ? '' : daysStock > 30 ? 'ok' : daysStock > 14 ? 'warn' : 'low';
+      const stockLbl  = daysStock === null ? '∞' : daysStock + 'd';
+      const capitalPct = inv.length > 0 ? (item.qty * item.unitCost) / Math.max(inv.reduce((a,i)=>a+i.qty*i.unitCost,0),1)*100 : 0;
+      return `<div class="an-inv-row">
+        <div style="min-width:60px;text-align:center;">
+          <div class="an-stock-days ${stockCls}">${stockLbl}</div>
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">stock left</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:12px;">${item.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${item.qty} units · ${_bizFmt(item.qty*item.unitCost)} value</div>
+          <div class="an-bar-bg" style="margin-top:4px;"><div class="an-bar-fill" style="width:${capitalPct.toFixed(1)}%;background:var(--b-accent);"></div></div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:var(--text-muted);">
+          <div style="font-weight:700;color:var(--text);">${capitalPct.toFixed(0)}%</div>
+          <div>of capital</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function _uniqueMonths(sales) {
+  return [...new Set(sales.map(s => s.date.slice(0,7)))];
+}
+
+function _avgDaysBetweenSales(sales) {
+  if (sales.length < 2) return null;
+  const sorted = [...sales].map(s => new Date(s.date+'T12:00:00').getTime()).sort((a,b)=>a-b);
+  let total = 0;
+  for (let i = 1; i < sorted.length; i++) total += (sorted[i]-sorted[i-1]) / 86400000;
+  return total / (sorted.length - 1);
 }
 
 // ============================================================
