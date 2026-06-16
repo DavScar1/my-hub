@@ -359,6 +359,15 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .biz-bar-lbl{font-size:10px;color:var(--text-muted);margin-top:6px;white-space:nowrap;}
 .biz-legend{display:flex;gap:16px;font-size:11px;color:var(--text-muted);align-items:center;}
 .biz-legend-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle;}
+.biz-cat-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.biz-cat-pill{padding:4px 13px;border-radius:999px;font-size:11px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:all .15s;user-select:none;}
+.biz-cat-pill.active,.biz-cat-pill:hover{background:var(--b-accent);color:#fff;border-color:var(--b-accent);}
+.biz-qty-adj{display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:7px;overflow:hidden;flex-shrink:0;}
+.biz-qty-adj button{background:none;border:none;padding:3px 9px;cursor:pointer;font-size:15px;color:var(--text-muted);line-height:1;transition:background .1s;}
+.biz-qty-adj button:hover{background:var(--b-accent-light);color:var(--b-accent);}
+.biz-qty-adj span{font-size:13px;font-weight:700;padding:0 8px;min-width:26px;text-align:center;}
+.biz-needby{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-left:4px;vertical-align:middle;}
+.biz-margin{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;background:var(--b-accent-light);color:var(--b-accent);}
 
 /* ============================================================
    TO DO (life)
@@ -1252,6 +1261,7 @@ a:hover{text-decoration:underline;}
       <div class="stat-card"><div class="stat-value" id="biz-inv-out">0</div><div class="stat-label">Out of Stock</div><div class="stat-sub">0 units left</div></div>
     </div>
     <div class="card">
+      <div class="biz-cat-pills" id="biz-cat-pills" style="display:none;"></div>
       <div id="biz-inventory-list"></div>
     </div>
   </div>
@@ -1628,17 +1638,22 @@ a:hover{text-decoration:underline;}
 <!-- Inventory item modal -->
 <div class="modal-overlay" id="biz-item-modal">
   <div class="modal">
-    <h3 id="biz-item-modal-title">Add Inventory Item</h3>
+    <h3 id="biz-item-modal-title">Add Product</h3>
     <input type="hidden" id="biz-item-edit-id">
     <div class="form-row">
-      <div class="form-group"><label>Item Name *</label><input type="text" id="biz-item-name" placeholder="e.g. Charizard VMAX Booster Box"></div>
-      <div class="form-group"><label>Category</label><input type="text" id="biz-item-category" placeholder="e.g. Booster Boxes" style="width:160px;"></div>
+      <div class="form-group"><label>Product Name *</label><input type="text" id="biz-item-name" placeholder="e.g. Charizard VMAX Booster Box"></div>
+      <div class="form-group" style="max-width:180px;"><label>Category</label><input type="text" id="biz-item-category" placeholder="e.g. Booster Boxes" list="biz-cat-datalist"><datalist id="biz-cat-datalist"></datalist></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Quantity in Stock *</label><input type="number" id="biz-item-qty" min="0" value="0"></div>
-      <div class="form-group"><label>Unit Cost (€) *</label><input type="number" id="biz-item-cost" min="0" step="0.01" placeholder="0.00"></div>
-      <div class="form-group"><label>Low Stock Alert</label><input type="number" id="biz-item-threshold" min="0" value="0"></div>
+      <div class="form-group"><label>Qty in Stock</label><input type="number" id="biz-item-qty" min="0" value="0"></div>
+      <div class="form-group"><label>Unit Cost (€)</label><input type="number" id="biz-item-cost" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label>Sale Price (€) <span style="font-size:10px;color:var(--text-muted);font-weight:400;">per unit</span></label><input type="number" id="biz-item-sale-price" min="0" step="0.01" placeholder="0.00"></div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label>Alert when qty ≤ <span style="font-size:10px;color:var(--text-muted);font-weight:400;">0 = off</span></label><input type="number" id="biz-item-threshold" min="0" value="0"></div>
+      <div class="form-group"><label>Restock by <span style="font-size:10px;color:var(--text-muted);font-weight:400;">optional deadline</span></label><input type="date" id="biz-item-needby"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="biz-item-notes" rows="2" placeholder="Supplier link, condition, variant notes…"></textarea></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('biz-item-modal')">Cancel</button>
       <button class="btn btn-danger btn-sm" id="biz-item-delete-btn" style="display:none;" onclick="deleteInventoryItem(document.getElementById('biz-item-edit-id').value)">Delete</button>
@@ -5293,37 +5308,80 @@ function openSaleImportModal() {
 }
 
 // ---- Inventory ----
+let _bizCatFilter = 'All';
+
+function _bizNeedByChip(item) {
+  if (!item.needBy) return '';
+  const isLow = item.qty === 0 || (item.threshold > 0 && item.qty <= item.threshold);
+  const daysLeft = Math.ceil((new Date(item.needBy + 'T12:00:00') - new Date()) / 86400000);
+  let bg, color, label;
+  if (daysLeft < 0)        { bg='var(--red)';   color='#fff';            label=`Overdue by ${Math.abs(daysLeft)}d`; }
+  else if (daysLeft <= 3)  { bg='var(--red)';   color='#fff';            label=`Due in ${daysLeft}d`; }
+  else if (daysLeft <= 7)  { bg='#fef3c7';      color='#92400e';         label=`Due in ${daysLeft}d`; }
+  else                     { bg='var(--border-light)'; color='var(--text-muted)'; label=`Restock by ${new Date(item.needBy+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}`; }
+  if (!isLow && daysLeft > 7) return '';
+  return `<span class="biz-needby" style="background:${bg};color:${color};">${label}</span>`;
+}
+
+function _bizUrgencyScore(item) {
+  const isLow = item.qty === 0 || (item.threshold > 0 && item.qty <= item.threshold);
+  if (!item.needBy || !isLow) return isLow ? 1 : 0;
+  const d = Math.ceil((new Date(item.needBy + 'T12:00:00') - new Date()) / 86400000);
+  return d < 0 ? 100 : d <= 3 ? 50 : d <= 7 ? 20 : 5;
+}
+
 function openInventoryModal(editId) {
   const it = editId ? DB.bizInventory.find(x => x.id === editId) : null;
-  document.getElementById('biz-item-modal-title').textContent = it ? 'Edit Item' : 'Add Inventory Item';
+  document.getElementById('biz-item-modal-title').textContent = it ? 'Edit Product' : 'Add Product';
   document.getElementById('biz-item-edit-id').value = editId || '';
+  // populate category datalist
+  const cats = [...new Set(DB.bizInventory.map(x => x.category).filter(Boolean))];
+  document.getElementById('biz-cat-datalist').innerHTML = cats.map(c => `<option value="${c}">`).join('');
   openModal('biz-item-modal', editId);
   document.getElementById('biz-item-name').value = it ? it.name : '';
   document.getElementById('biz-item-category').value = it ? (it.category || '') : '';
   document.getElementById('biz-item-qty').value = it ? it.qty : 0;
-  document.getElementById('biz-item-cost').value = it ? it.unitCost : '';
+  document.getElementById('biz-item-cost').value = it ? (it.unitCost || '') : '';
+  document.getElementById('biz-item-sale-price').value = it ? (it.salePrice || '') : '';
   document.getElementById('biz-item-threshold').value = it ? (it.threshold || 0) : 0;
+  document.getElementById('biz-item-needby').value = it ? (it.needBy || '') : '';
+  document.getElementById('biz-item-notes').value = it ? (it.notes || '') : '';
   document.getElementById('biz-item-delete-btn').style.display = editId ? '' : 'none';
 }
 
 function saveInventoryItem() {
   const name = document.getElementById('biz-item-name').value.trim();
-  if (!name) { alert('Please enter an item name.'); return; }
-  const category = document.getElementById('biz-item-category').value.trim();
-  const qty = parseFloat(document.getElementById('biz-item-qty').value) || 0;
-  const unitCost = parseFloat(document.getElementById('biz-item-cost').value) || 0;
+  if (!name) { alert('Please enter a product name.'); return; }
+  const category  = document.getElementById('biz-item-category').value.trim();
+  const qty       = parseFloat(document.getElementById('biz-item-qty').value) || 0;
+  const unitCost  = parseFloat(document.getElementById('biz-item-cost').value) || 0;
+  const salePrice = parseFloat(document.getElementById('biz-item-sale-price').value) || 0;
   const threshold = parseFloat(document.getElementById('biz-item-threshold').value) || 0;
-  const editId = document.getElementById('biz-item-edit-id').value;
-  const item = { id: editId || uid(), name, category, qty, unitCost, threshold };
+  const needBy    = document.getElementById('biz-item-needby').value || '';
+  const notes     = document.getElementById('biz-item-notes').value.trim();
+  const editId    = document.getElementById('biz-item-edit-id').value;
+  const item = { id: editId || uid(), name, category, qty, unitCost, salePrice, threshold, needBy, notes };
   if (editId) { const i = DB.bizInventory.findIndex(x => x.id === editId); if (i >= 0) DB.bizInventory[i] = item; }
   else DB.bizInventory.push(item);
   save(); closeModal('biz-item-modal'); renderBizInventory(); renderBizDashboard(); updateBizBadges();
 }
 
 function deleteInventoryItem(id) {
-  if (!confirm('Delete this inventory item?')) return;
+  if (!confirm('Delete this product?')) return;
   DB.bizInventory = DB.bizInventory.filter(x => x.id !== id);
   save(); closeModal('biz-item-modal'); renderBizInventory(); renderBizDashboard(); updateBizBadges();
+}
+
+function adjustBizQty(id, delta) {
+  const item = DB.bizInventory.find(x => x.id === id);
+  if (!item) return;
+  item.qty = Math.max(0, item.qty + delta);
+  save(); renderBizInventory(); renderBizDashboard(); updateBizBadges();
+}
+
+function setBizCatFilter(cat) {
+  _bizCatFilter = cat;
+  renderBizInventory();
 }
 
 function renderBizInventory() {
@@ -5331,30 +5389,61 @@ function renderBizInventory() {
   if (!listEl) return;
   const totalValue = DB.bizInventory.reduce((a, i) => a + i.qty * i.unitCost, 0);
   const totalUnits = DB.bizInventory.reduce((a, i) => a + i.qty, 0);
-  const lowCount = DB.bizInventory.filter(i => i.qty > 0 && i.threshold > 0 && i.qty <= i.threshold).length;
-  const outCount = DB.bizInventory.filter(i => i.qty === 0).length;
+  const lowCount  = DB.bizInventory.filter(i => i.qty > 0 && i.threshold > 0 && i.qty <= i.threshold).length;
+  const outCount  = DB.bizInventory.filter(i => i.qty === 0).length;
   document.getElementById('biz-inv-value').textContent = _bizFmt(totalValue);
   document.getElementById('biz-inv-units').textContent = totalUnits;
-  document.getElementById('biz-inv-items-sub').textContent = `${DB.bizInventory.length} item${DB.bizInventory.length === 1 ? '' : 's'}`;
+  document.getElementById('biz-inv-items-sub').textContent = `${DB.bizInventory.length} product${DB.bizInventory.length === 1 ? '' : 's'}`;
   document.getElementById('biz-inv-low').textContent = lowCount;
   document.getElementById('biz-inv-out').textContent = outCount;
 
+  // category filter pills
+  const pillsEl = document.getElementById('biz-cat-pills');
+  const cats = [...new Set(DB.bizInventory.map(x => x.category).filter(Boolean))].sort();
+  if (cats.length > 1) {
+    pillsEl.style.display = '';
+    pillsEl.innerHTML = ['All', ...cats].map(c =>
+      `<span class="biz-cat-pill${_bizCatFilter === c ? ' active' : ''}" onclick="setBizCatFilter('${c}')">${c}</span>`
+    ).join('');
+  } else {
+    pillsEl.style.display = 'none';
+  }
+
   if (DB.bizInventory.length === 0) {
-    listEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No inventory items yet. Click <strong>+ Add Item</strong> to get started.</p></div>`;
+    listEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No products yet. Click <strong>+ Add Item</strong> to get started.</p></div>`;
     return;
   }
-  const sorted = [...DB.bizInventory].sort((a, b) => a.name.localeCompare(b.name));
-  listEl.innerHTML = sorted.map(i => {
+
+  let items = _bizCatFilter === 'All' ? [...DB.bizInventory] : DB.bizInventory.filter(x => x.category === _bizCatFilter);
+  items.sort((a, b) => _bizUrgencyScore(b) - _bizUrgencyScore(a) || a.name.localeCompare(b.name));
+
+  listEl.innerHTML = items.map(i => {
     const value = i.qty * i.unitCost;
     let stockBadge = '';
-    if (i.qty === 0) stockBadge = `<span class="badge badge-red">Out of stock</span>`;
-    else if (i.threshold > 0 && i.qty <= i.threshold) stockBadge = `<span class="badge badge-amber">Low stock</span>`;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openInventoryModal('${i.id}')">
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;">${i.name} ${stockBadge}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${i.category ? i.category + ' · ' : ''}${i.qty} in stock @ ${_bizFmt(i.unitCost)} each</div>
+    if (i.qty === 0) stockBadge = `<span class="badge badge-red" style="margin-left:6px;">Out of stock</span>`;
+    else if (i.threshold > 0 && i.qty <= i.threshold) stockBadge = `<span class="badge badge-amber" style="margin-left:6px;">Low stock</span>`;
+    const needByChip = _bizNeedByChip(i);
+    const marginBadge = (i.salePrice > 0 && i.unitCost > 0)
+      ? `<span class="biz-margin">${Math.round((i.salePrice - i.unitCost) / i.salePrice * 100)}% margin</span>`
+      : '';
+    const catLbl = i.category ? `<span style="color:var(--text-muted);">${i.category} · </span>` : '';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-light);">
+      <div class="biz-qty-adj">
+        <button onclick="adjustBizQty('${i.id}',-1)" title="Remove 1">−</button>
+        <span>${i.qty}</span>
+        <button onclick="adjustBizQty('${i.id}',1)" title="Add 1">+</button>
       </div>
-      <div style="font-weight:700;font-size:13px;">${_bizFmt(value)}</div>
+      <div style="flex:1;min-width:0;cursor:pointer;" onclick="openInventoryModal('${i.id}')">
+        <div style="font-weight:600;font-size:13px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+          ${i.name}${stockBadge}${needByChip}
+        </div>
+        <div style="font-size:11px;margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          ${catLbl}<span style="color:var(--text-muted);">Cost ${_bizFmt(i.unitCost)}${i.salePrice ? ' · Sell ' + _bizFmt(i.salePrice) : ''}</span>
+          ${marginBadge}
+          ${i.notes ? `<span style="color:var(--text-muted);font-style:italic;">${i.notes}</span>` : ''}
+        </div>
+      </div>
+      <div style="font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;cursor:pointer;" onclick="openInventoryModal('${i.id}')">${_bizFmt(value)}</div>
     </div>`;
   }).join('');
 }
