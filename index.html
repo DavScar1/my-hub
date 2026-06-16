@@ -3724,15 +3724,15 @@ function renderProducts() {
 
   // --- Skincare ---
   const skList=document.getElementById('products-skincare-list');
-  const sk=[...DB.products.skincare].sort((a,b)=>_prodUrgencyScore(b,'skincare')-_prodUrgencyScore(a,'skincare'));
   const stockDotColor={full:'var(--green)',medium:'var(--accent)',low:'var(--amber)',empty:'var(--red)'};
-  if(sk.length===0){skList.innerHTML='<div class="empty-state card"><div class="ei">🧴</div><p>Add your skincare & grooming products.</p></div>';}
-  else skList.innerHTML=`<div class="card"><div>${sk.map(p=>{
+  const mkStockRow=(p,tab)=>{
     const urgent=p.stock==='empty'||p.stock==='low';
     const needByChip=_prodNeedByChip(p.needBy,urgent);
     const pct=stockPct[p.stock]||100;
-    const meta=[p.brand,p.cat,p.rating?stars(p.rating):'',p.expiry?'📅 '+new Date(p.expiry+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):''  ].filter(Boolean).join(' · ');
-    return `<div class="wish-item" onclick="editProduct('skincare','${p.id}')" style="cursor:pointer;">
+    const meta=tab==='skincare'
+      ?[p.brand,p.cat,p.rating?stars(p.rating):'',p.expiry?'📅 '+new Date(p.expiry+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):''  ].filter(Boolean).join(' · ')
+      :[p.brand,p.suppType,p.dose?'📋 '+p.dose:''].filter(Boolean).join(' · ');
+    return `<div class="wish-item" onclick="editProduct('${tab}','${p.id}')" style="cursor:pointer;">
       <div style="width:10px;height:10px;border-radius:50%;background:${stockDotColor[p.stock]||'var(--green)'};flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:700;">${p.name}${needByChip}</div>
@@ -3740,11 +3740,21 @@ function renderProducts() {
         ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.notes}</div>`:''}
       </div>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
-        <button onclick="quickCycleStock('skincare','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
+        <button onclick="quickCycleStock('${tab}','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
         ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
       </div>
     </div>`;
-  }).join('')}</div></div>`;
+  };
+  const mkStockSections=(items,tab,emptyIcon,emptyMsg)=>{
+    if(items.length===0) return `<div class="empty-state card"><div class="ei">${emptyIcon}</div><p>${emptyMsg}</p></div>`;
+    const buying=items.filter(p=>p.stock==='low'||p.stock==='empty').sort((a,b)=>_prodUrgencyScore(b,tab)-_prodUrgencyScore(a,tab));
+    const inStock=items.filter(p=>p.stock==='full'||p.stock==='medium').sort((a,b)=>a.name.localeCompare(b.name));
+    const buyingHtml=buying.length?`<div class="card" style="margin-bottom:14px;border-color:var(--red);"><div class="card-title" style="margin-bottom:10px;color:var(--red);">🛒 Buying Now</div><div>${buying.map(p=>mkStockRow(p,tab)).join('')}</div></div>`:'';
+    const inStockHtml=inStock.length?`<div class="card"><div class="card-title" style="margin-bottom:10px;">✓ In Stock</div><div>${inStock.map(p=>mkStockRow(p,tab)).join('')}</div></div>`:'';
+    return buyingHtml+inStockHtml;
+  };
+  if(DB.products.skincare.length===0){skList.innerHTML='<div class="empty-state card"><div class="ei">🧴</div><p>Add your skincare & grooming products.</p></div>';}
+  else skList.innerHTML=mkStockSections(DB.products.skincare,'skincare','🧴','Add your skincare & grooming products.');
 
   // --- Clothes ---
   const clList=document.getElementById('products-clothes-list');
@@ -3779,25 +3789,8 @@ function renderProducts() {
 
   // --- Supps ---
   const suList=document.getElementById('products-supps-list');
-  const su=[...DB.products.supps].sort((a,b)=>_prodUrgencyScore(b,'supps')-_prodUrgencyScore(a,'supps'));
-  if(su.length===0){suList.innerHTML='<div class="empty-state card"><div class="ei">💊</div><p>Add your supplements & vitamins.</p></div>';}
-  else suList.innerHTML=`<div class="card"><div>${su.map(p=>{
-    const pct=stockPct[p.stock]||100;const urgent=p.stock==='empty'||p.stock==='low';
-    const needByChip=_prodNeedByChip(p.needBy,urgent);
-    const meta=[p.brand,p.suppType,p.dose?'📋 '+p.dose:''].filter(Boolean).join(' · ');
-    return `<div class="wish-item" onclick="editProduct('supps','${p.id}')" style="cursor:pointer;">
-      <div style="width:10px;height:10px;border-radius:50%;background:${stockDotColor[p.stock]||'var(--green)'};flex-shrink:0;"></div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:700;">${p.name}${needByChip}</div>
-        ${meta?`<div style="font-size:12px;color:var(--text-muted);">${meta}</div>`:''}
-        ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.notes}</div>`:''}
-      </div>
-      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
-        <button onclick="quickCycleStock('supps','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
-        ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
-      </div>
-    </div>`;
-  }).join('')}</div></div>`;
+  if(DB.products.supps.length===0){suList.innerHTML='<div class="empty-state card"><div class="ei">💊</div><p>Add your supplements & vitamins.</p></div>';}
+  else suList.innerHTML=mkStockSections(DB.products.supps,'supps','💊','Add your supplements & vitamins.');
 }
 
 // ============================================================
