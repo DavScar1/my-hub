@@ -374,6 +374,57 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .biz-margin{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;background:var(--b-accent-light);color:var(--b-accent);}
 
 /* ============================================================
+   COMMON APP
+============================================================ */
+.ca-progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:20px;}
+.ca-progress-bar-bg{background:var(--border);border-radius:99px;height:10px;overflow:hidden;margin:8px 0 4px;}
+.ca-progress-bar-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--c-accent),#818cf8);transition:width .4s;}
+.ca-prog-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px;}
+.ca-prog-item{text-align:center;padding:10px 6px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border-light);}
+.ca-prog-val{font-size:15px;font-weight:800;}
+.ca-prog-lbl{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.ca-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;}
+.ca-section-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;transition:background .1s;}
+.ca-section-head:hover{background:var(--bg);}
+.ca-section-title{font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;}
+.ca-section-pct{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.ca-section-body{padding:4px 16px 14px;border-top:1px solid var(--border-light);}
+.ca-check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);}
+.ca-check-item:last-child{border-bottom:none;}
+.ca-check-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--c-accent);margin-top:2px;flex-shrink:0;cursor:pointer;}
+.ca-check-label{flex:1;}
+.ca-check-title{font-size:13px;font-weight:500;}
+.ca-check-sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
+.ca-status-pill{display:inline-flex;gap:0;border:1.5px solid var(--border);border-radius:99px;overflow:hidden;margin-top:6px;}
+.ca-status-btn{padding:3px 10px;font-size:10px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text-muted);transition:all .1s;white-space:nowrap;}
+.ca-status-btn.active-ns{background:#f3f4f6;color:var(--text);}
+.ca-status-btn.active-draft{background:#fef3c7;color:#92400e;}
+.ca-status-btn.active-review{background:var(--purple-light);color:var(--purple);}
+.ca-status-btn.active-done{background:var(--green-light);color:var(--green);}
+.ca-linked-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);}
+.ca-linked-row:last-child{border-bottom:none;}
+.ca-school-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;}
+.ca-school-head{padding:14px 16px;display:flex;align-items:center;gap:10px;background:var(--bg);}
+.ca-school-body{padding:12px 16px;}
+.ca-school-section{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:12px 0 6px;}
+.ca-school-section:first-child{margin-top:0;}
+.ca-pill{padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;white-space:nowrap;}
+.ca-pill-rd{background:#ede9fe;color:#7c3aed;}
+.ca-pill-ed{background:#fef2f2;color:#dc2626;}
+.ca-pill-ea{background:#ecfdf5;color:#16a34a;}
+.ca-pill-rea{background:#fff7ed;color:#b5620d;}
+.ca-pill-cao{background:#eff6ff;color:#2563eb;}
+.ca-req-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);}
+.ca-req-row:last-child{border-bottom:none;}
+.ca-req-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--c-accent);flex-shrink:0;cursor:pointer;}
+.ca-essay-row{padding:8px 0;border-bottom:1px solid var(--border-light);}
+.ca-essay-row:last-child{border-bottom:none;}
+.ca-essay-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.ca-essay-prompt{font-size:11px;color:var(--text-muted);margin-top:3px;font-style:italic;}
+.ca-school-progress{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-left:auto;width:60px;flex-shrink:0;}
+.ca-school-progress-fill{height:5px;background:var(--c-accent);border-radius:99px;transition:width .3s;}
+
+/* ============================================================
    BUSINESS ANALYTICS
 ============================================================ */
 .an-section-title{font-size:13px;font-weight:800;letter-spacing:-.2px;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-light);}
@@ -643,6 +694,7 @@ a:hover{text-decoration:underline;}
     <button class="nav-item" onclick="showPage('c-sat')"><span class="icon">✏️</span>SAT Scores</button>
 
     <div class="nav-section">Application</div>
+    <button class="nav-item" onclick="showPage('c-commonapp')"><span class="icon">📋</span>Common App</button>
     <button class="nav-item" onclick="showPage('c-activities')"><span class="icon">🏆</span>Extracurriculars</button>
     <button class="nav-item" onclick="showPage('c-essays')"><span class="icon">📝</span>Essays</button>
     <button class="nav-item" onclick="showPage('c-recs')"><span class="icon">✉️</span>Letters of Rec</button>
@@ -903,6 +955,111 @@ a:hover{text-decoration:underline;}
     <div class="page-header"><h2>Notes</h2><p>Scratch pad — auto-saved.</p></div>
     <div class="card"><textarea id="notes-content" style="width:100%;min-height:420px;border:none;resize:vertical;font-size:14px;outline:none;" placeholder="Start typing your notes here…" oninput="DB.collegeNotes=this.value;save()"></textarea></div>
   </div>
+  <!-- ======================================================
+       COMMON APP PAGE
+  ====================================================== -->
+  <div class="page" id="page-c-commonapp">
+    <div class="section-header" style="margin-bottom:18px;">
+      <div>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">📋 Common App</h2>
+        <p style="color:var(--text-secondary);margin-top:4px;font-size:13px;">Everything you need for your college application, in one place.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openCaSchoolModal()">+ Add School</button>
+    </div>
+
+    <!-- Overall progress -->
+    <div class="ca-progress-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-weight:700;font-size:14px;">Overall Application Progress</div>
+        <div id="ca-overall-pct" style="font-size:20px;font-weight:800;color:var(--c-accent);">0%</div>
+      </div>
+      <div class="ca-progress-bar-bg"><div class="ca-progress-bar-fill" id="ca-overall-bar" style="width:0%"></div></div>
+      <div class="ca-prog-grid" id="ca-prog-grid"></div>
+    </div>
+
+    <div class="grid-2" style="align-items:start;">
+      <!-- Left: Universal Common App sections -->
+      <div id="ca-universal-sections"></div>
+
+      <!-- Right: Schools -->
+      <div>
+        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;">My Schools</div>
+        <div id="ca-schools-list"></div>
+        <button class="btn btn-secondary" style="width:100%;margin-top:4px;" onclick="openCaSchoolModal()">+ Add School</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add School Modal -->
+  <div class="modal" id="ca-school-modal">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title" id="ca-school-modal-title">Add School</div>
+        <button class="modal-close" onclick="closeModal('ca-school-modal')">×</button>
+      </div>
+      <input type="hidden" id="ca-school-edit-id">
+      <div class="form-group">
+        <label>School Name</label>
+        <input type="text" id="ca-school-name" placeholder="e.g. Stanford University" list="ca-school-suggestions" oninput="prefillCaSchool(this.value)">
+        <datalist id="ca-school-suggestions">
+          <option value="Stanford University">
+          <option value="Harvard University">
+          <option value="MIT">
+          <option value="Yale University">
+          <option value="Princeton University">
+          <option value="Columbia University">
+          <option value="UPenn">
+          <option value="Cornell University">
+          <option value="Dartmouth College">
+          <option value="Brown University">
+          <option value="Duke University">
+          <option value="Northwestern University">
+          <option value="Georgetown University">
+          <option value="Notre Dame">
+          <option value="Boston College">
+          <option value="New York University (NYU)">
+          <option value="University of Edinburgh">
+          <option value="University College Dublin (UCD)">
+          <option value="Trinity College Dublin">
+        </datalist>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label>Deadline</label>
+          <input type="date" id="ca-school-deadline">
+        </div>
+        <div class="form-group">
+          <label>Deadline Type</label>
+          <select id="ca-school-dtype">
+            <option value="RD">RD — Regular Decision</option>
+            <option value="ED1">ED1 — Early Decision 1</option>
+            <option value="ED2">ED2 — Early Decision 2</option>
+            <option value="EA">EA — Early Action</option>
+            <option value="REA">REA — Restrictive EA</option>
+            <option value="CAO">CAO (Ireland)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>SAT Score Code</label>
+        <input type="text" id="ca-school-code" placeholder="e.g. 4704 for Stanford">
+      </div>
+      <div class="form-group">
+        <label>Application Fee</label>
+        <input type="text" id="ca-school-fee" placeholder="e.g. $90">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="ca-school-notes" rows="2" placeholder="Any notes about this school…"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="saveCaSchool()">Save School</button>
+        <button class="btn btn-secondary" onclick="closeModal('ca-school-modal')">Cancel</button>
+        <button class="btn btn-danger" id="ca-school-delete-btn" style="display:none;" onclick="deleteCaSchool()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ======================================================
        LIFE PAGES
   ====================================================== -->
@@ -2151,6 +2308,12 @@ function ensureDBDefaults() {
   if (!DB.todoTasks) DB.todoTasks = [];
   if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
   DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
+  if (!DB.caProfile) DB.caProfile = {
+    legalName:false, contact:false, demographics:false, geoHistory:false, feeWaiver:false,
+    parent1:false, parent2:false, household:false, siblings:false,
+    commonEssayStatus:'not_started', commonEssayPrompt:'', commonEssayNotes:''
+  };
+  if (!DB.caSchools) DB.caSchools = [];
 }
 
 function load() {
@@ -2224,6 +2387,7 @@ function renderPage(id) {
   if (id === 'b-inventory') renderBizInventory();
   if (id === 'b-calendar') renderBizCalendar();
   if (id === 'b-analytics') renderBizAnalytics();
+  if (id === 'c-commonapp') renderCommonApp();
 }
 
 // ============================================================
@@ -5938,6 +6102,470 @@ function renderBizDashboard() {
   }
 
   updateBizBadges();
+}
+
+// ============================================================
+// COMMON APP
+// ============================================================
+const _CA_TEMPLATES = {
+  'Stanford University': {
+    deadline:'2026-01-02', dtype:'RD', code:'4704', fee:'$90',
+    essays:[
+      {title:'Roommate Essay',wordLimit:250,prompt:"Write a note to your future roommate that reveals something about you or that will help your roommate — and us — know you better."},
+      {title:'Intellectual Vitality',wordLimit:250,prompt:"Stanford students are widely known for their genuine engagement in their surroundings. What is important to you, and why?"},
+      {title:'Meaningful Experience',wordLimit:250,prompt:"Describe an activity, experience, or opportunity that has been meaningful to you. What did you do and why does it matter to you?"},
+      {title:'Short Essay — Society\'s Challenge (50w)',wordLimit:50,prompt:"What is the most significant challenge that society faces today?"},
+      {title:'Short Essay — Last Two Summers (50w)',wordLimit:50,prompt:"How did you spend your last two summers?"},
+      {title:'Short Essay — Historical Moment (50w)',wordLimit:50,prompt:"What historical moment or event do you wish you could have witnessed?"},
+      {title:'Short Essay — Your Choice (50w)',wordLimit:50,prompt:"What five words best describe you? Or: describe what you would want a fellow student to know about you."},
+    ],
+    requirements:['School Report (from counsellor)','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 4704)','Application Fee ($90) or Fee Waiver','Official High School Transcript','Mid-Year School Report (sent Jan/Feb)']
+  },
+  'Harvard University': {
+    deadline:'2026-01-01', dtype:'RD', code:'3434', fee:'$85',
+    essays:[
+      {title:'Extracurricular Elaboration',wordLimit:150,prompt:"Briefly elaborate on one of your extracurricular activities or work experiences."},
+      {title:'Harvard Supplement Essay',wordLimit:0,prompt:"You may wish to include an additional essay if you feel the application does not provide sufficient opportunity to convey important information. This is optional."},
+    ],
+    requirements:['School Report (from counsellor)','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 3434)','Application Fee ($85) or Fee Waiver','Official Transcript','Mid-Year Report']
+  },
+  'MIT': {
+    deadline:'2026-01-01', dtype:'EA', code:'3514', fee:'$75',
+    essays:[
+      {title:'We know you lead a busy life… (100w)',wordLimit:100,prompt:"We know you lead a busy life, full of activities, many of which are required of you. Tell us about something you do simply for the pleasure of it."},
+      {title:'Describe the world you come from (250w)',wordLimit:250,prompt:"Describe the world you come from; for example, your family, clubs, school, community, city, or town. How has that world shaped your dreams and aspirations?"},
+      {title:'Challenge you faced (250w)',wordLimit:250,prompt:"MIT students are often involved in a key moment of discovery or change in the world around them. Describe a time when you helped others move from the familiar into the unknown — or vice versa."},
+      {title:'What you do for the love of it (250w)',wordLimit:250,prompt:"How has the challenge you chose above affected you?"},
+      {title:'MIT appeals (250w)',wordLimit:250,prompt:"Describe how you have taken advantage of a significant educational opportunity or worked to overcome an educational barrier you have faced."},
+    ],
+    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1 (Math/Science preferred)','Teacher Recommendation #2','Teacher Recommendation #3 (MIT requests 3)','Send SAT Scores (College Code: 3514)','Application Fee ($75) or Fee Waiver','Official Transcript']
+  },
+  'Yale University': {
+    deadline:'2026-01-02', dtype:'RD', code:'3987', fee:'$80',
+    essays:[
+      {title:'Why Yale? (125w)',wordLimit:125,prompt:"What is it about Yale that has led you to apply? (125 words)"},
+      {title:'Short Takes — Books, films, etc. (200w)',wordLimit:200,prompt:"Short-answer questions about your favourite books, websites, quote, school subject, etc."},
+      {title:'Yale Essays (3 × ~200w)',wordLimit:200,prompt:"Three essay questions: (1) reflect on your engagement with an intellectual topic; (2) describe a place or community you call home; (3) what is something about you that is not elsewhere on your application?"},
+    ],
+    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 3987)','Application Fee ($80) or Fee Waiver','Official Transcript']
+  },
+  'Princeton University': {
+    deadline:'2026-01-01', dtype:'RD', code:'2672', fee:'$75',
+    essays:[
+      {title:'Intellectual Interests (250w)',wordLimit:250,prompt:"Please briefly elaborate on one of your extracurricular activities or work experiences."},
+      {title:'Why Princeton? (250w)',wordLimit:250,prompt:"As Princeton seeks a student body that is diverse in many ways, we would like to know more about you. Please reflect on a meaningful life experience that has shaped who you are."},
+      {title:'Short Essay A (150w)',wordLimit:150,prompt:"Princeton has a longstanding commitment to service and civic engagement. Tell us how your story intersects with or compels you to participate in these efforts at Princeton and beyond."},
+      {title:'Short Essay B (150w)',wordLimit:150,prompt:"Tell us about a person who has influenced you in a significant way."},
+    ],
+    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 2672)','Application Fee ($75) or Fee Waiver','Official Transcript']
+  },
+  'Columbia University': {
+    deadline:'2026-01-01', dtype:'RD', code:'2116', fee:'$85',
+    essays:[
+      {title:'Why Columbia? (200w)',wordLimit:200,prompt:"Why are you interested in attending Columbia University? We encourage you to consider the aspect(s) that you find unique and compelling about Columbia."},
+      {title:'Intellectual Passions (200w)',wordLimit:200,prompt:"A hallmark of the Columbia experience is being able to explore beyond your major. We, therefore, ask that you share with us three to five intellectual interests."},
+      {title:'Community/Belonging (200w)',wordLimit:200,prompt:"Columbia students value community. Reflect on your place in a community — whether that's a family, a team, a friend group, or something else."},
+      {title:'Diversity (200w)',wordLimit:200,prompt:"How do you or your background contribute to the Columbia community?"},
+    ],
+    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 2116)','Application Fee ($85) or Fee Waiver','Official Transcript']
+  },
+  'University College Dublin (UCD)': {
+    deadline:'2026-02-01', dtype:'CAO', code:'', fee:'€45 (CAO)',
+    essays:[],
+    requirements:['CAO Application (cao.ie)','Leaving Certificate Results','CAO Personal Statement (if required)','Application Fee (€45 via CAO)']
+  },
+  'Trinity College Dublin': {
+    deadline:'2026-02-01', dtype:'CAO', code:'', fee:'€45 (CAO)',
+    essays:[],
+    requirements:['CAO Application (cao.ie)','Leaving Certificate Results','CAO Personal Statement (if required)','Application Fee (€45 via CAO)']
+  }
+};
+
+const _CA_ESSAY_STATUSES = ['not_started','drafting','reviewing','done'];
+const _CA_ESSAY_LABELS   = {not_started:'Not Started',drafting:'Drafting',reviewing:'Reviewing',done:'Done ✓'};
+const _CA_ESSAY_CLASSES  = {not_started:'active-ns',drafting:'active-draft',reviewing:'active-review',done:'active-done'};
+
+function _caEssayStatusPill(schoolId, essayId, currentStatus) {
+  return `<div class="ca-status-pill">${_CA_ESSAY_STATUSES.map(s =>
+    `<button class="ca-status-btn${currentStatus===s?' '+_CA_ESSAY_CLASSES[s]:''}"
+      onclick="event.stopPropagation();setCaSchoolEssayStatus('${schoolId}','${essayId}','${s}')">${_CA_ESSAY_LABELS[s]}</button>`
+  ).join('')}</div>`;
+}
+
+function _caCommonEssayPill(currentStatus) {
+  return `<div class="ca-status-pill">${_CA_ESSAY_STATUSES.map(s =>
+    `<button class="ca-status-btn${currentStatus===s?' '+_CA_ESSAY_CLASSES[s]:''}"
+      onclick="setCaCommonEssayStatus('${s}')">${_CA_ESSAY_LABELS[s]}</button>`
+  ).join('')}</div>`;
+}
+
+function _caSchoolCompletion(school) {
+  const total = school.essays.length + school.requirements.length;
+  if (total === 0) return 100;
+  const done = school.essays.filter(e => e.status === 'done').length
+             + school.requirements.filter(r => r.done).length;
+  return Math.round(done / total * 100);
+}
+
+function renderCommonApp() {
+  const p = DB.caProfile;
+
+  // ---- Section: Profile & Family ----
+  const profileItems = [
+    {key:'legalName',  title:'Legal name confirmed',       sub:'As it appears on your passport/ID'},
+    {key:'contact',    title:'Address & contact info',     sub:'Phone, email, permanent address'},
+    {key:'demographics',title:'Demographics completed',   sub:'Citizenship, language, background'},
+    {key:'geoHistory', title:'Geographic history',        sub:'All schools attended + dates'},
+    {key:'feeWaiver',  title:'Fee waiver considered',     sub:'Common App fee waiver if eligible — tick when decided'},
+    {key:'parent1',    title:'Parent/Guardian 1 info',    sub:'Education, occupation, contact'},
+    {key:'parent2',    title:'Parent/Guardian 2 info',    sub:'If applicable'},
+    {key:'household',  title:'Household & finances',      sub:'Marital status, income (for aid)'},
+    {key:'siblings',   title:'Sibling information',       sub:'Names, ages, schools'},
+  ];
+  const profileDone = profileItems.filter(i => p[i.key]).length;
+
+  // ---- Section: Education (reads existing data) ----
+  const lcSubjects = (DB.subjects || []).length;
+  const satScores  = (DB.sat || []).length;
+  const honorsCount = (DB.honorsAwards || []).length;
+  const educDone = [lcSubjects > 0, satScores > 0].filter(Boolean).length;
+  const educTotal = 2;
+
+  // ---- Section: Activities ----
+  const ecCount  = (DB.activities || []).length;
+  const ecDesc   = (DB.activities || []).filter(a => a.desc && a.desc.trim()).length;
+
+  // ---- Section: Common App Essay ----
+  const essayStatus = p.commonEssayStatus || 'not_started';
+  const essayDone   = essayStatus === 'done' ? 1 : 0;
+
+  // ---- Section: Recommendations ----
+  const recs       = DB.recs || [];
+  const recsDone   = recs.filter(r => r.status === 'Letter Submitted').length;
+  const recsTotal  = Math.max(recs.length, 3);
+
+  // ---- Overall progress ----
+  const sections = [
+    {label:'Profile',   done: profileDone,  total: profileItems.length},
+    {label:'Education', done: educDone,      total: educTotal},
+    {label:'Activities',done: Math.min(ecCount,10), total:10},
+    {label:'Essay',     done: essayDone,     total:1},
+    {label:'Recs',      done: recsDone,      total:3},
+  ];
+  const overallDone  = sections.reduce((a,s) => a + s.done, 0);
+  const overallTotal = sections.reduce((a,s) => a + s.total, 0);
+  const overallPct   = overallTotal ? Math.round(overallDone / overallTotal * 100) : 0;
+  document.getElementById('ca-overall-pct').textContent = overallPct + '%';
+  document.getElementById('ca-overall-bar').style.width = overallPct + '%';
+
+  document.getElementById('ca-prog-grid').innerHTML = sections.map(s => {
+    const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+    const col  = pct === 100 ? 'var(--green)' : pct > 0 ? 'var(--c-accent)' : 'var(--text-muted)';
+    return `<div class="ca-prog-item">
+      <div class="ca-prog-val" style="color:${col}">${s.done}/${s.total}</div>
+      <div class="ca-prog-lbl">${s.label}</div>
+    </div>`;
+  }).join('');
+
+  // ---- Universal sections HTML ----
+  const pctBadge = (done, total) => {
+    const pct = total ? Math.round(done/total*100) : 0;
+    const bg  = pct===100?'var(--green-light)':pct>0?'var(--c-accent-light)':'var(--bg)';
+    const col = pct===100?'var(--green)':pct>0?'var(--c-accent)':'var(--text-muted)';
+    return `<span class="ca-section-pct" style="background:${bg};color:${col}">${done}/${total}</span>`;
+  };
+
+  document.getElementById('ca-universal-sections').innerHTML = `
+
+    <!-- Profile & Family -->
+    <div class="ca-section">
+      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="ca-section-title">👤 Profile &amp; Family ${pctBadge(profileDone, profileItems.length)}</div>
+        <span style="color:var(--text-muted);font-size:12px;">▾</span>
+      </div>
+      <div class="ca-section-body">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px;">Profile Tab</div>
+        ${profileItems.slice(0,5).map(item => `
+          <div class="ca-check-item">
+            <input type="checkbox" ${p[item.key]?'checked':''} onchange="toggleCaItem('${item.key}')">
+            <div class="ca-check-label">
+              <div class="ca-check-title" style="${p[item.key]?'text-decoration:line-through;color:var(--text-muted);':''}">${item.title}</div>
+              <div class="ca-check-sub">${item.sub}</div>
+            </div>
+          </div>`).join('')}
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:10px 0 6px;">Family Tab</div>
+        ${profileItems.slice(5).map(item => `
+          <div class="ca-check-item">
+            <input type="checkbox" ${p[item.key]?'checked':''} onchange="toggleCaItem('${item.key}')">
+            <div class="ca-check-label">
+              <div class="ca-check-title" style="${p[item.key]?'text-decoration:line-through;color:var(--text-muted);':''}">${item.title}</div>
+              <div class="ca-check-sub">${item.sub}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Education -->
+    <div class="ca-section">
+      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="ca-section-title">🎓 Education ${pctBadge(educDone, educTotal)}</div>
+        <span style="color:var(--text-muted);font-size:12px;">▾</span>
+      </div>
+      <div class="ca-section-body">
+        <div class="ca-linked-row">
+          <div>
+            <div class="ca-check-title">Leaving Cert Subjects &amp; Grades</div>
+            <div class="ca-check-sub">${lcSubjects > 0 ? `${lcSubjects} subjects entered` : 'No subjects entered yet'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${lcSubjects>0?'<span style="color:var(--green);font-size:12px;font-weight:700;">✓</span>':'<span style="color:var(--text-muted);font-size:11px;">Not done</span>'}
+            <button class="btn btn-secondary btn-sm" onclick="showPage('c-leavingcert')">Open →</button>
+          </div>
+        </div>
+        <div class="ca-linked-row">
+          <div>
+            <div class="ca-check-title">SAT Scores</div>
+            <div class="ca-check-sub">${satScores > 0 ? `${satScores} test result${satScores>1?'s':''} logged` : 'No SAT scores logged yet'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${satScores>0?'<span style="color:var(--green);font-size:12px;font-weight:700;">✓</span>':'<span style="color:var(--text-muted);font-size:11px;">Not done</span>'}
+            <button class="btn btn-secondary btn-sm" onclick="showPage('c-sat')">Open →</button>
+          </div>
+        </div>
+        <div class="ca-linked-row" style="border:none;">
+          <div>
+            <div class="ca-check-title">Academic Honours &amp; Awards</div>
+            <div class="ca-check-sub" style="font-size:11px;color:var(--text-muted);">Up to 5 on Common App (school, state, national, international level)</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('c-leavingcert')">Open →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activities -->
+    <div class="ca-section">
+      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="ca-section-title">⚽ Activities ${pctBadge(Math.min(ecCount,10), 10)}</div>
+        <span style="color:var(--text-muted);font-size:12px;">▾</span>
+      </div>
+      <div class="ca-section-body">
+        <div class="ca-linked-row">
+          <div>
+            <div class="ca-check-title">Extracurricular Activities</div>
+            <div class="ca-check-sub">${ecCount}/10 added · ${ecDesc}/${ecCount} have 150-char descriptions</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('c-activities')">Open →</button>
+        </div>
+        <div style="margin-top:10px;background:var(--bg);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--text-secondary);">
+          <strong>Common App Activity fields:</strong> Type · Position/Leadership · Organisation · Description (150 chars) · Grades participated · Hours/week · Weeks/year · Plan to continue in college
+        </div>
+        ${ecCount < 10 ? `<div style="margin-top:8px;font-size:12px;color:var(--amber);font-weight:600;">⚡ You have ${10-ecCount} activity slot${10-ecCount>1?'s':''} remaining — fill every slot if possible.</div>` : '<div style="margin-top:8px;font-size:12px;color:var(--green);font-weight:600;">✓ All 10 activity slots filled.</div>'}
+      </div>
+    </div>
+
+    <!-- Common App Essay -->
+    <div class="ca-section">
+      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="ca-section-title">✍️ Common App Essay ${pctBadge(essayDone, 1)}</div>
+        <span style="color:var(--text-muted);font-size:12px;">▾</span>
+      </div>
+      <div class="ca-section-body">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">650 words max. Shared with every school you apply to. Choose one of 7 prompts.</div>
+        <div class="ca-check-title" style="margin-bottom:6px;">Prompt</div>
+        <select style="width:100%;margin-bottom:12px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;" onchange="DB.caProfile.commonEssayPrompt=this.value;save()">
+          <option value="" ${!p.commonEssayPrompt?'selected':''}>— Choose a prompt —</option>
+          <option value="1" ${p.commonEssayPrompt==='1'?'selected':''}>1. Background, identity, interest, or talent</option>
+          <option value="2" ${p.commonEssayPrompt==='2'?'selected':''}>2. Obstacle, challenge, or failure and what you learned</option>
+          <option value="3" ${p.commonEssayPrompt==='3'?'selected':''}>3. Questioned or challenged a belief or idea</option>
+          <option value="4" ${p.commonEssayPrompt==='4'?'selected':''}>4. Something someone did for you — gratitude and paying it forward</option>
+          <option value="5" ${p.commonEssayPrompt==='5'?'selected':''}>5. Accomplishment or realisation that sparked personal growth</option>
+          <option value="6" ${p.commonEssayPrompt==='6'?'selected':''}>6. Topic or idea that makes you lose track of time</option>
+          <option value="7" ${p.commonEssayPrompt==='7'?'selected':''}>7. Free choice — topic of your own design</option>
+        </select>
+        <div class="ca-check-title" style="margin-bottom:6px;">Status</div>
+        ${_caCommonEssayPill(essayStatus)}
+        <div style="margin-top:12px;">
+          <div class="ca-check-title" style="margin-bottom:4px;">Notes</div>
+          <textarea style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;resize:vertical;" rows="2"
+            placeholder="Brainstorm ideas, thesis, key moments…" onchange="DB.caProfile.commonEssayNotes=this.value;save()">${p.commonEssayNotes||''}</textarea>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="showPage('c-essays')">Manage all essays →</button>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="ca-section">
+      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="ca-section-title">📧 Recommendations ${pctBadge(recsDone, 3)}</div>
+        <span style="color:var(--text-muted);font-size:12px;">▾</span>
+      </div>
+      <div class="ca-section-body">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Common App requires: 1 counsellor rec + 2 teacher recs. Most top schools also read optional additional recs.</div>
+        ${recs.length === 0
+          ? `<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No recommenders added yet.</div>`
+          : recs.map(r => `<div class="ca-linked-row">
+              <div>
+                <div class="ca-check-title">${r.name}</div>
+                <div class="ca-check-sub">${r.role}${r.subject?' · '+r.subject:''}</div>
+              </div>
+              <span class="badge ${r.status==='Letter Submitted'?'badge-green':r.status==='Confirmed'?'badge-blue':r.status==='Asked'?'badge-amber':'badge-gray'}">${r.status}</span>
+            </div>`).join('')}
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="showPage('c-recs')">Manage Recommenders →</button>
+      </div>
+    </div>`;
+
+  // ---- Schools ----
+  const schoolsEl = document.getElementById('ca-schools-list');
+  if (DB.caSchools.length === 0) {
+    schoolsEl.innerHTML = `<div class="empty-state card" style="text-align:center;padding:20px;">
+      <div class="ei">🏫</div><p>No schools added yet.<br><span style="font-size:12px;color:var(--text-muted);">Add Stanford and your other target schools to track their specific essays and requirements.</span></p>
+    </div>`;
+  } else {
+    schoolsEl.innerHTML = DB.caSchools.map(school => {
+      const pct = _caSchoolCompletion(school);
+      const pillCls = 'ca-pill-'+school.dtype.toLowerCase().replace(/\d/g,'');
+      const deadlineLbl = school.deadline ? new Date(school.deadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      const daysLeft = school.deadline ? Math.ceil((new Date(school.deadline+'T12:00:00')-new Date())/86400000) : null;
+      const urgency  = daysLeft !== null ? (daysLeft < 30 ? 'var(--red)' : daysLeft < 90 ? 'var(--amber)' : 'var(--text-muted)') : 'var(--text-muted)';
+      return `<div class="ca-school-card">
+        <div class="ca-school-head">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:800;font-size:14px;">${school.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+              <span class="ca-pill ${pillCls}">${school.dtype}</span>
+              &nbsp;${deadlineLbl}
+              ${daysLeft!==null?`<span style="color:${urgency};font-weight:700;margin-left:6px;">${daysLeft>0?daysLeft+'d left':'Passed'}</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <div>
+              <div style="font-size:14px;font-weight:800;color:${pct===100?'var(--green)':pct>0?'var(--c-accent)':'var(--text-muted)'};">${pct}%</div>
+              <div class="ca-school-progress"><div class="ca-school-progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="openCaSchoolModal('${school.id}')">Edit</button>
+          </div>
+        </div>
+        <div class="ca-school-body">
+          ${school.essays.length > 0 ? `
+            <div class="ca-school-section">Supplement Essays (${school.essays.filter(e=>e.status==='done').length}/${school.essays.length} done)</div>
+            ${school.essays.map(e => `<div class="ca-essay-row">
+              <div class="ca-essay-title">
+                ${e.status==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
+                ${e.title}
+                ${e.wordLimit?`<span style="font-size:10px;color:var(--text-muted);font-weight:400;">${e.wordLimit}w</span>`:''}
+              </div>
+              ${e.prompt?`<div class="ca-essay-prompt">"${e.prompt}"</div>`:''}
+              ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
+            </div>`).join('')}` : ''}
+
+          <div class="ca-school-section">Requirements Checklist (${school.requirements.filter(r=>r.done).length}/${school.requirements.length} done)</div>
+          ${school.requirements.map(r => `<div class="ca-req-row">
+            <input type="checkbox" ${r.done?'checked':''} onchange="toggleCaReq('${school.id}','${r.id}')">
+            <span style="font-size:12px;${r.done?'text-decoration:line-through;color:var(--text-muted);':''}">${r.name}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function toggleCaItem(key) {
+  DB.caProfile[key] = !DB.caProfile[key];
+  save(); renderCommonApp();
+}
+
+function setCaCommonEssayStatus(status) {
+  DB.caProfile.commonEssayStatus = status;
+  save(); renderCommonApp();
+}
+
+function setCaSchoolEssayStatus(schoolId, essayId, status) {
+  const school = DB.caSchools.find(s => s.id === schoolId);
+  if (!school) return;
+  const essay = school.essays.find(e => e.id === essayId);
+  if (!essay) return;
+  essay.status = status;
+  save(); renderCommonApp();
+}
+
+function toggleCaReq(schoolId, reqId) {
+  const school = DB.caSchools.find(s => s.id === schoolId);
+  if (!school) return;
+  const req = school.requirements.find(r => r.id === reqId);
+  if (!req) return;
+  req.done = !req.done;
+  save(); renderCommonApp();
+}
+
+function openCaSchoolModal(editId) {
+  openModal('ca-school-modal', editId || null);
+  document.getElementById('ca-school-edit-id').value = editId || '';
+  document.getElementById('ca-school-modal-title').textContent = editId ? 'Edit School' : 'Add School';
+  document.getElementById('ca-school-delete-btn').style.display = editId ? '' : 'none';
+  if (editId) {
+    const s = DB.caSchools.find(x => x.id === editId);
+    if (!s) return;
+    document.getElementById('ca-school-name').value = s.name;
+    document.getElementById('ca-school-deadline').value = s.deadline || '';
+    document.getElementById('ca-school-dtype').value = s.dtype || 'RD';
+    document.getElementById('ca-school-code').value = s.satCode || '';
+    document.getElementById('ca-school-fee').value = s.fee || '';
+    document.getElementById('ca-school-notes').value = s.notes || '';
+  } else {
+    document.getElementById('ca-school-name').value = '';
+    document.getElementById('ca-school-deadline').value = '';
+    document.getElementById('ca-school-dtype').value = 'RD';
+    document.getElementById('ca-school-code').value = '';
+    document.getElementById('ca-school-fee').value = '';
+    document.getElementById('ca-school-notes').value = '';
+  }
+}
+
+function prefillCaSchool(name) {
+  const t = _CA_TEMPLATES[name];
+  if (!t) return;
+  document.getElementById('ca-school-deadline').value = t.deadline || '';
+  document.getElementById('ca-school-dtype').value    = t.dtype || 'RD';
+  document.getElementById('ca-school-code').value     = t.code || '';
+  document.getElementById('ca-school-fee').value      = t.fee || '';
+}
+
+function saveCaSchool() {
+  const editId   = document.getElementById('ca-school-edit-id').value;
+  const name     = document.getElementById('ca-school-name').value.trim();
+  if (!name) { alert('Please enter a school name.'); return; }
+  const deadline = document.getElementById('ca-school-deadline').value;
+  const dtype    = document.getElementById('ca-school-dtype').value;
+  const satCode  = document.getElementById('ca-school-code').value.trim();
+  const fee      = document.getElementById('ca-school-fee').value.trim();
+  const notes    = document.getElementById('ca-school-notes').value.trim();
+  const tmpl     = _CA_TEMPLATES[name];
+
+  if (editId) {
+    const s = DB.caSchools.find(x => x.id === editId);
+    if (!s) return;
+    s.name = name; s.deadline = deadline; s.dtype = dtype;
+    s.satCode = satCode; s.fee = fee; s.notes = notes;
+  } else {
+    const essays = tmpl ? tmpl.essays.map(e => ({ ...e, id: uid(), status: 'not_started' })) : [];
+    const requirements = tmpl ? tmpl.requirements.map(r => ({ id: uid(), name: r, done: false })) : [
+      {id:uid(),name:'School Report',done:false},
+      {id:uid(),name:'Counsellor Recommendation',done:false},
+      {id:uid(),name:'Teacher Recommendation #1',done:false},
+      {id:uid(),name:'Teacher Recommendation #2',done:false},
+      {id:uid(),name:'Application Fee',done:false},
+      {id:uid(),name:'Official Transcript',done:false},
+    ];
+    DB.caSchools.push({ id: uid(), name, deadline, dtype, satCode, fee, notes, essays, requirements });
+  }
+  save(); closeModal('ca-school-modal'); renderCommonApp();
+}
+
+function deleteCaSchool() {
+  const editId = document.getElementById('ca-school-edit-id').value;
+  if (!editId || !confirm('Remove this school?')) return;
+  DB.caSchools = DB.caSchools.filter(s => s.id !== editId);
+  save(); closeModal('ca-school-modal'); renderCommonApp();
 }
 
 // ============================================================
