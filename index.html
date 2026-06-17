@@ -250,6 +250,10 @@ tr:hover .row-actions{opacity:1;}
 .step-name{flex:1;font-size:13.5px;}
 #goal-modal-steps input[type=checkbox],
 input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.goal-drag-handle{color:var(--text-muted);cursor:grab;font-size:15px;padding:0 6px 0 2px;flex-shrink:0;line-height:1;user-select:none;}
+.goal-drag-handle:active{cursor:grabbing;}
+[data-goal-row].goal-drag-over{border-color:var(--accent)!important;background:var(--accent-light);}
+[data-goal-row].goal-dragging{opacity:.4;}
 .step-time{font-size:11px;color:var(--text-muted);}
 
 /* ============================================================
@@ -3521,20 +3525,59 @@ function _goalRowHtml(g) {
   const doneSteps = steps.filter(s => s.completed).length;
   const pct = _goalProgress(g);
   const overdue = g.targetDate && g.targetDate < today() && pct < 100;
-  return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;" onclick="openGoalModal('${g.id}')">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
-        ${steps.length === 0 ? `<input type="checkbox" class="goal-step-row" ${g.completed?'checked':''} onclick="event.stopPropagation();toggleGoalComplete('${g.id}')">` : ''}
-        <div style="font-weight:600;font-size:14px;${pct>=100?'text-decoration:line-through;color:var(--text-muted);':''}">${escapeHtml(g.title)}</div>
+  return `<div data-goal-row="${g.id}" data-cat-id="${g.categoryId||''}" draggable="true"
+    style="border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:0;"
+    onclick="openGoalModal('${g.id}')"
+    ondragstart="_goalDragStart(event,'${g.id}')"
+    ondragover="_goalDragOver(event,'${g.id}')"
+    ondrop="_goalDrop(event,'${g.id}')"
+    ondragend="_goalDragEnd(event)">
+    <div class="goal-drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+          ${steps.length === 0 ? `<input type="checkbox" class="goal-step-row" ${g.completed?'checked':''} onclick="event.stopPropagation();toggleGoalComplete('${g.id}')">` : ''}
+          <div style="font-weight:600;font-size:14px;${pct>=100?'text-decoration:line-through;color:var(--text-muted);':''}">${escapeHtml(g.title)}</div>
+        </div>
+        ${g.targetDate ? `<span class="badge ${overdue?'badge-red':'badge-gray'}" style="font-size:11px;flex-shrink:0;">${todoFormatDate(g.targetDate)}</span>` : ''}
       </div>
-      ${g.targetDate ? `<span class="badge ${overdue?'badge-red':'badge-gray'}" style="font-size:11px;flex-shrink:0;">${todoFormatDate(g.targetDate)}</span>` : ''}
+      ${steps.length ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+        <div class="progress-bar" style="flex:1;height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px;"></div></div>
+        <span style="font-size:11px;color:var(--text-muted);">${doneSteps}/${steps.length}</span>
+      </div>` : ''}
+      ${g.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px;">${escapeHtml(g.description)}</div>` : ''}
     </div>
-    ${steps.length ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
-      <div class="progress-bar" style="flex:1;height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px;"></div></div>
-      <span style="font-size:11px;color:var(--text-muted);">${doneSteps}/${steps.length}</span>
-    </div>` : ''}
-    ${g.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px;">${escapeHtml(g.description)}</div>` : ''}
   </div>`;
+}
+
+let _goalDragId = null;
+function _goalDragStart(e, id) {
+  _goalDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.currentTarget.classList.add('goal-dragging'), 0);
+}
+function _goalDragEnd(e) {
+  e.currentTarget.classList.remove('goal-dragging');
+  document.querySelectorAll('[data-goal-row].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
+  _goalDragId = null;
+}
+function _goalDragOver(e, id) {
+  if (!_goalDragId || _goalDragId === id) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('[data-goal-row].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
+  e.currentTarget.classList.add('goal-drag-over');
+}
+function _goalDrop(e, targetId) {
+  e.preventDefault();
+  if (!_goalDragId || _goalDragId === targetId) return;
+  const from = DB.goals.findIndex(g => g.id === _goalDragId);
+  const to   = DB.goals.findIndex(g => g.id === targetId);
+  if (from < 0 || to < 0) return;
+  const [item] = DB.goals.splice(from, 1);
+  DB.goals.splice(to, 0, item);
+  save();
+  renderGoals();
 }
 
 function toggleGoalComplete(id) {
