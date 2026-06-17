@@ -423,6 +423,12 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .ca-essay-prompt{font-size:11px;color:var(--text-muted);margin-top:3px;font-style:italic;}
 .ca-school-progress{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-left:auto;width:60px;flex-shrink:0;}
 .ca-school-progress-fill{height:5px;background:var(--c-accent);border-radius:99px;transition:width .3s;}
+.ca-tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:16px;overflow-x:auto;padding:0;}
+.ca-tab-btn{padding:9px 14px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0;}
+.ca-tab-btn:hover:not(.ca-tab-active){color:var(--text);}
+.ca-tab-btn.ca-tab-active{color:var(--c-accent);border-bottom-color:var(--c-accent);}
+.ca-tab-section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border-light);}
+.ca-tab-section-label:first-child{margin-top:0;}
 
 /* ============================================================
    BUSINESS ANALYTICS
@@ -977,17 +983,18 @@ a:hover{text-decoration:underline;}
       <div class="ca-prog-grid" id="ca-prog-grid"></div>
     </div>
 
-    <div class="grid-2" style="align-items:start;">
-      <!-- Left: Universal Common App sections -->
-      <div id="ca-universal-sections"></div>
-
-      <!-- Right: Schools -->
-      <div>
-        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;">My Schools</div>
-        <div id="ca-schools-list"></div>
-        <button class="btn btn-secondary" style="width:100%;margin-top:4px;" onclick="openCaSchoolModal()">+ Add School</button>
-      </div>
+    <!-- Universal sections (tab-based) -->
+    <div class="card" style="margin-bottom:20px;padding:20px 20px 16px;">
+      <div class="ca-tab-bar" id="ca-tab-bar"></div>
+      <div id="ca-tab-content"></div>
     </div>
+
+    <!-- Schools - full width -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:15px;">🏫 My Schools</div>
+      <button class="btn btn-primary" onclick="openCaSchoolModal()">+ Add School</button>
+    </div>
+    <div id="ca-schools-list"></div>
   </div>
 
   <!-- Add School Modal -->
@@ -6207,50 +6214,46 @@ function _caSchoolCompletion(school) {
   return Math.round(done / total * 100);
 }
 
+let _caTab = 'profile';
+function setCaTab(tab) { _caTab = tab; renderCommonApp(); }
+
 function renderCommonApp() {
   const p = DB.caProfile;
 
-  // ---- Section: Profile & Family ----
+  // ---- Data ----
   const profileItems = [
-    {key:'legalName',  title:'Legal name confirmed',       sub:'As it appears on your passport/ID'},
-    {key:'contact',    title:'Address & contact info',     sub:'Phone, email, permanent address'},
+    {key:'legalName',   title:'Legal name confirmed',     sub:'As it appears on your passport/ID'},
+    {key:'contact',     title:'Address & contact info',   sub:'Phone, email, permanent address'},
     {key:'demographics',title:'Demographics completed',   sub:'Citizenship, language, background'},
-    {key:'geoHistory', title:'Geographic history',        sub:'All schools attended + dates'},
-    {key:'feeWaiver',  title:'Fee waiver considered',     sub:'Common App fee waiver if eligible — tick when decided'},
-    {key:'parent1',    title:'Parent/Guardian 1 info',    sub:'Education, occupation, contact'},
-    {key:'parent2',    title:'Parent/Guardian 2 info',    sub:'If applicable'},
-    {key:'household',  title:'Household & finances',      sub:'Marital status, income (for aid)'},
-    {key:'siblings',   title:'Sibling information',       sub:'Names, ages, schools'},
+    {key:'geoHistory',  title:'Geographic history',       sub:'All schools attended + dates'},
+    {key:'feeWaiver',   title:'Fee waiver considered',    sub:'Common App fee waiver if eligible — tick when decided'},
+    {key:'parent1',     title:'Parent/Guardian 1 info',   sub:'Education, occupation, contact'},
+    {key:'parent2',     title:'Parent/Guardian 2 info',   sub:'If applicable'},
+    {key:'household',   title:'Household & finances',     sub:'Marital status, income (for aid)'},
+    {key:'siblings',    title:'Sibling information',      sub:'Names, ages, schools'},
   ];
   const profileDone = profileItems.filter(i => p[i.key]).length;
 
-  // ---- Section: Education (reads existing data) ----
   const lcSubjects = (DB.subjects || []).length;
   const satScores  = (DB.sat || []).length;
-  const honorsCount = (DB.honorsAwards || []).length;
-  const educDone = [lcSubjects > 0, satScores > 0].filter(Boolean).length;
-  const educTotal = 2;
+  const educDone   = [lcSubjects > 0, satScores > 0].filter(Boolean).length;
 
-  // ---- Section: Activities ----
   const ecCount  = (DB.activities || []).length;
   const ecDesc   = (DB.activities || []).filter(a => a.desc && a.desc.trim()).length;
 
-  // ---- Section: Common App Essay ----
   const essayStatus = p.commonEssayStatus || 'not_started';
   const essayDone   = essayStatus === 'done' ? 1 : 0;
 
-  // ---- Section: Recommendations ----
-  const recs       = DB.recs || [];
-  const recsDone   = recs.filter(r => r.status === 'Letter Submitted').length;
-  const recsTotal  = Math.max(recs.length, 3);
+  const recs     = DB.recs || [];
+  const recsDone = recs.filter(r => r.status === 'Letter Submitted').length;
 
   // ---- Overall progress ----
   const sections = [
-    {label:'Profile',   done: profileDone,  total: profileItems.length},
-    {label:'Education', done: educDone,      total: educTotal},
-    {label:'Activities',done: Math.min(ecCount,10), total:10},
-    {label:'Essay',     done: essayDone,     total:1},
-    {label:'Recs',      done: recsDone,      total:3},
+    {label:'Profile',    done: profileDone,        total: profileItems.length, tab:'profile'},
+    {label:'Education',  done: educDone,            total: 2,                   tab:'education'},
+    {label:'Activities', done: Math.min(ecCount,10),total: 10,                  tab:'activities'},
+    {label:'Essay',      done: essayDone,           total: 1,                   tab:'essay'},
+    {label:'Recs',       done: recsDone,            total: 3,                   tab:'recs'},
   ];
   const overallDone  = sections.reduce((a,s) => a + s.done, 0);
   const overallTotal = sections.reduce((a,s) => a + s.total, 0);
@@ -6261,158 +6264,137 @@ function renderCommonApp() {
   document.getElementById('ca-prog-grid').innerHTML = sections.map(s => {
     const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
     const col  = pct === 100 ? 'var(--green)' : pct > 0 ? 'var(--c-accent)' : 'var(--text-muted)';
-    return `<div class="ca-prog-item">
+    return `<div class="ca-prog-item" style="cursor:pointer;" onclick="setCaTab('${s.tab}')">
       <div class="ca-prog-val" style="color:${col}">${s.done}/${s.total}</div>
       <div class="ca-prog-lbl">${s.label}</div>
     </div>`;
   }).join('');
 
-  // ---- Universal sections HTML ----
-  const pctBadge = (done, total) => {
-    const pct = total ? Math.round(done/total*100) : 0;
-    const bg  = pct===100?'var(--green-light)':pct>0?'var(--c-accent-light)':'var(--bg)';
-    const col = pct===100?'var(--green)':pct>0?'var(--c-accent)':'var(--text-muted)';
-    return `<span class="ca-section-pct" style="background:${bg};color:${col}">${done}/${total}</span>`;
-  };
+  // ---- Tab bar ----
+  const tabDefs = [
+    {id:'profile',    label:'👤 Profile'},
+    {id:'education',  label:'🎓 Education'},
+    {id:'activities', label:'⚽ Activities'},
+    {id:'essay',      label:'✍️ Essay'},
+    {id:'recs',       label:'📧 Recs'},
+  ];
+  document.getElementById('ca-tab-bar').innerHTML = tabDefs.map(t =>
+    `<button class="ca-tab-btn${_caTab===t.id?' ca-tab-active':''}" onclick="setCaTab('${t.id}')">${t.label}</button>`
+  ).join('');
 
-  document.getElementById('ca-universal-sections').innerHTML = `
+  // ---- Tab content ----
+  let tabHtml = '';
 
-    <!-- Profile & Family -->
-    <div class="ca-section">
-      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div class="ca-section-title">👤 Profile &amp; Family ${pctBadge(profileDone, profileItems.length)}</div>
-        <span style="color:var(--text-muted);font-size:12px;">▾</span>
-      </div>
-      <div class="ca-section-body">
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px;">Profile Tab</div>
-        ${profileItems.slice(0,5).map(item => `
-          <div class="ca-check-item">
-            <input type="checkbox" ${p[item.key]?'checked':''} onchange="toggleCaItem('${item.key}')">
-            <div class="ca-check-label">
-              <div class="ca-check-title" style="${p[item.key]?'text-decoration:line-through;color:var(--text-muted);':''}">${item.title}</div>
-              <div class="ca-check-sub">${item.sub}</div>
-            </div>
-          </div>`).join('')}
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:10px 0 6px;">Family Tab</div>
-        ${profileItems.slice(5).map(item => `
-          <div class="ca-check-item">
-            <input type="checkbox" ${p[item.key]?'checked':''} onchange="toggleCaItem('${item.key}')">
-            <div class="ca-check-label">
-              <div class="ca-check-title" style="${p[item.key]?'text-decoration:line-through;color:var(--text-muted);':''}">${item.title}</div>
-              <div class="ca-check-sub">${item.sub}</div>
-            </div>
-          </div>`).join('')}
-      </div>
-    </div>
-
-    <!-- Education -->
-    <div class="ca-section">
-      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div class="ca-section-title">🎓 Education ${pctBadge(educDone, educTotal)}</div>
-        <span style="color:var(--text-muted);font-size:12px;">▾</span>
-      </div>
-      <div class="ca-section-body">
-        <div class="ca-linked-row">
-          <div>
-            <div class="ca-check-title">Leaving Cert Subjects &amp; Grades</div>
-            <div class="ca-check-sub">${lcSubjects > 0 ? `${lcSubjects} subjects entered` : 'No subjects entered yet'}</div>
+  if (_caTab === 'profile') {
+    tabHtml = `
+      <div class="ca-tab-section-label">Profile Tab</div>
+      ${profileItems.slice(0,5).map(item => `
+        <div class="ca-check-item">
+          <input type="checkbox" ${p[item.key]?'checked':''} onchange="toggleCaItem('${item.key}')">
+          <div class="ca-check-label">
+            <div class="ca-check-title" style="${p[item.key]?'text-decoration:line-through;color:var(--text-muted);':''}">${item.title}</div>
+            <div class="ca-check-sub">${item.sub}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            ${lcSubjects>0?'<span style="color:var(--green);font-size:12px;font-weight:700;">✓</span>':'<span style="color:var(--text-muted);font-size:11px;">Not done</span>'}
-            <button class="btn btn-secondary btn-sm" onclick="showPage('c-leavingcert')">Open →</button>
+        </div>`).join('')}
+      <div class="ca-tab-section-label">Family Tab</div>
+      ${profileItems.slice(5).map(item => `
+        <div class="ca-check-item">
+          <input type="checkbox" ${p[item.key]?'checked':''} onchange="toggleCaItem('${item.key}')">
+          <div class="ca-check-label">
+            <div class="ca-check-title" style="${p[item.key]?'text-decoration:line-through;color:var(--text-muted);':''}">${item.title}</div>
+            <div class="ca-check-sub">${item.sub}</div>
           </div>
+        </div>`).join('')}`;
+  }
+
+  else if (_caTab === 'education') {
+    tabHtml = `
+      <div class="ca-linked-row">
+        <div>
+          <div class="ca-check-title">Leaving Cert Subjects &amp; Grades</div>
+          <div class="ca-check-sub">${lcSubjects > 0 ? `${lcSubjects} subjects entered` : 'No subjects entered yet'}</div>
         </div>
-        <div class="ca-linked-row">
-          <div>
-            <div class="ca-check-title">SAT Scores</div>
-            <div class="ca-check-sub">${satScores > 0 ? `${satScores} test result${satScores>1?'s':''} logged` : 'No SAT scores logged yet'}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            ${satScores>0?'<span style="color:var(--green);font-size:12px;font-weight:700;">✓</span>':'<span style="color:var(--text-muted);font-size:11px;">Not done</span>'}
-            <button class="btn btn-secondary btn-sm" onclick="showPage('c-sat')">Open →</button>
-          </div>
-        </div>
-        <div class="ca-linked-row" style="border:none;">
-          <div>
-            <div class="ca-check-title">Academic Honours &amp; Awards</div>
-            <div class="ca-check-sub" style="font-size:11px;color:var(--text-muted);">Up to 5 on Common App (school, state, national, international level)</div>
-          </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${lcSubjects>0?'<span style="color:var(--green);font-size:13px;font-weight:700;">✓</span>':'<span style="color:var(--text-muted);font-size:11px;">Not done</span>'}
           <button class="btn btn-secondary btn-sm" onclick="showPage('c-leavingcert')">Open →</button>
         </div>
       </div>
-    </div>
-
-    <!-- Activities -->
-    <div class="ca-section">
-      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div class="ca-section-title">⚽ Activities ${pctBadge(Math.min(ecCount,10), 10)}</div>
-        <span style="color:var(--text-muted);font-size:12px;">▾</span>
-      </div>
-      <div class="ca-section-body">
-        <div class="ca-linked-row">
-          <div>
-            <div class="ca-check-title">Extracurricular Activities</div>
-            <div class="ca-check-sub">${ecCount}/10 added · ${ecDesc}/${ecCount} have 150-char descriptions</div>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="showPage('c-activities')">Open →</button>
+      <div class="ca-linked-row">
+        <div>
+          <div class="ca-check-title">SAT Scores</div>
+          <div class="ca-check-sub">${satScores > 0 ? `${satScores} test result${satScores>1?'s':''} logged` : 'No SAT scores logged yet'}</div>
         </div>
-        <div style="margin-top:10px;background:var(--bg);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--text-secondary);">
-          <strong>Common App Activity fields:</strong> Type · Position/Leadership · Organisation · Description (150 chars) · Grades participated · Hours/week · Weeks/year · Plan to continue in college
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${satScores>0?'<span style="color:var(--green);font-size:13px;font-weight:700;">✓</span>':'<span style="color:var(--text-muted);font-size:11px;">Not done</span>'}
+          <button class="btn btn-secondary btn-sm" onclick="showPage('c-sat')">Open →</button>
         </div>
-        ${ecCount < 10 ? `<div style="margin-top:8px;font-size:12px;color:var(--amber);font-weight:600;">⚡ You have ${10-ecCount} activity slot${10-ecCount>1?'s':''} remaining — fill every slot if possible.</div>` : '<div style="margin-top:8px;font-size:12px;color:var(--green);font-weight:600;">✓ All 10 activity slots filled.</div>'}
       </div>
-    </div>
-
-    <!-- Common App Essay -->
-    <div class="ca-section">
-      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div class="ca-section-title">✍️ Common App Essay ${pctBadge(essayDone, 1)}</div>
-        <span style="color:var(--text-muted);font-size:12px;">▾</span>
-      </div>
-      <div class="ca-section-body">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">650 words max. Shared with every school you apply to. Choose one of 7 prompts.</div>
-        <div class="ca-check-title" style="margin-bottom:6px;">Prompt</div>
-        <select style="width:100%;margin-bottom:12px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;" onchange="DB.caProfile.commonEssayPrompt=this.value;save()">
-          <option value="" ${!p.commonEssayPrompt?'selected':''}>— Choose a prompt —</option>
-          <option value="1" ${p.commonEssayPrompt==='1'?'selected':''}>1. Background, identity, interest, or talent</option>
-          <option value="2" ${p.commonEssayPrompt==='2'?'selected':''}>2. Obstacle, challenge, or failure and what you learned</option>
-          <option value="3" ${p.commonEssayPrompt==='3'?'selected':''}>3. Questioned or challenged a belief or idea</option>
-          <option value="4" ${p.commonEssayPrompt==='4'?'selected':''}>4. Something someone did for you — gratitude and paying it forward</option>
-          <option value="5" ${p.commonEssayPrompt==='5'?'selected':''}>5. Accomplishment or realisation that sparked personal growth</option>
-          <option value="6" ${p.commonEssayPrompt==='6'?'selected':''}>6. Topic or idea that makes you lose track of time</option>
-          <option value="7" ${p.commonEssayPrompt==='7'?'selected':''}>7. Free choice — topic of your own design</option>
-        </select>
-        <div class="ca-check-title" style="margin-bottom:6px;">Status</div>
-        ${_caCommonEssayPill(essayStatus)}
-        <div style="margin-top:12px;">
-          <div class="ca-check-title" style="margin-bottom:4px;">Notes</div>
-          <textarea style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;resize:vertical;" rows="2"
-            placeholder="Brainstorm ideas, thesis, key moments…" onchange="DB.caProfile.commonEssayNotes=this.value;save()">${p.commonEssayNotes||''}</textarea>
+      <div class="ca-linked-row" style="border:none;">
+        <div>
+          <div class="ca-check-title">Academic Honours &amp; Awards</div>
+          <div class="ca-check-sub">Up to 5 on Common App — school, national, international level</div>
         </div>
-        <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="showPage('c-essays')">Manage all essays →</button>
-      </div>
-    </div>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('c-leavingcert')">Open →</button>
+      </div>`;
+  }
 
-    <!-- Recommendations -->
-    <div class="ca-section">
-      <div class="ca-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div class="ca-section-title">📧 Recommendations ${pctBadge(recsDone, 3)}</div>
-        <span style="color:var(--text-muted);font-size:12px;">▾</span>
+  else if (_caTab === 'activities') {
+    tabHtml = `
+      <div class="ca-linked-row" style="border:none;">
+        <div>
+          <div class="ca-check-title">Extracurricular Activities</div>
+          <div class="ca-check-sub">${ecCount}/10 added · ${ecDesc}/${Math.max(ecCount,1)} have descriptions</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('c-activities')">Open →</button>
       </div>
-      <div class="ca-section-body">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Common App requires: 1 counsellor rec + 2 teacher recs. Most top schools also read optional additional recs.</div>
-        ${recs.length === 0
-          ? `<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No recommenders added yet.</div>`
-          : recs.map(r => `<div class="ca-linked-row">
-              <div>
-                <div class="ca-check-title">${r.name}</div>
-                <div class="ca-check-sub">${r.role}${r.subject?' · '+r.subject:''}</div>
-              </div>
-              <span class="badge ${r.status==='Letter Submitted'?'badge-green':r.status==='Confirmed'?'badge-blue':r.status==='Asked'?'badge-amber':'badge-gray'}">${r.status}</span>
-            </div>`).join('')}
-        <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="showPage('c-recs')">Manage Recommenders →</button>
+      <div style="margin-top:12px;background:var(--bg);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--text-secondary);">
+        <strong>Each activity needs:</strong> Type · Position/Leadership · Organisation name · Description (150 chars max) · Grades participated · Hours/week · Weeks/year · Plan to continue in college
       </div>
-    </div>`;
+      <div style="margin-top:10px;font-size:12px;font-weight:600;color:${ecCount>=10?'var(--green)':'var(--amber)'};">
+        ${ecCount >= 10 ? '✓ All 10 activity slots filled.' : `⚡ ${10-ecCount} slot${10-ecCount>1?'s':''} remaining — fill every slot you can.`}
+      </div>`;
+  }
+
+  else if (_caTab === 'essay') {
+    tabHtml = `
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">650 words max · shared with every school you apply to · choose one of 7 prompts</div>
+      <div class="ca-check-title" style="margin-bottom:6px;">Prompt</div>
+      <select style="width:100%;margin-bottom:16px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;background:var(--surface);" onchange="DB.caProfile.commonEssayPrompt=this.value;save()">
+        <option value="" ${!p.commonEssayPrompt?'selected':''}>— Choose a prompt —</option>
+        <option value="1" ${p.commonEssayPrompt==='1'?'selected':''}>1. Background, identity, interest, or talent</option>
+        <option value="2" ${p.commonEssayPrompt==='2'?'selected':''}>2. Obstacle, challenge, or failure and what you learned</option>
+        <option value="3" ${p.commonEssayPrompt==='3'?'selected':''}>3. Questioned or challenged a belief or idea</option>
+        <option value="4" ${p.commonEssayPrompt==='4'?'selected':''}>4. Something someone did for you — gratitude and paying it forward</option>
+        <option value="5" ${p.commonEssayPrompt==='5'?'selected':''}>5. Accomplishment or realisation that sparked personal growth</option>
+        <option value="6" ${p.commonEssayPrompt==='6'?'selected':''}>6. Topic or idea that makes you lose track of time</option>
+        <option value="7" ${p.commonEssayPrompt==='7'?'selected':''}>7. Free choice — topic of your own design</option>
+      </select>
+      <div class="ca-check-title" style="margin-bottom:6px;">Status</div>
+      ${_caCommonEssayPill(essayStatus)}
+      <div style="margin-top:14px;">
+        <div class="ca-check-title" style="margin-bottom:6px;">Notes / Brainstorm</div>
+        <textarea style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;resize:vertical;background:var(--surface);" rows="3"
+          placeholder="Ideas, thesis, key moments, hook…" onchange="DB.caProfile.commonEssayNotes=this.value;save()">${p.commonEssayNotes||''}</textarea>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="showPage('c-essays')">Manage all essays →</button>`;
+  }
+
+  else if (_caTab === 'recs') {
+    tabHtml = `
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Required: 1 counsellor rec + 2 teacher recs. Top schools read optional additional recs too.</div>
+      ${recs.length === 0
+        ? `<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No recommenders added yet.</div>`
+        : recs.map(r => `<div class="ca-linked-row">
+            <div>
+              <div class="ca-check-title">${r.name}</div>
+              <div class="ca-check-sub">${r.role||''}${r.subject?' · '+r.subject:''}</div>
+            </div>
+            <span class="badge ${r.status==='Letter Submitted'?'badge-green':r.status==='Asked'?'badge-amber':'badge-gray'}">${r.status}</span>
+          </div>`).join('')}
+      <button class="btn btn-secondary btn-sm" style="margin-top:12px;" onclick="showPage('c-recs')">Manage Recommenders →</button>`;
+  }
+
+  document.getElementById('ca-tab-content').innerHTML = tabHtml;
 
   // ---- Schools ----
   const schoolsEl = document.getElementById('ca-schools-list');
