@@ -431,6 +431,30 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .ca-tab-section-label:first-child{margin-top:0;}
 
 /* ============================================================
+   WARDROBE — CLOTHING ITEMS
+============================================================ */
+.wd-clothes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:16px;}
+.wd-item-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;position:relative;}
+.wd-item-card:hover{border-color:var(--accent);box-shadow:var(--shadow);}
+.wd-item-photo{height:120px;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow:hidden;}
+.wd-item-photo img{width:100%;height:100%;object-fit:cover;}
+.wd-item-emoji{font-size:44px;line-height:1;}
+.wd-item-info{padding:8px 10px;}
+.wd-item-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wd-item-cat{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.wd-item-actions{position:absolute;top:6px;right:6px;display:none;gap:4px;}
+.wd-item-card:hover .wd-item-actions{display:flex;}
+.wd-cat-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+.wd-cat-pill{padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s;color:var(--text-muted);}
+.wd-cat-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* Fit builder slots */
+.fit-slot{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);}
+.fit-slot:last-child{border-bottom:none;}
+.fit-slot-label{width:90px;font-size:11px;font-weight:700;color:var(--text-muted);flex-shrink:0;text-transform:uppercase;letter-spacing:.04em;}
+.fit-slot-thumb{width:36px;height:36px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0;}
+.fit-slot-thumb img{width:100%;height:100%;object-fit:cover;}
+
+/* ============================================================
    BUSINESS ANALYTICS
 ============================================================ */
 .an-section-title{font-size:13px;font-weight:800;letter-spacing:-.2px;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-light);}
@@ -1284,19 +1308,42 @@ a:hover{text-decoration:underline;}
   <div class="page" id="page-l-wardrobe">
     <div class="page-header"><h2>👕 Wardrobe &amp; Outfits</h2><p>Save your go-to outfits and plan your week.</p></div>
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchWardrobeTab('outfits',this)">Saved Outfits</button>
-      <button class="tab-btn" onclick="switchWardrobeTab('planner',this)">Week Planner</button>
+      <button class="tab-btn active" onclick="switchWardrobeTab('clothes',this)">👚 My Clothes</button>
+      <button class="tab-btn" onclick="switchWardrobeTab('outfits',this)">👗 Saved Fits</button>
+      <button class="tab-btn" onclick="switchWardrobeTab('planner',this)">📅 Week Planner</button>
     </div>
-    <div id="wardrobe-outfits-tab">
+
+    <!-- My Clothes tab -->
+    <div id="wardrobe-clothes-tab">
+      <div class="section-header" style="margin-bottom:10px;">
+        <div class="wd-cat-filter" id="wd-cat-filter">
+          <button class="wd-cat-pill active" onclick="setWdCat('',this)">All</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Top',this)">👕 Tops</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Bottom',this)">👖 Bottoms</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Shoes',this)">👟 Shoes</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Outerwear',this)">🧥 Outerwear</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Accessory',this)">⌚ Accessories</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Bag',this)">👜 Bags</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Headwear',this)">🧢 Headwear</button>
+        </div>
+        <button class="btn btn-primary" onclick="openClothingModal()">+ Add Item</button>
+      </div>
+      <div class="wd-clothes-grid" id="wd-clothes-grid"></div>
+    </div>
+
+    <!-- Saved Fits tab -->
+    <div id="wardrobe-outfits-tab" style="display:none;">
       <div class="section-header">
         <div style="display:flex;gap:8px;">
           <select id="outfit-filter-season" onchange="renderOutfits()" style="padding:6px 10px;width:auto;"><option value="">All Seasons</option><option>Summer</option><option>Autumn</option><option>Winter</option><option>Spring</option></select>
           <select id="outfit-filter-occ" onchange="renderOutfits()" style="padding:6px 10px;width:auto;"><option value="">All Occasions</option><option>Casual</option><option>School</option><option>Going Out</option><option>Sport</option><option>Smart</option></select>
         </div>
-        <button class="btn btn-primary" onclick="openModal('outfit-modal')">+ Save Outfit</button>
+        <button class="btn btn-primary" onclick="openOutfitModal()">+ New Fit</button>
       </div>
       <div id="outfits-grid" class="grid-3"></div>
     </div>
+
+    <!-- Week Planner tab -->
     <div id="wardrobe-planner-tab" style="display:none;">
       <div class="card"><div class="card-title">This Week's Outfits</div><div id="week-planner-grid"></div></div>
     </div>
@@ -2164,21 +2211,58 @@ a:hover{text-decoration:underline;}
 </div>
 
 <!-- Outfit modal -->
+<!-- Add / Edit Clothing Item Modal -->
+<div class="modal-overlay" id="clothing-modal">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="clothing-modal-title">Add Clothing Item</h3>
+    <input type="hidden" id="clothing-edit-id">
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="clothing-name" placeholder="e.g. White Nike Tee, Black Levi's 501…">
+    </div>
+    <div class="form-group">
+      <label>Category *</label>
+      <select id="clothing-cat">
+        <option value="Top">👕 Top</option>
+        <option value="Bottom">👖 Bottom</option>
+        <option value="Shoes">👟 Shoes</option>
+        <option value="Outerwear">🧥 Outerwear</option>
+        <option value="Accessory">⌚ Accessory</option>
+        <option value="Bag">👜 Bag</option>
+        <option value="Headwear">🧢 Headwear</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Photo URL <span style="font-weight:400;color:var(--text-muted);">(optional — paste an image link)</span></label>
+      <input type="url" id="clothing-photo" placeholder="https://…">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger" id="clothing-delete-btn" style="display:none;margin-right:auto;" onclick="deleteClothing()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('clothing-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClothing()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save / Edit Outfit Modal -->
 <div class="modal-overlay" id="outfit-modal">
   <div class="modal">
-    <h3 id="outfit-modal-title">Save Outfit</h3>
+    <h3 id="outfit-modal-title">New Fit</h3>
     <input type="hidden" id="outfit-edit-id">
     <div class="form-row">
-      <div class="form-group"><label>Outfit Name *</label><input type="text" id="outfit-name" placeholder="e.g. Casual Friday, Gym Look…"></div>
+      <div class="form-group"><label>Fit Name *</label><input type="text" id="outfit-name" placeholder="e.g. Casual Friday, Gym Look…"></div>
       <div class="form-group"><label>Occasion</label><select id="outfit-occ"><option>Casual</option><option>School</option><option>Going Out</option><option>Sport</option><option>Smart</option><option>Other</option></select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Season</label><select id="outfit-season"><option>Any</option><option>Summer</option><option>Autumn</option><option>Winter</option><option>Spring</option></select></div>
       <div class="form-group"><label>Rating</label><select id="outfit-rating"><option value="5">⭐⭐⭐⭐⭐ Favourite</option><option value="4">⭐⭐⭐⭐ Good</option><option value="3">⭐⭐⭐ Alright</option></select></div>
     </div>
-    <div class="form-group"><label>Items (one per line)</label><textarea id="outfit-items" rows="5" placeholder="White Nike tee&#10;Grey slim joggers&#10;New Balance 550 cream&#10;Black cap"></textarea></div>
+    <div class="form-group">
+      <label>Pieces</label>
+      <div id="fit-slots"></div>
+    </div>
     <div class="form-group"><label>Notes / Inspo</label><textarea id="outfit-notes" rows="2" placeholder="Works well with… good for…"></textarea></div>
-    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('outfit-modal')">Cancel</button><button class="btn btn-primary" onclick="saveOutfit()">Save</button></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('outfit-modal')">Cancel</button><button class="btn btn-primary" onclick="saveOutfit()">Save Fit</button></div>
   </div>
 </div>
 
@@ -2288,6 +2372,7 @@ function ensureDBDefaults() {
   if (!DB.products) DB.products = { skincare:[], clothes:[], supps:[] };
   ['skincare','clothes','supps'].forEach(k => { if (!DB.products[k]) DB.products[k] = []; });
   if (!DB.outfits) DB.outfits = [];
+  if (!DB.wardrobe) DB.wardrobe = [];
   if (!DB.journal) DB.journal = [];
   if (!DB.planner) DB.planner = [];
   if (!DB.routineChecks) DB.routineChecks = {};
@@ -4346,44 +4431,265 @@ function renderGymPage() {
 // ============================================================
 // LIFE — WARDROBE
 // ============================================================
-let currentWardrobeTab='outfits';
-function switchWardrobeTab(tab,el) {
-  currentWardrobeTab=tab;
-  document.getElementById('wardrobe-outfits-tab').style.display=tab==='outfits'?'':'none';
-  document.getElementById('wardrobe-planner-tab').style.display=tab==='planner'?'':'none';
+// ---- Clothing item constants ----
+const WD_CATS = [
+  {id:'Top',       emoji:'👕'},
+  {id:'Bottom',    emoji:'👖'},
+  {id:'Shoes',     emoji:'👟'},
+  {id:'Outerwear', emoji:'🧥'},
+  {id:'Accessory', emoji:'⌚'},
+  {id:'Bag',       emoji:'👜'},
+  {id:'Headwear',  emoji:'🧢'},
+];
+function _wdEmoji(cat) { return (WD_CATS.find(c=>c.id===cat)||{emoji:'👕'}).emoji; }
+
+// ---- Tab switching ----
+let currentWardrobeTab = 'clothes';
+let _wdCatFilter = '';
+function switchWardrobeTab(tab, el) {
+  currentWardrobeTab = tab;
+  document.getElementById('wardrobe-clothes-tab').style.display  = tab==='clothes'  ? '' : 'none';
+  document.getElementById('wardrobe-outfits-tab').style.display  = tab==='outfits'  ? '' : 'none';
+  document.getElementById('wardrobe-planner-tab').style.display  = tab==='planner'  ? '' : 'none';
   document.querySelectorAll('#page-l-wardrobe .tabs .tab-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');if(tab==='planner')renderWeekPlanner();
+  el.classList.add('active');
+  if (tab==='clothes') renderClothes();
+  if (tab==='outfits') renderOutfits();
+  if (tab==='planner') renderWeekPlanner();
 }
+function setWdCat(cat, el) {
+  _wdCatFilter = cat;
+  document.querySelectorAll('.wd-cat-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderClothes();
+}
+
+// ---- Clothing CRUD ----
+function renderClothes() {
+  const grid = document.getElementById('wd-clothes-grid'); if (!grid) return;
+  const items = (DB.wardrobe||[]).filter(c => !_wdCatFilter || c.cat === _wdCatFilter);
+  if (items.length === 0) {
+    grid.innerHTML = `<div class="empty-state card" style="grid-column:1/-1;text-align:center;padding:28px 16px;">
+      <div class="ei">${_wdCatFilter ? _wdEmoji(_wdCatFilter) : '👕'}</div>
+      <p style="margin:0;">No items yet.<br><span style="font-size:12px;color:var(--text-muted);">Tap <strong>+ Add Item</strong> to start building your wardrobe.</span></p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = items.map(c => {
+    const thumb = c.photo
+      ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+      : '';
+    return `<div class="wd-item-card" onclick="openClothingModal('${c.id}')">
+      <div class="wd-item-photo">
+        ${thumb}
+        <div class="wd-item-emoji" style="${c.photo?'display:none':''}">${_wdEmoji(c.cat)}</div>
+      </div>
+      <div class="wd-item-info">
+        <div class="wd-item-name">${c.name}</div>
+        <div class="wd-item-cat">${_wdEmoji(c.cat)} ${c.cat}</div>
+      </div>
+      <div class="wd-item-actions">
+        <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteClothingById('${c.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openClothingModal(editId) {
+  document.getElementById('clothing-modal-title').textContent = editId ? 'Edit Item' : 'Add Clothing Item';
+  document.getElementById('clothing-edit-id').value = editId || '';
+  document.getElementById('clothing-delete-btn').style.display = editId ? '' : 'none';
+  if (editId) {
+    const c = (DB.wardrobe||[]).find(x=>x.id===editId); if (!c) return;
+    document.getElementById('clothing-name').value  = c.name;
+    document.getElementById('clothing-cat').value   = c.cat;
+    document.getElementById('clothing-photo').value = c.photo||'';
+  } else {
+    document.getElementById('clothing-name').value  = '';
+    document.getElementById('clothing-cat').value   = 'Top';
+    document.getElementById('clothing-photo').value = '';
+  }
+  openModal('clothing-modal', editId||null);
+}
+
+function saveClothing() {
+  const name  = document.getElementById('clothing-name').value.trim();
+  if (!name) { alert('Please enter a name.'); return; }
+  const editId = document.getElementById('clothing-edit-id').value;
+  const item = { id: editId||uid(), name, cat: document.getElementById('clothing-cat').value, photo: document.getElementById('clothing-photo').value.trim() };
+  if (editId) { const i=(DB.wardrobe||[]).findIndex(x=>x.id===editId); if(i>=0) DB.wardrobe[i]=item; }
+  else { if(!DB.wardrobe) DB.wardrobe=[]; DB.wardrobe.push(item); }
+  save(); closeModal('clothing-modal'); renderClothes();
+}
+
+function deleteClothing() {
+  const id = document.getElementById('clothing-edit-id').value;
+  deleteClothingById(id, true);
+}
+function deleteClothingById(id, fromModal) {
+  if (!confirm('Remove this item from your wardrobe?')) return;
+  DB.wardrobe = (DB.wardrobe||[]).filter(c=>c.id!==id);
+  save(); if(fromModal) closeModal('clothing-modal'); renderClothes();
+}
+
+// ---- Fit builder (slot-based) ----
+const FIT_SLOTS = ['Top','Bottom','Shoes','Outerwear','Accessory','Bag','Headwear'];
+
+function openOutfitModal(editId) {
+  document.getElementById('outfit-modal-title').textContent = editId ? 'Edit Fit' : 'New Fit';
+  document.getElementById('outfit-edit-id').value = editId||'';
+  if (editId) {
+    const o = DB.outfits.find(x=>x.id===editId); if(!o) return;
+    document.getElementById('outfit-name').value   = o.name;
+    document.getElementById('outfit-occ').value    = o.occ;
+    document.getElementById('outfit-season').value = o.season;
+    document.getElementById('outfit-rating').value = o.rating||'5';
+    document.getElementById('outfit-notes').value  = o.notes||'';
+    renderFitSlots(o.pieces||[]);
+  } else {
+    document.getElementById('outfit-name').value   = '';
+    document.getElementById('outfit-occ').value    = 'Casual';
+    document.getElementById('outfit-season').value = 'Any';
+    document.getElementById('outfit-rating').value = '5';
+    document.getElementById('outfit-notes').value  = '';
+    renderFitSlots([]);
+  }
+  openModal('outfit-modal', editId||null);
+}
+
+function renderFitSlots(savedPieces) {
+  const el = document.getElementById('fit-slots'); if (!el) return;
+  const wardrobe = DB.wardrobe||[];
+  if (wardrobe.length === 0) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:10px 0;">Add clothes to your wardrobe first, then build fits from them.</div>`;
+    return;
+  }
+  el.innerHTML = FIT_SLOTS.map(slot => {
+    const items = wardrobe.filter(c=>c.cat===slot);
+    if (items.length === 0) return '';
+    const saved = savedPieces.find(p=>p.slot===slot);
+    const thumb = saved ? wardrobe.find(c=>c.id===saved.id) : null;
+    const thumbHtml = thumb && thumb.photo
+      ? `<img src="${thumb.photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : `<span style="font-size:18px;">${_wdEmoji(slot)}</span>`;
+    const opts = items.map(c=>`<option value="${c.id}" ${saved&&saved.id===c.id?'selected':''}>${c.name}</option>`).join('');
+    return `<div class="fit-slot">
+      <div class="fit-slot-label">${_wdEmoji(slot)} ${slot}</div>
+      <div class="fit-slot-thumb" id="fit-thumb-${slot}">${thumbHtml}</div>
+      <select style="flex:1;padding:6px 8px;" id="fit-sel-${slot}" onchange="updateFitThumb('${slot}',this.value)">
+        <option value="">— None —</option>
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function updateFitThumb(slot, id) {
+  const thumb = document.getElementById('fit-thumb-'+slot); if (!thumb) return;
+  const item = id ? (DB.wardrobe||[]).find(c=>c.id===id) : null;
+  if (item && item.photo) {
+    thumb.innerHTML = `<img src="${item.photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    thumb.innerHTML = `<span style="font-size:18px;">${_wdEmoji(slot)}</span>`;
+  }
+}
+
 function saveOutfit() {
-  const name=document.getElementById('outfit-name').value.trim();if(!name){alert('Please enter an outfit name.');return;}
-  const editId=document.getElementById('outfit-edit-id').value;
-  const outfit={id:editId||uid(),name,occ:document.getElementById('outfit-occ').value,season:document.getElementById('outfit-season').value,rating:document.getElementById('outfit-rating').value,items:document.getElementById('outfit-items').value.split('\n').map(s=>s.trim()).filter(Boolean),notes:document.getElementById('outfit-notes').value};
-  if(editId){const i=DB.outfits.findIndex(o=>o.id===editId);if(i>=0)DB.outfits[i]=outfit;}else DB.outfits.push(outfit);
-  save();closeModal('outfit-modal');renderOutfits();
+  const name = document.getElementById('outfit-name').value.trim();
+  if (!name) { alert('Please enter a fit name.'); return; }
+  const editId = document.getElementById('outfit-edit-id').value;
+  const pieces = FIT_SLOTS.map(slot => {
+    const sel = document.getElementById('fit-sel-'+slot);
+    return sel && sel.value ? {slot, id: sel.value} : null;
+  }).filter(Boolean);
+  const outfit = {
+    id: editId||uid(), name,
+    occ: document.getElementById('outfit-occ').value,
+    season: document.getElementById('outfit-season').value,
+    rating: document.getElementById('outfit-rating').value,
+    notes: document.getElementById('outfit-notes').value,
+    pieces
+  };
+  if (editId) { const i=DB.outfits.findIndex(o=>o.id===editId); if(i>=0) DB.outfits[i]=outfit; }
+  else DB.outfits.push(outfit);
+  save(); closeModal('outfit-modal'); renderOutfits();
 }
-function editOutfit(id) {
-  const o=DB.outfits.find(x=>x.id===id);if(!o)return;
-  document.getElementById('outfit-modal-title').textContent='Edit Outfit';document.getElementById('outfit-edit-id').value=o.id;
-  document.getElementById('outfit-name').value=o.name;document.getElementById('outfit-occ').value=o.occ;
-  document.getElementById('outfit-season').value=o.season;document.getElementById('outfit-rating').value=o.rating;
-  document.getElementById('outfit-items').value=(o.items||[]).join('\n');document.getElementById('outfit-notes').value=o.notes||'';
-  openModal('outfit-modal',id);
+
+function editOutfit(id) { openOutfitModal(id); }
+function deleteOutfit(id) {
+  if (!confirm('Delete this fit?')) return;
+  DB.outfits = DB.outfits.filter(o=>o.id!==id);
+  save(); renderOutfits();
 }
-function deleteOutfit(id) { if(!confirm('Delete this outfit?'))return; DB.outfits=DB.outfits.filter(o=>o.id!==id);save();renderOutfits(); }
+
 function renderOutfits() {
-  const seasonF=document.getElementById('outfit-filter-season').value;const occF=document.getElementById('outfit-filter-occ').value;
-  const list=DB.outfits.filter(o=>(!seasonF||(o.season===seasonF||o.season==='Any'))&&(!occF||o.occ===occF));
-  const grid=document.getElementById('outfits-grid');
-  if(list.length===0){grid.innerHTML='<div class="empty-state card" style="grid-column:1/-1;"><div class="ei">👕</div><p>Save your go-to outfits above.</p></div>';return;}
-  const stars=r=>'⭐'.repeat(parseInt(r)||0);
-  grid.innerHTML=list.map(o=>`<div class="outfit-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;"><div><div class="outfit-name">${o.name}</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-gray">${o.occ}</span><span class="badge badge-blue">${o.season}</span>${o.rating?`<span style="font-size:11px;">${stars(o.rating)}</span>`:''}</div></div><div style="display:flex;gap:4px;"><button class="btn btn-secondary btn-xs" onclick="editOutfit('${o.id}')">✏️</button><button class="btn btn-danger btn-xs" onclick="deleteOutfit('${o.id}')">🗑</button></div></div><div>${(o.items||[]).map(item=>`<div class="outfit-item">· ${item}</div>`).join('')}</div>${o.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);">${o.notes}</div>`:''}</div>`).join('');
+  const seasonF = document.getElementById('outfit-filter-season').value;
+  const occF    = document.getElementById('outfit-filter-occ').value;
+  const list = DB.outfits.filter(o=>(!seasonF||(o.season===seasonF||o.season==='Any'))&&(!occF||o.occ===occF));
+  const grid = document.getElementById('outfits-grid');
+  if (list.length===0) {
+    grid.innerHTML='<div class="empty-state card" style="grid-column:1/-1;"><div class="ei">👗</div><p>No fits saved yet.<br><span style="font-size:12px;color:var(--text-muted);">Add clothes first, then tap <strong>+ New Fit</strong>.</span></p></div>';
+    return;
+  }
+  const stars = r=>'⭐'.repeat(parseInt(r)||0);
+  const wardrobe = DB.wardrobe||[];
+  grid.innerHTML = list.map(o => {
+    const pieces = o.pieces||[];
+    const piecesHtml = pieces.length
+      ? pieces.map(p=>{
+          const c = wardrobe.find(x=>x.id===p.id);
+          const name = c ? c.name : '(removed)';
+          const thumb = c && c.photo
+            ? `<img src="${c.photo}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" title="${name}">`
+            : `<span style="font-size:18px;" title="${name}">${_wdEmoji(p.slot)}</span>`;
+          return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);">${thumb}<span style="font-size:12px;color:var(--text-secondary);">${name}</span></div>`;
+        }).join('')
+      : '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">No pieces selected</div>';
+    return `<div class="outfit-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+        <div>
+          <div class="outfit-name">${o.name}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;">
+            <span class="badge badge-gray">${o.occ}</span>
+            <span class="badge badge-gray">${o.season}</span>
+            ${o.rating?`<span style="font-size:11px;">${stars(o.rating)}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button class="btn btn-secondary btn-xs" onclick="editOutfit('${o.id}')">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteOutfit('${o.id}')">🗑</button>
+        </div>
+      </div>
+      ${piecesHtml}
+      ${o.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);">${o.notes}</div>`:''}
+    </div>`;
+  }).join('');
 }
+
 function renderWeekPlanner() {
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];const grid=document.getElementById('week-planner-grid');
-  grid.innerHTML=days.map(day=>{const outfitId=DB.weekPlanner[day];const outfit=outfitId?DB.outfits.find(o=>o.id===outfitId):null;const options=DB.outfits.map(o=>`<option value="${o.id}" ${outfitId===o.id?'selected':''}>${o.name}</option>`).join('');return`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light);"><div style="width:40px;font-size:13px;font-weight:700;color:var(--text-muted);">${day}</div><select style="flex:1;padding:7px 10px;" onchange="setDayOutfit('${day}',this.value)"><option value="">— No outfit planned —</option>${options}</select>${outfit?`<div style="font-size:12px;color:var(--text-secondary);">${(outfit.items||[]).slice(0,2).join(', ')}${outfit.items.length>2?'...':''}</div>`:''}</div>`;}).join('');
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const grid=document.getElementById('week-planner-grid');
+  grid.innerHTML=days.map(day=>{
+    const outfitId=DB.weekPlanner[day];
+    const outfit=outfitId?DB.outfits.find(o=>o.id===outfitId):null;
+    const options=DB.outfits.map(o=>`<option value="${o.id}" ${outfitId===o.id?'selected':''}>${o.name}</option>`).join('');
+    const preview=outfit&&outfit.pieces?(outfit.pieces.slice(0,2).map(p=>{const c=(DB.wardrobe||[]).find(x=>x.id===p.id);return c?c.name:'';}).filter(Boolean).join(', ')+'…'):'';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light);">
+      <div style="width:40px;font-size:13px;font-weight:700;color:var(--text-muted);">${day}</div>
+      <select style="flex:1;padding:7px 10px;" onchange="setDayOutfit('${day}',this.value)">
+        <option value="">— No outfit planned —</option>${options}
+      </select>
+      ${preview?`<div style="font-size:12px;color:var(--text-secondary);">${preview}</div>`:''}
+    </div>`;
+  }).join('');
 }
+
 function setDayOutfit(day,outfitId) { if(outfitId)DB.weekPlanner[day]=outfitId;else delete DB.weekPlanner[day];save();renderWeekPlanner(); }
-function renderWardrobe() { renderOutfits();if(currentWardrobeTab==='planner')renderWeekPlanner(); }
+function renderWardrobe() {
+  if(currentWardrobeTab==='clothes') renderClothes();
+  if(currentWardrobeTab==='outfits') renderOutfits();
+  if(currentWardrobeTab==='planner') renderWeekPlanner();
+}
 
 // ============================================================
 // LIFE — JOURNAL
