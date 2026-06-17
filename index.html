@@ -3770,8 +3770,10 @@ function quickCycleStock(tab,id,e) {
   p.stock=cycle[p.stock]||'full';
   save();renderProducts();
 }
-function moveToBuying(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=true;save();renderProducts(); }
-function moveToWishlist(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=false;save();renderProducts(); }
+function moveToBuying(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=true;p.ordered=false;save();renderProducts(); }
+function moveToWishlist(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=false;p.ordered=false;save();renderProducts(); }
+function markOrdered(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.ordered=true;p.buying=false;save();renderProducts(); }
+function markArrived(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.ordered=false;p.buying=false; if(p.stock!==undefined)p.stock='full'; save();renderProducts(); }
 function markBought(tab,id,e) { if(e)e.stopPropagation(); if(!confirm('Mark as bought and remove from list?'))return; DB.products[tab]=DB.products[tab].filter(p=>p.id!==id);save();renderProducts(); }
 
 function _prodNeedByChip(needBy, isUrgent) {
@@ -3827,18 +3829,39 @@ function renderProducts() {
         <button onclick="quickCycleStock('${tab}','${p.id}',event)" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:none;cursor:pointer;background:${urgent?'var(--red-light)':pct>=50?'var(--accent-light)':'#fef3c7'};color:${urgent?'var(--red)':pct>=50?'var(--accent)':'#92400e'};" title="Tap to update stock">${stockLabel[p.stock]||'Stocked'}</button>
         ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
         ${inBuying
-          ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('${tab}','${p.id}',event)" title="Move back">↩</button><button class="btn btn-primary btn-xs" onclick="markBought('${tab}','${p.id}',event)">✓ Bought</button>`
+          ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('${tab}','${p.id}',event)" title="Move back">↩</button><button class="btn btn-secondary btn-xs" onclick="markOrdered('${tab}','${p.id}',event)" title="Purchased, waiting for delivery">📦 Ordered</button><button class="btn btn-primary btn-xs" onclick="markBought('${tab}','${p.id}',event)">✓ Bought</button>`
           :`<button class="btn btn-secondary btn-xs" onclick="moveToBuying('${tab}','${p.id}',event)" title="Add to buying list">🛒</button>`}
+      </div>
+    </div>`;
+  };
+  const mkOrderedRow=(p,tab)=>{
+    const meta=tab==='skincare'
+      ?[p.brand,p.cat].filter(Boolean).join(' · ')
+      :[p.brand,p.suppType,p.dose?'📋 '+p.dose:''].filter(Boolean).join(' · ');
+    return `<div class="wish-item" onclick="editProduct('${tab}','${p.id}')" style="cursor:pointer;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;">${p.name}</div>
+        ${meta?`<div style="font-size:12px;color:var(--text-muted);">${meta}</div>`:''}
+        ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.notes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;background:#fef3c7;color:#92400e;">In Transit</span>
+        ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
+        <button class="btn btn-secondary btn-xs" onclick="moveToWishlist('${tab}','${p.id}',event)" title="Move back to wishlist">↩</button>
+        <button class="btn btn-primary btn-xs" onclick="markArrived('${tab}','${p.id}',event)" style="background:var(--green);">✅ Arrived</button>
       </div>
     </div>`;
   };
   const mkStockSections=(items,tab,emptyIcon,emptyMsg)=>{
     if(items.length===0) return `<div class="empty-state card"><div class="ei">${emptyIcon}</div><p>${emptyMsg}</p></div>`;
-    const buying=items.filter(p=>p.buying).sort((a,b)=>a.name.localeCompare(b.name));
-    const rest=items.filter(p=>!p.buying).sort((a,b)=>_prodUrgencyScore(b,tab)-_prodUrgencyScore(a,tab)||a.name.localeCompare(b.name));
+    const buying=items.filter(p=>p.buying&&!p.ordered).sort((a,b)=>a.name.localeCompare(b.name));
+    const ordered=items.filter(p=>p.ordered).sort((a,b)=>a.name.localeCompare(b.name));
+    const rest=items.filter(p=>!p.buying&&!p.ordered).sort((a,b)=>_prodUrgencyScore(b,tab)-_prodUrgencyScore(a,tab)||a.name.localeCompare(b.name));
     const buyingHtml=buying.length?`<div class="card" style="margin-bottom:14px;border-color:var(--accent);"><div class="card-title" style="margin-bottom:10px;">🛍️ Buying Now</div><div>${buying.map(p=>mkStockRow(p,tab,true)).join('')}</div></div>`:'';
+    const orderedHtml=ordered.length?`<div class="card" style="margin-bottom:14px;border-color:#f59e0b;"><div class="card-title" style="margin-bottom:10px;">📦 On Order <span style="font-size:11px;font-weight:500;color:var(--text-muted);">— purchased, not yet arrived</span></div><div>${ordered.map(p=>mkOrderedRow(p,tab)).join('')}</div></div>`:'';
     const restHtml=rest.length?`<div class="card"><div>${rest.map(p=>mkStockRow(p,tab,false)).join('')}</div></div>`:'';
-    return buyingHtml+restHtml;
+    return buyingHtml+orderedHtml+restHtml;
   };
   if(DB.products.skincare.length===0){skList.innerHTML='<div class="empty-state card"><div class="ei">🧴</div><p>Add your skincare & grooming products.</p></div>';}
   else skList.innerHTML=mkStockSections(DB.products.skincare,'skincare','🧴','Add your skincare & grooming products.');
@@ -3848,9 +3871,9 @@ function renderProducts() {
   const cl=DB.products.clothes;
   if(cl.length===0){clList.innerHTML='<div class="empty-state card"><div class="ei">👗</div><p>Add clothes you want to buy.</p></div>';}
   else {
-    const buying=cl.filter(p=>p.buying);
-    const wishlist=[...cl.filter(p=>!p.buying)].sort((a,b)=>_prodUrgencyScore(b,'clothes')-_prodUrgencyScore(a,'clothes'));
-    const priColor={high:'var(--red)',medium:'var(--amber)',low:'var(--green)'};
+    const buying=cl.filter(p=>p.buying&&!p.ordered);
+    const ordered=cl.filter(p=>p.ordered);
+    const wishlist=[...cl.filter(p=>!p.buying&&!p.ordered)].sort((a,b)=>_prodUrgencyScore(b,'clothes')-_prodUrgencyScore(a,'clothes'));
     const mkRow=(p,inBuying)=>{
       const needByChip=_prodNeedByChip(p.needBy,p.priority==='high');
       return `<div class="wish-item" onclick="editProduct('clothes','${p.id}')" style="cursor:pointer;">
@@ -3864,14 +3887,31 @@ function renderProducts() {
           ${!inBuying?`<span class="badge badge-${p.priority==='high'?'red':p.priority==='medium'?'amber':'green'}">${{high:'Need now',medium:'Want soon',low:'Wishlist'}[p.priority]||''}</span>`:''}
           ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
           ${inBuying
-            ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('clothes','${p.id}',event)">↩</button><button class="btn btn-primary btn-xs" onclick="markBought('clothes','${p.id}',event)">✓ Bought</button>`
+            ?`<button class="btn btn-secondary btn-xs" onclick="moveToWishlist('clothes','${p.id}',event)">↩</button><button class="btn btn-secondary btn-xs" onclick="markOrdered('clothes','${p.id}',event)">📦 Ordered</button><button class="btn btn-primary btn-xs" onclick="markBought('clothes','${p.id}',event)">✓ Bought</button>`
             :`<button class="btn btn-secondary btn-xs" onclick="moveToBuying('clothes','${p.id}',event)">🛒</button>`}
         </div>
       </div>`;
     };
+    const mkOrderedClothesRow=(p)=>{
+      return `<div class="wish-item" onclick="editProduct('clothes','${p.id}')" style="cursor:pointer;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;">${p.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${p.brand||''}${p.clothesType?' · '+p.clothesType:''}</div>
+          ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.notes}</div>`:''}
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;background:#fef3c7;color:#92400e;">In Transit</span>
+          ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-secondary btn-xs" onclick="event.stopPropagation()">🔗</a>`:''}
+          <button class="btn btn-secondary btn-xs" onclick="moveToWishlist('clothes','${p.id}',event)">↩</button>
+          <button class="btn btn-primary btn-xs" onclick="markBought('clothes','${p.id}',event)" style="background:var(--green);">✅ Arrived</button>
+        </div>
+      </div>`;
+    };
     const buyingHtml=buying.length?`<div class="card" style="margin-bottom:14px;border-color:var(--accent);"><div class="card-title" style="margin-bottom:10px;">🛍️ Buying Now</div><div>${buying.map(p=>mkRow(p,true)).join('')}</div></div>`:'';
+    const orderedHtml=ordered.length?`<div class="card" style="margin-bottom:14px;border-color:#f59e0b;"><div class="card-title" style="margin-bottom:10px;">📦 On Order <span style="font-size:11px;font-weight:500;color:var(--text-muted);">— purchased, not yet arrived</span></div><div>${ordered.map(p=>mkOrderedClothesRow(p)).join('')}</div></div>`:'';
     const wishHtml=wishlist.length?`<div class="card"><div>${wishlist.map(p=>mkRow(p,false)).join('')}</div></div>`:'<div class="empty-state card"><div class="ei">👗</div><p>Add clothes you want to buy.</p></div>';
-    clList.innerHTML=buyingHtml+wishHtml;
+    clList.innerHTML=buyingHtml+orderedHtml+wishHtml;
   }
 
   // --- Supps ---
