@@ -3532,7 +3532,7 @@ function _goalRowHtml(g) {
     ondragover="_goalDragOver(event,'${g.id}')"
     ondrop="_goalDrop(event,'${g.id}')"
     ondragend="_goalDragEnd(event)">
-    <div class="goal-drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
+    <div class="goal-drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">&#x2630;</div>
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
@@ -3554,10 +3554,12 @@ let _goalDragId = null;
 function _goalDragStart(e, id) {
   _goalDragId = id;
   e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => e.currentTarget.classList.add('goal-dragging'), 0);
+  e.dataTransfer.setData('text/plain', id);
+  const el = document.querySelector('[data-goal-row="' + id + '"]');
+  if (el) setTimeout(() => el.classList.add('goal-dragging'), 0);
 }
 function _goalDragEnd(e) {
-  e.currentTarget.classList.remove('goal-dragging');
+  document.querySelectorAll('[data-goal-row].goal-dragging').forEach(el => el.classList.remove('goal-dragging'));
   document.querySelectorAll('[data-goal-row].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
   _goalDragId = null;
 }
@@ -3566,7 +3568,8 @@ function _goalDragOver(e, id) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   document.querySelectorAll('[data-goal-row].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
-  e.currentTarget.classList.add('goal-drag-over');
+  const el = document.querySelector('[data-goal-row="' + id + '"]');
+  if (el) el.classList.add('goal-drag-over');
 }
 function _goalDrop(e, targetId) {
   e.preventDefault();
