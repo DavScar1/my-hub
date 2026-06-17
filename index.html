@@ -3504,9 +3504,17 @@ function renderGoals() {
     const goalsHtml = goals.length === 0
       ? `<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">No goals yet.</div>`
       : goals.map(g => _goalRowHtml(g)).join('');
-    return `<div class="card" style="margin-bottom:16px;">
+    const draggable = cat.id ? `draggable="true" data-cat-card="${cat.id}"
+      ondragstart="_catDragStart(event,'${cat.id}')"
+      ondragover="_catDragOver(event,'${cat.id}')"
+      ondrop="_catDrop(event,'${cat.id}')"
+      ondragend="_catDragEnd(event)"` : '';
+    return `<div class="card" style="margin-bottom:16px;" ${draggable}>
       <div class="section-header" style="margin-bottom:${goals.length ? '10px' : '0'};">
-        <div class="card-title" style="margin:0;">${cat.icon} ${escapeHtml(cat.name)}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${cat.id ? `<span class="goal-drag-handle" style="font-size:13px;" title="Drag to reorder category">&#x2630;</span>` : ''}
+          <div class="card-title" style="margin:0;">${cat.icon} ${escapeHtml(cat.name)}</div>
+        </div>
         ${cat.id ? `<button class="btn btn-secondary btn-sm" onclick="openGoalCategoryModal('${cat.id}')">Edit</button>` : ''}
       </div>
       ${goalsHtml}
@@ -3579,6 +3587,39 @@ function _goalDrop(e, targetId) {
   if (from < 0 || to < 0) return;
   const [item] = DB.goals.splice(from, 1);
   DB.goals.splice(to, 0, item);
+  save();
+  renderGoals();
+}
+
+let _catDragId = null;
+function _catDragStart(e, id) {
+  _catDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  const el = document.querySelector('[data-cat-card="' + id + '"]');
+  if (el) setTimeout(() => el.classList.add('goal-dragging'), 0);
+}
+function _catDragEnd(e) {
+  document.querySelectorAll('[data-cat-card].goal-dragging').forEach(el => el.classList.remove('goal-dragging'));
+  document.querySelectorAll('[data-cat-card].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
+  _catDragId = null;
+}
+function _catDragOver(e, id) {
+  if (!_catDragId || _catDragId === id) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('[data-cat-card].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
+  const el = document.querySelector('[data-cat-card="' + id + '"]');
+  if (el) el.classList.add('goal-drag-over');
+}
+function _catDrop(e, targetId) {
+  e.preventDefault();
+  if (!_catDragId || _catDragId === targetId) return;
+  const from = DB.goalCategories.findIndex(c => c.id === _catDragId);
+  const to   = DB.goalCategories.findIndex(c => c.id === targetId);
+  if (from < 0 || to < 0) return;
+  const [item] = DB.goalCategories.splice(from, 1);
+  DB.goalCategories.splice(to, 0, item);
   save();
   renderGoals();
 }
