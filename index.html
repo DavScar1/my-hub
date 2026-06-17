@@ -6544,7 +6544,7 @@ function renderCommonApp() {
   ];
   const profileDone = profileItems.filter(i => p[i.key]).length;
 
-  const lcSubjects = (DB.subjects || []).length;
+  const lcSubjects = DB.subjects ? Object.values(DB.subjects).filter(s => s.predictedGrade).length : 0;
   const satScores  = (DB.sat || []).length;
   const educDone   = [lcSubjects > 0, satScores > 0].filter(Boolean).length;
 
