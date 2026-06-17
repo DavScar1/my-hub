@@ -1325,6 +1325,7 @@ a:hover{text-decoration:underline;}
           <button class="wd-cat-pill" onclick="setWdCat('Accessory',this)">⌚ Accessories</button>
           <button class="wd-cat-pill" onclick="setWdCat('Bag',this)">👜 Bags</button>
           <button class="wd-cat-pill" onclick="setWdCat('Headwear',this)">🧢 Headwear</button>
+          <button class="wd-cat-pill" onclick="setWdCat('Jumper',this)">🧶 Jumpers</button>
         </div>
         <button class="btn btn-primary" onclick="openClothingModal()">+ Add Item</button>
       </div>
@@ -2230,6 +2231,7 @@ a:hover{text-decoration:underline;}
         <option value="Accessory">⌚ Accessory</option>
         <option value="Bag">👜 Bag</option>
         <option value="Headwear">🧢 Headwear</option>
+        <option value="Jumper">🧶 Jumper</option>
       </select>
     </div>
     <div class="form-group">
@@ -4440,6 +4442,7 @@ const WD_CATS = [
   {id:'Accessory', emoji:'⌚'},
   {id:'Bag',       emoji:'👜'},
   {id:'Headwear',  emoji:'🧢'},
+  {id:'Jumper',    emoji:'🧶'},
 ];
 function _wdEmoji(cat) { return (WD_CATS.find(c=>c.id===cat)||{emoji:'👕'}).emoji; }
 
