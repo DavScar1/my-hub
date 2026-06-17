@@ -2232,6 +2232,7 @@ function showPage(id) {
   if (btn) btn.classList.add('active');
   if (typeof renderPage === 'function') renderPage(id);
   closeSidebar();
+  window.scrollTo(0, 0);
 }
 
 function toggleSidebar() {
