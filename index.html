@@ -926,6 +926,23 @@ a:hover{text-decoration:underline;}
     <div id="activities-list"><div class="empty-state card"><div class="ei">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div></div>
   </div>
 
+  <!-- EC Plans -->
+  <div class="page" id="page-c-ec-plans">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('c-activities')">← Back</button>
+      <div>
+        <h2 id="ec-plans-title" style="font-size:20px;font-weight:800;margin:0;"></h2>
+        <div id="ec-plans-sub" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;">
+      <textarea id="ec-plans-body"
+        style="width:100%;min-height:calc(100vh - 220px);padding:20px;border:none;resize:none;font-size:14px;line-height:1.7;outline:none;background:transparent;font-family:inherit;"
+        placeholder="Write your plans, goals, ideas, achievements, talking points for interviews…"
+        oninput="saveECPlans()"></textarea>
+    </div>
+  </div>
+
   <!-- Essays -->
   <div class="page" id="page-c-essays">
     <div class="page-header"><h2>Essays</h2><p>Track your personal statement and supplemental essays for each school.</p></div>
@@ -2947,6 +2964,22 @@ function editEC(id) {
   openModal('ec-modal',id);
 }
 function deleteEC(id) { if(!confirm('Delete this activity?'))return; DB.activities=DB.activities.filter(a=>a.id!==id);save();renderActivities(); }
+
+let _ecPlansId = null;
+function openECPlans(id) {
+  const a = DB.activities.find(x=>x.id===id); if(!a) return;
+  _ecPlansId = id;
+  document.getElementById('ec-plans-title').textContent = a.name;
+  document.getElementById('ec-plans-sub').textContent = [a.role, a.org].filter(Boolean).join(' · ') || a.category;
+  document.getElementById('ec-plans-body').value = a.plans || '';
+  showPage('c-ec-plans');
+}
+function saveECPlans() {
+  if (!_ecPlansId) return;
+  const a = DB.activities.find(x=>x.id===_ecPlansId); if(!a) return;
+  a.plans = document.getElementById('ec-plans-body').value;
+  save();
+}
 function moveEC(id,dir) {
   const idx=DB.activities.findIndex(a=>a.id===id);const j=idx+dir;
   if(j<0||j>=DB.activities.length)return;
@@ -2958,7 +2991,7 @@ function renderActivities() {
   if(count===0){container.innerHTML=`<div class="empty-state card"><div class="empty-icon">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div>`;return;}
   container.innerHTML=DB.activities.map((a,i)=>{
     const metricCount=DB.ecMetrics.filter(m=>m.activityId===a.id).length;
-    return `<div class="card" style="margin-bottom:12px;"><div style="display:flex;align-items:flex-start;gap:12px;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;color:var(--text-muted);min-width:28px;text-align:center;">${i+1}</div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><strong>${a.name}</strong><span class="badge badge-gray">${a.category}</span>${(a.years||[]).map(y=>`<span class="tag">${y}</span>`).join('')}</div>${a.role?`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${a.role}${a.org?' · '+a.org:''}</div>`:''} ${(a.hours||a.weeks)?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.hours?a.hours+'h/wk':''} ${a.weeks?'· '+a.weeks+' wks/yr':''}</div>`:''} ${a.desc?`<div style="margin-top:8px;font-size:12px;background:var(--bg);border-radius:6px;padding:8px 10px;border:1px solid var(--border-light);">${a.desc} <span style="color:var(--text-muted);">(${a.desc.length}/150)</span></div>`:''}<div style="margin-top:8px;"><button class="btn btn-secondary btn-sm" onclick="openECDetail('${a.id}')">📊 Metrics${metricCount?' ('+metricCount+')':''}</button></div></div><div style="display:flex;flex-direction:column;gap:4px;"><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',-1)" ${i===0?'disabled':''}>↑</button><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',1)" ${i===count-1?'disabled':''}>↓</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editEC('${a.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEC('${a.id}')">🗑</button></div></div></div>`;
+    return `<div class="card" style="margin-bottom:12px;"><div style="display:flex;align-items:flex-start;gap:12px;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;color:var(--text-muted);min-width:28px;text-align:center;">${i+1}</div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><strong>${a.name}</strong><span class="badge badge-gray">${a.category}</span>${(a.years||[]).map(y=>`<span class="tag">${y}</span>`).join('')}</div>${a.role?`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${a.role}${a.org?' · '+a.org:''}</div>`:''} ${(a.hours||a.weeks)?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.hours?a.hours+'h/wk':''} ${a.weeks?'· '+a.weeks+' wks/yr':''}</div>`:''} ${a.desc?`<div style="margin-top:8px;font-size:12px;background:var(--bg);border-radius:6px;padding:8px 10px;border:1px solid var(--border-light);">${a.desc} <span style="color:var(--text-muted);">(${a.desc.length}/150)</span></div>`:''}<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-secondary btn-sm" onclick="openECDetail('${a.id}')">📊 Metrics${metricCount?' ('+metricCount+')':''}</button><button class="btn btn-secondary btn-sm" onclick="openECPlans('${a.id}')">📝 Plans</button></div></div><div style="display:flex;flex-direction:column;gap:4px;"><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',-1)" ${i===0?'disabled':''}>↑</button><button class="btn btn-secondary btn-sm btn-icon" onclick="moveEC('${a.id}',1)" ${i===count-1?'disabled':''}>↓</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editEC('${a.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEC('${a.id}')">🗑</button></div></div></div>`;
   }).join('');
 }
 
