@@ -3607,7 +3607,8 @@ function savePlanBlock() {
     }
     return {id:uid(),text,hours};
   });
-  const block={id,start,end,title:document.getElementById('plan-title').value.trim(),tasks};
+  const existing=DB.planner.find(p=>p.id===id);
+  const block={id,start,end,title:document.getElementById('plan-title').value.trim(),tasks,schedule:(existing&&existing.schedule)||[]};
   const i=DB.planner.findIndex(p=>p.id===id);
   if(i>=0)DB.planner[i]=block;else DB.planner.push(block);
   save();closeModal('plan-modal');renderPlanner();renderDashboardPlanner();
