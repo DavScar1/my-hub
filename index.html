@@ -3658,7 +3658,7 @@ function renderPlanner() {
           <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${active?' <span class="badge badge-green" style="margin-left:6px;">Active</span>':''}</div>
           ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
         </div>
-        <div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="openPlanSchedule('${p.id}')">📅 Schedule</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
+        <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm" onclick="openPlanSchedule('${p.id}')">📅 Schedule</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
       </div>
       ${planHoursListHtml(p)}
     </div>`;
