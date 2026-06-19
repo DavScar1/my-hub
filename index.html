@@ -2532,8 +2532,9 @@ function load() {
 }
 
 function save() {
+  DB._savedAt = Date.now();
   localStorage.setItem('myHubCollegeDB', JSON.stringify(DB));
-  if (window.cloudSync) window.cloudSync(DB);
+  if (window.cloudSync) window.cloudSync();
 }
 
 // ============================================================
@@ -2554,6 +2555,9 @@ window.getDBSnapshot = function() {
 };
 
 window.applyRemoteUpdate = function(data) {
+  const localTime  = DB._savedAt || 0;
+  const remoteTime = data._savedAt || 0;
+  if (localTime > remoteTime + 3000) return; // local is newer — don't overwrite
   Object.keys(DB).forEach(k => delete DB[k]);
   Object.assign(DB, data);
   ensureDBDefaults();
@@ -7668,14 +7672,18 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // Called by the main app's save() — debounced push to Firestore
-window.cloudSync = function(data) {
+window.cloudSync = function() {
   if (!_uid || _applyingRemote) return;
   setStatus('Syncing…');
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(() => {
-    setDoc(doc(db, 'users', _uid), data)
+    const snapshot = window.getDBSnapshot(); // always use latest at write time
+    setDoc(doc(db, 'users', _uid), snapshot)
       .then(() => setStatus('Synced ✓'))
-      .catch(e => { console.error('Cloud sync failed:', e); setStatus('Sync error'); });
+      .catch(e => {
+        console.error('Cloud sync failed:', e);
+        setStatus('Sync error — saved locally');
+      });
   }, 1200);
 };
 </script>
