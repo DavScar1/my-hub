@@ -1584,6 +1584,15 @@ a:hover{text-decoration:underline;}
   <div class="page" id="page-b-analytics">
     <div class="page-header"><h2>📈 Analytics</h2><p>Deep dive into your sales performance, product mix and inventory health.</p></div>
 
+    <!-- Monthly Summary -->
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="an-section-title" style="margin:0;">🗓️ Monthly Summary</div>
+        <input type="month" id="biz-month-picker" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-weight:600;background:var(--bg);" onchange="renderMonthSummary()">
+      </div>
+      <div id="biz-month-summary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
+    </div>
+
     <!-- KPIs -->
     <div class="an-kpi-grid" id="an-kpi-grid" style="margin-bottom:20px;grid-template-columns:repeat(3,1fr);"></div>
 
@@ -7122,7 +7131,34 @@ function deleteCaSchool() {
 // ============================================================
 // ANALYTICS
 // ============================================================
+function renderMonthSummary() {
+  const picker = document.getElementById('biz-month-picker');
+  if (!picker.value) picker.value = new Date().toISOString().slice(0,7);
+  const month = picker.value; // 'YYYY-MM'
+  const sales = (DB.bizSales||[]).filter(s => s.date && s.date.slice(0,7) === month);
+  const revenue = sales.reduce((a,s) => a + (s.price||0), 0);
+  const cost    = sales.reduce((a,s) => a + (s.cost||0), 0);
+  const profit  = revenue - cost;
+  const units   = sales.reduce((a,s) => a + (s.qty||1), 0);
+  const fmt = v => '€' + v.toFixed(2);
+  const card = (icon, label, value, color) =>
+    `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+      <div style="font-size:20px;margin-bottom:4px;">${icon}</div>
+      <div style="font-size:20px;font-weight:800;color:${color};">${value}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;font-weight:600;">${label}</div>
+    </div>`;
+  document.getElementById('biz-month-summary').innerHTML =
+    card('💰', 'Revenue',    fmt(revenue), 'var(--text)') +
+    card('📦', 'Cost',       fmt(cost),    'var(--text-muted)') +
+    card('📈', 'Profit',     fmt(profit),  profit >= 0 ? 'var(--green)' : 'var(--red)') +
+    card('🛒', 'Units Sold', units,        'var(--c-accent)');
+}
+
 function renderBizAnalytics() {
+  // default month picker to current month
+  const picker = document.getElementById('biz-month-picker');
+  if (picker && !picker.value) picker.value = new Date().toISOString().slice(0,7);
+  renderMonthSummary();
   const sales = DB.bizSales;
   const inv   = DB.bizInventory;
 
