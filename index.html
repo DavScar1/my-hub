@@ -431,6 +431,18 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .ca-tab-section-label:first-child{margin-top:0;}
 
 /* ============================================================
+   PLAN DAY SCHEDULE
+============================================================ */
+.sched-hour-line{position:absolute;left:0;right:0;border-top:1px solid var(--border-light);display:flex;align-items:flex-start;}
+.sched-hour-label{font-size:10px;font-weight:700;color:var(--text-muted);width:52px;text-align:right;padding-right:8px;margin-top:-7px;flex-shrink:0;user-select:none;}
+.sched-block{position:absolute;left:6px;right:6px;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#fff;overflow:hidden;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.15);transition:opacity .1s;}
+.sched-block:hover{opacity:.85;}
+.sched-block-title{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sched-block-time{font-size:10px;opacity:.85;margin-top:1px;}
+.sched-color-swatch{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s;}
+.sched-color-swatch:hover,.sched-color-swatch.active{border-color:var(--text);transform:scale(1.2);}
+
+/* ============================================================
    MIND MAP
 ============================================================ */
 #page-c-mindmap.active{display:flex!important;}
@@ -1000,6 +1012,43 @@ a:hover{text-decoration:underline;}
     <div class="page-header"><h2>Planner</h2><p>Plan what you'll work on during each time period.</p></div>
     <div class="section-header"><h3></h3><button class="btn btn-primary" onclick="openAddPlanBlock()">+ Add Plan</button></div>
     <div id="planner-list"><div class="empty-state card"><div class="ei">🗓️</div><p>Add a plan for an upcoming time period.</p></div></div>
+  </div>
+
+  <!-- Plan Day Schedule -->
+  <div class="page" id="page-c-plan-schedule" style="padding-bottom:0;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('c-planner')">← Back</button>
+      <div>
+        <h2 id="sched-plan-title" style="font-size:18px;font-weight:800;margin:0;"></h2>
+        <div id="sched-plan-sub" style="font-size:12px;color:var(--text-muted);margin-top:1px;"></div>
+      </div>
+    </div>
+    <!-- Add block form -->
+    <div class="card" style="margin-bottom:16px;padding:14px 16px;">
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="form-group" style="margin:0;flex:2;min-width:140px;">
+          <label style="font-size:11px;">Activity</label>
+          <input type="text" id="sched-label" placeholder="e.g. SAT Prep, Study, Break…">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:11px;">From</label>
+          <input type="time" id="sched-start" value="09:00">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:11px;">To</label>
+          <input type="time" id="sched-end" value="10:00">
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;padding-bottom:2px;" id="sched-color-row"></div>
+        <button class="btn btn-primary" onclick="addScheduleBlock()" style="flex-shrink:0;padding-bottom:8px;">+ Add</button>
+      </div>
+    </div>
+    <!-- 24h Timeline -->
+    <div style="display:flex;gap:0;overflow-y:auto;max-height:calc(100vh - 260px);padding-bottom:20px;">
+      <!-- Hour labels -->
+      <div style="flex-shrink:0;width:52px;padding-top:0;user-select:none;" id="sched-labels"></div>
+      <!-- Events column -->
+      <div style="flex:1;position:relative;border-left:2px solid var(--border);" id="sched-grid"></div>
+    </div>
   </div>
 
   <!-- Deadlines -->
@@ -3609,11 +3658,101 @@ function renderPlanner() {
           <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${active?' <span class="badge badge-green" style="margin-left:6px;">Active</span>':''}</div>
           ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
         </div>
-        <div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
+        <div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="openPlanSchedule('${p.id}')">📅 Schedule</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
       </div>
       ${planHoursListHtml(p)}
     </div>`;
   }).join('');
+}
+
+// ============================================================
+// PLAN DAY SCHEDULE
+// ============================================================
+const SCHED_COLORS = ['#6366f1','#22c55e','#f59e0b','#ef4444','#3b82f6','#ec4899','#14b8a6','#f97316'];
+const SCHED_PX_PER_HOUR = 64;
+let _schedPlanId = null;
+let _schedColor = SCHED_COLORS[0];
+
+function openPlanSchedule(planId) {
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  _schedPlanId = planId;
+  if (!p.schedule) p.schedule = [];
+  const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('sched-plan-title').textContent = p.title || 'Day Schedule';
+  document.getElementById('sched-plan-sub').textContent = fmt(p.start) + ' – ' + fmt(p.end);
+  // colour swatches
+  document.getElementById('sched-color-row').innerHTML = SCHED_COLORS.map(c =>
+    `<div class="sched-color-swatch${c===_schedColor?' active':''}" style="background:${c};" onclick="schedPickColor('${c}',this)"></div>`
+  ).join('');
+  renderScheduleTimeline();
+  showPage('c-plan-schedule');
+}
+
+function schedPickColor(c, el) {
+  _schedColor = c;
+  document.querySelectorAll('.sched-color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function renderScheduleTimeline() {
+  const p = DB.planner.find(x => x.id === _schedPlanId); if (!p) return;
+  const blocks = p.schedule || [];
+  const totalH = 24 * SCHED_PX_PER_HOUR;
+
+  // Hour labels + grid lines
+  const labels = document.getElementById('sched-labels');
+  const grid   = document.getElementById('sched-grid');
+  grid.style.height = totalH + 'px';
+
+  let labelsHtml = '', linesHtml = '';
+  for (let h = 0; h < 24; h++) {
+    const y = h * SCHED_PX_PER_HOUR;
+    const label = h === 0 ? '12am' : h < 12 ? h+'am' : h === 12 ? '12pm' : (h-12)+'pm';
+    labelsHtml += `<div style="position:absolute;top:${y}px;right:8px;font-size:10px;font-weight:700;color:var(--text-muted);transform:translateY(-50%);">${label}</div>`;
+    linesHtml  += `<div class="sched-hour-line" style="top:${y}px;"></div>`;
+  }
+  labels.style.position = 'relative';
+  labels.style.height   = totalH + 'px';
+  labels.innerHTML = labelsHtml;
+
+  // Event blocks
+  const blocksHtml = blocks.map(b => {
+    const [sh, sm] = b.start.split(':').map(Number);
+    const [eh, em] = b.end.split(':').map(Number);
+    const top    = (sh * 60 + sm) / 60 * SCHED_PX_PER_HOUR;
+    const height = Math.max(20, (eh * 60 + em - sh * 60 - sm) / 60 * SCHED_PX_PER_HOUR);
+    const fmt12  = (h, m) => { const ap = h < 12 ? 'am' : 'pm'; const hh = h % 12 || 12; return hh + (m ? ':'+String(m).padStart(2,'0') : '') + ap; };
+    return `<div class="sched-block" style="top:${top}px;height:${height}px;background:${b.color||SCHED_COLORS[0]};" onclick="deleteScheduleBlock('${b.id}')">
+      <div class="sched-block-title">${b.label}</div>
+      ${height > 28 ? `<div class="sched-block-time">${fmt12(sh,sm)} – ${fmt12(eh,em)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = linesHtml + blocksHtml;
+}
+
+function addScheduleBlock() {
+  const label = document.getElementById('sched-label').value.trim();
+  const start = document.getElementById('sched-start').value;
+  const end   = document.getElementById('sched-end').value;
+  if (!label) { alert('Enter an activity name.'); return; }
+  if (!start || !end || start >= end) { alert('End time must be after start time.'); return; }
+  const p = DB.planner.find(x => x.id === _schedPlanId); if (!p) return;
+  if (!p.schedule) p.schedule = [];
+  p.schedule.push({ id: uid(), label, start, end, color: _schedColor });
+  p.schedule.sort((a, b) => a.start.localeCompare(b.start));
+  save();
+  document.getElementById('sched-label').value = '';
+  // advance start to end for next block
+  document.getElementById('sched-start').value = end;
+  renderScheduleTimeline();
+}
+
+function deleteScheduleBlock(blockId) {
+  if (!confirm('Remove this block?')) return;
+  const p = DB.planner.find(x => x.id === _schedPlanId); if (!p) return;
+  p.schedule = (p.schedule || []).filter(b => b.id !== blockId);
+  save(); renderScheduleTimeline();
 }
 
 // ============================================================
