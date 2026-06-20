@@ -1070,7 +1070,7 @@ a:hover{text-decoration:underline;}
     <div class="card"><textarea id="notes-content" style="width:100%;min-height:420px;border:none;resize:vertical;font-size:14px;outline:none;" placeholder="Start typing your notes here…" oninput="DB.collegeNotes=this.value;save()"></textarea></div>
   </div>
   <!-- Mind Map -->
-  <div class="page" id="page-c-mindmap" style="padding:0;height:calc(100vh - 0px);display:none;flex-direction:column;">
+  <div class="page" id="page-c-mindmap" style="padding:0;height:100vh;max-width:none;width:100%;box-sizing:border-box;display:none;flex-direction:column;">
     <div class="mm-toolbar" id="mm-toolbar">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <button class="btn btn-primary btn-sm" onclick="mmAddNode()">+ Node</button>
@@ -2615,6 +2615,10 @@ function initMindmap() {
     _mmCanvas.addEventListener('mouseup',   _mmUp);
     _mmCanvas.addEventListener('dblclick',  _mmDbl);
     _mmCanvas.addEventListener('wheel', e => { e.preventDefault(); const f = e.deltaY < 0 ? 1.1 : 0.9; const r = _mmCanvas.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top; _mm.panX = mx - (mx - _mm.panX)*f; _mm.panY = my - (my - _mm.panY)*f; _mm.zoom = Math.max(0.2, Math.min(3, _mm.zoom*f)); _mmRender(); }, {passive:false});
+    // Touch support (mobile)
+    _mmCanvas.addEventListener('touchstart', _mmTouchStart, {passive:false});
+    _mmCanvas.addEventListener('touchmove',  _mmTouchMove,  {passive:false});
+    _mmCanvas.addEventListener('touchend',   _mmTouchEnd,   {passive:false});
     window.addEventListener('resize', _mmResize);
     // colour swatches
     const cp = document.getElementById('mm-colors');
@@ -2731,6 +2735,40 @@ function _mmDbl(e) {
   inp.style.fontSize=(13*_mm.zoom)+'px';
   inp.value=hit.text||''; inp.focus(); inp.select();
   _mmRender();
+}
+// Touch handlers (mobile) — translate touch into the same mouse-driven logic
+let _mmLastTap = 0, _mmPinchDist = null;
+function _mmTouchPoint(t) { const r=_mmCanvas.getBoundingClientRect(); return {clientX:t.clientX-r.left+r.left, clientY:t.clientY-r.top+r.top}; }
+function _mmTouchStart(e) {
+  e.preventDefault();
+  if (e.touches.length === 2) {
+    _mmPinchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    return;
+  }
+  const t = e.touches[0];
+  const now = Date.now();
+  if (now - _mmLastTap < 350) { _mmDbl({clientX:t.clientX, clientY:t.clientY}); _mmLastTap = 0; return; }
+  _mmLastTap = now;
+  _mmDown({clientX:t.clientX, clientY:t.clientY});
+}
+function _mmTouchMove(e) {
+  e.preventDefault();
+  if (e.touches.length === 2 && _mmPinchDist !== null) {
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const f = d / _mmPinchDist; _mmPinchDist = d;
+    const r = _mmCanvas.getBoundingClientRect();
+    const mx = (e.touches[0].clientX+e.touches[1].clientX)/2 - r.left, my = (e.touches[0].clientY+e.touches[1].clientY)/2 - r.top;
+    _mm.panX = mx - (mx - _mm.panX)*f; _mm.panY = my - (my - _mm.panY)*f; _mm.zoom = Math.max(0.2, Math.min(3, _mm.zoom*f));
+    _mmRender(); return;
+  }
+  if (!e.touches.length) return;
+  const t = e.touches[0];
+  _mmMove({clientX:t.clientX, clientY:t.clientY});
+}
+function _mmTouchEnd(e) {
+  e.preventDefault();
+  _mmPinchDist = null;
+  _mmUp();
 }
 function mmEditKeydown(e){if(e.key==='Escape'||e.key==='Enter'&&!e.shiftKey){e.preventDefault();mmCloseEdit();}}
 function mmEditResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
