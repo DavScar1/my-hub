@@ -6807,12 +6807,17 @@ function renderBizCalendar() {
   const dow = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   let html = dow.map(d => `<div class="biz-cal-dow">${d}</div>`).join('');
   for (let i = 0; i < leadingBlank; i++) html += `<div class="biz-cal-day empty"></div>`;
+  const cfOrders = DB.bizCashflow || [];
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const orders = DB.bizOrders.filter(o => o.date === ds);
+    const arrivals = cfOrders.filter(o => o.arrivalDate === ds);
+    const cashIns  = cfOrders.filter(o => o.cashInDate === ds);
     html += `<div class="biz-cal-day ${ds === todayStr ? 'today' : ''}" onclick="openOrderModal(null,'${ds}')">
       <div class="biz-cal-daynum">${d}</div>
       ${orders.map(o => `<div class="biz-cal-order" onclick="event.stopPropagation();openOrderModal('${o.id}')" style="${o.done ? 'opacity:.5;text-decoration:line-through;' : ''}" title="${o.supplier}${o.notes ? ' — ' + o.notes : ''}">${o.supplier}</div>`).join('')}
+      ${arrivals.map(o => `<div class="biz-cal-order" onclick="event.stopPropagation();openCFModal('${o.id}')" style="background:#fef2f2;color:#b91c1c;" title="Stock arriving: ${o.name}">📦 ${o.name}</div>`).join('')}
+      ${cashIns.map(o => `<div class="biz-cal-order" onclick="event.stopPropagation();openCFModal('${o.id}')" style="background:#eff6ff;color:#1d4ed8;" title="Cash in: ${o.name}">💰 ${o.name}</div>`).join('')}
     </div>`;
   }
   document.getElementById('biz-cal-grid').innerHTML = html;
