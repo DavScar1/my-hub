@@ -796,6 +796,9 @@ a:hover{text-decoration:underline;}
       <span class="icon">📦</span>Inventory
       <span class="nbadge" id="nav-biz-low-badge" style="display:none;"></span>
     </button>
+    <button class="nav-item" onclick="showPage('b-cashflow')">
+      <span class="icon">💸</span>Cash Flow
+    </button>
     <button class="nav-item" onclick="showPage('b-calendar')">
       <span class="icon">🗓️</span>Supplier Calendar
       <span class="nbadge" id="nav-biz-order-badge" style="display:none;"></span>
@@ -1678,6 +1681,48 @@ a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <!-- Cash Flow Timeline -->
+  <div class="page" id="page-b-cashflow">
+    <div class="section-header" style="margin-bottom:16px;">
+      <div>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">💸 Cash Flow Timeline</h2>
+        <p style="color:var(--text-secondary);font-size:13px;margin-top:4px;">Track each order from payment to cash received — spot your cash gaps at a glance.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openCFModal()">+ Add Order</button>
+    </div>
+    <div id="cf-summary" style="margin-bottom:16px;"></div>
+    <div class="card" style="padding:0;overflow-x:auto;">
+      <div id="cf-gantt" style="min-width:600px;"></div>
+    </div>
+  </div>
+
+  <!-- CF Modal -->
+  <div class="modal-overlay" id="cf-modal">
+    <div class="modal" style="max-width:480px;">
+      <h3 id="cf-modal-title">Add Order</h3>
+      <input type="hidden" id="cf-edit-id">
+      <div class="form-group"><label>Order Name</label><input type="text" id="cf-name" placeholder="e.g. Mega Dream Batch 6"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Order Date <span style="font-size:10px;color:var(--text-muted);">(money goes out)</span></label><input type="date" id="cf-order-date"></div>
+        <div class="form-group"><label>Order Cost (€)</label><input type="number" id="cf-cost" placeholder="0.00" min="0" step="0.01"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Arrival Date</label><input type="date" id="cf-arrive-date"></div>
+        <div class="form-group"><label>Expected Revenue (€)</label><input type="number" id="cf-revenue" placeholder="0.00" min="0" step="0.01"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Sell-By Date <span style="font-size:10px;color:var(--text-muted);">(est. all sold)</span></label><input type="date" id="cf-sellby-date"></div>
+        <div class="form-group"><label>Cash-In Date <span style="font-size:10px;color:var(--text-muted);">(you receive money)</span></label><input type="date" id="cf-cashin-date"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="cf-notes" rows="2" placeholder="Supplier name, platform, anything relevant…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="cf-delete-btn" style="display:none;margin-right:auto;" onclick="deleteCFOrder()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeModal('cf-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCFOrder()">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Supplier Calendar -->
   <div class="page" id="page-b-calendar">
     <div class="section-header" style="margin-bottom:18px;">
@@ -2507,6 +2552,7 @@ function ensureDBDefaults() {
   if (!DB.nutritionLog) DB.nutritionLog = {};
   if (DB.calorieGoal === undefined) DB.calorieGoal = 0;
   if (!DB.bizSales) DB.bizSales = [];
+  if (!DB.bizCashflow) DB.bizCashflow = [];
   if (!DB.bizInventory) DB.bizInventory = [];
   if (!DB.bizOrders) DB.bizOrders = [];
   if (!DB.bizCalMonth) DB.bizCalMonth = today().slice(0,7);
@@ -2776,6 +2822,7 @@ function renderPage(id) {
   if (id === 'b-inventory') renderBizInventory();
   if (id === 'b-calendar') renderBizCalendar();
   if (id === 'b-analytics') renderBizAnalytics();
+  if (id === 'b-cashflow') renderCashFlow();
   if (id === 'c-commonapp') renderCommonApp();
 }
 
@@ -7687,6 +7734,207 @@ window.cloudSync = function() {
       });
   }, 1200);
 };
+
+// ============================================================
+// CASH FLOW TIMELINE
+// ============================================================
+function renderCashFlow() {
+  const orders = DB.bizCashflow || [];
+  renderCFSummary(orders);
+  renderCFGantt(orders);
+}
+
+function renderCFSummary(orders) {
+  const el = document.getElementById('cf-summary');
+  if (!el) return;
+  if (!orders.length) { el.innerHTML = ''; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const gaps = orders
+    .filter(o => o.orderDate && o.cashInDate)
+    .map(o => (new Date(o.cashInDate) - new Date(o.orderDate)) / 86400000);
+  const avgGap = gaps.length ? Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length) : null;
+  const inTransit = orders.filter(o => {
+    if (!o.orderDate || !o.arrivalDate) return false;
+    const od = new Date(o.orderDate), ar = new Date(o.arrivalDate);
+    return od <= today && today < ar;
+  });
+  const selling = orders.filter(o => {
+    if (!o.arrivalDate || !o.sellByDate) return false;
+    const ar = new Date(o.arrivalDate), sb = new Date(o.sellByDate);
+    return ar <= today && today < sb;
+  });
+  const upcoming = orders
+    .filter(o => o.cashInDate && new Date(o.cashInDate) >= today)
+    .sort((a,b) => new Date(a.cashInDate)-new Date(b.cashInDate))[0];
+  const cashOut = orders.filter(o=>o.orderDate&&new Date(o.orderDate)<=today).reduce((a,o)=>a+(o.orderCost||0),0);
+  const cashIn  = orders.filter(o=>o.cashInDate&&new Date(o.cashInDate)<=today).reduce((a,o)=>a+(o.expectedRevenue||0),0);
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:4px;">
+    <div class="card" style="padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Avg Cash Gap</div>
+      <div style="font-size:22px;font-weight:800;color:var(--b-accent);">${avgGap !== null ? avgGap+'d' : '—'}</div>
+    </div>
+    <div class="card" style="padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">In Transit</div>
+      <div style="font-size:22px;font-weight:800;color:#ef4444;">${inTransit.length}</div>
+    </div>
+    <div class="card" style="padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Currently Selling</div>
+      <div style="font-size:22px;font-weight:800;color:#22c55e;">${selling.length}</div>
+    </div>
+    <div class="card" style="padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Next Cash In</div>
+      <div style="font-size:16px;font-weight:700;color:#3b82f6;">${upcoming ? fmtDateShort(upcoming.cashInDate) : '—'}</div>
+      ${upcoming ? `<div style="font-size:10px;color:var(--text-secondary);">€${(upcoming.expectedRevenue||0).toFixed(2)}</div>` : ''}
+    </div>
+    <div class="card" style="padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Net Position</div>
+      <div style="font-size:20px;font-weight:800;color:${cashIn-cashOut>=0?'#22c55e':'#ef4444'};">€${(cashIn-cashOut).toFixed(2)}</div>
+      <div style="font-size:10px;color:var(--text-secondary);">received − paid out</div>
+    </div>
+  </div>`;
+}
+
+function renderCFGantt(orders) {
+  const el = document.getElementById('cf-gantt');
+  if (!el) return;
+  if (!orders.length) {
+    el.innerHTML = `<div style="padding:48px;text-align:center;color:var(--text-secondary);">
+      <div style="font-size:40px;margin-bottom:8px;">📦</div>
+      <div style="font-weight:600;">No orders yet</div>
+      <div style="font-size:13px;margin-top:4px;">Add your first order to start tracking cash flow.</div>
+    </div>`;
+    return;
+  }
+  // Determine date range
+  const allDates = orders.flatMap(o => [o.orderDate, o.arrivalDate, o.sellByDate, o.cashInDate].filter(Boolean));
+  const minD = new Date(allDates.reduce((a,b)=>a<b?a:b));
+  const maxD = new Date(allDates.reduce((a,b)=>a>b?a:b));
+  minD.setDate(minD.getDate() - 3);
+  maxD.setDate(maxD.getDate() + 5);
+  const totalDays = Math.max(1, (maxD - minD) / 86400000);
+  const pct = d => ((new Date(d) - minD) / 86400000 / totalDays * 100).toFixed(2) + '%';
+  const width = d1 => Math.max(0.5, (new Date(d1) - minD) / 86400000 / totalDays * 100).toFixed(2) + '%'; // unused
+  const rangeW = (d1, d2) => Math.max(0.5, (new Date(d2) - new Date(d1)) / 86400000 / totalDays * 100).toFixed(2) + '%';
+  const todayPct = ((new Date() - minD) / 86400000 / totalDays * 100);
+
+  // Axis labels (every ~7 days)
+  let axisCursor = new Date(minD);
+  let axisLabels = '';
+  while (axisCursor <= maxD) {
+    const p = ((axisCursor - minD) / 86400000 / totalDays * 100).toFixed(2);
+    axisLabels += `<div style="position:absolute;left:${p}%;transform:translateX(-50%);font-size:10px;color:var(--text-secondary);white-space:nowrap;">${fmtDateShort(axisCursor.toISOString().slice(0,10))}</div>`;
+    axisCursor.setDate(axisCursor.getDate() + 7);
+  }
+
+  const rows = orders.map(o => {
+    const hasTransit  = o.orderDate && o.arrivalDate;
+    const hasSelling  = o.arrivalDate && o.sellByDate;
+    const hasCashIn   = o.cashInDate;
+    const cashGap = (o.orderDate && o.cashInDate)
+      ? Math.round((new Date(o.cashInDate)-new Date(o.orderDate))/86400000) + 'd gap'
+      : '';
+    return `<div style="padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;">
+      <div style="width:160px;min-width:160px;font-size:12px;font-weight:600;padding-right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.name||'Order'}">${o.name||'Order'}<br><span style="font-weight:400;color:var(--text-secondary);font-size:10px;">€${(o.orderCost||0).toFixed(0)} out · €${(o.expectedRevenue||0).toFixed(0)} in · ${cashGap}</span></div>
+      <div style="flex:1;position:relative;height:28px;">
+        ${hasTransit ? `<div title="In transit: ${o.orderDate} → ${o.arrivalDate}" onclick="openCFModal('${o.id}')" style="cursor:pointer;position:absolute;left:${pct(o.orderDate)};width:${rangeW(o.orderDate,o.arrivalDate)};height:20px;top:4px;background:#ef4444;border-radius:4px;opacity:0.85;"></div>` : ''}
+        ${hasSelling ? `<div title="Selling: ${o.arrivalDate} → ${o.sellByDate}" onclick="openCFModal('${o.id}')" style="cursor:pointer;position:absolute;left:${pct(o.arrivalDate)};width:${rangeW(o.arrivalDate,o.sellByDate)};height:20px;top:4px;background:#22c55e;border-radius:4px;opacity:0.85;"></div>` : ''}
+        ${hasCashIn  ? `<div title="Cash in: ${o.cashInDate}" onclick="openCFModal('${o.id}')" style="cursor:pointer;position:absolute;left:${pct(o.cashInDate)};transform:translateX(-50%);width:12px;height:12px;top:8px;background:#3b82f6;border-radius:50%;border:2px solid white;box-shadow:0 0 0 2px #3b82f6;"></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:stretch;">
+      <div style="width:160px;min-width:160px;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:2px solid var(--border);">ORDER</div>
+      <div style="flex:1;position:relative;height:32px;border-bottom:2px solid var(--border);">${axisLabels}
+        ${todayPct >= 0 && todayPct <= 100 ? `<div style="position:absolute;left:${todayPct.toFixed(2)}%;top:0;bottom:0;width:2px;background:#f59e0b;z-index:1;" title="Today"></div>` : ''}
+      </div>
+    </div>
+    ${rows}
+    <div style="padding:10px 12px;display:flex;gap:16px;font-size:11px;color:var(--text-secondary);border-top:1px solid var(--border);">
+      <span><span style="display:inline-block;width:12px;height:8px;background:#ef4444;border-radius:2px;margin-right:4px;"></span>In transit (money out)</span>
+      <span><span style="display:inline-block;width:12px;height:8px;background:#22c55e;border-radius:2px;margin-right:4px;"></span>Selling</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:50%;margin-right:4px;"></span>Cash received</span>
+      <span><span style="display:inline-block;width:2px;height:12px;background:#f59e0b;margin-right:4px;vertical-align:middle;"></span>Today</span>
+    </div>`;
+}
+
+function fmtDateShort(d) {
+  if (!d) return '';
+  const [y,m,day] = d.slice(0,10).split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]}`;
+}
+
+function openCFModal(id) {
+  const m = document.getElementById('cf-modal');
+  const del = document.getElementById('cf-delete-btn');
+  document.getElementById('cf-edit-id').value = '';
+  document.getElementById('cf-name').value = '';
+  document.getElementById('cf-order-date').value = '';
+  document.getElementById('cf-arrive-date').value = '';
+  document.getElementById('cf-sellby-date').value = '';
+  document.getElementById('cf-cashin-date').value = '';
+  document.getElementById('cf-cost').value = '';
+  document.getElementById('cf-revenue').value = '';
+  document.getElementById('cf-notes').value = '';
+  document.getElementById('cf-modal-title').textContent = 'Add Order';
+  del.style.display = 'none';
+  if (id) {
+    const o = (DB.bizCashflow||[]).find(x=>x.id===id);
+    if (o) {
+      document.getElementById('cf-edit-id').value = o.id;
+      document.getElementById('cf-name').value = o.name||'';
+      document.getElementById('cf-order-date').value = o.orderDate||'';
+      document.getElementById('cf-arrive-date').value = o.arrivalDate||'';
+      document.getElementById('cf-sellby-date').value = o.sellByDate||'';
+      document.getElementById('cf-cashin-date').value = o.cashInDate||'';
+      document.getElementById('cf-cost').value = o.orderCost||'';
+      document.getElementById('cf-revenue').value = o.expectedRevenue||'';
+      document.getElementById('cf-notes').value = o.notes||'';
+      document.getElementById('cf-modal-title').textContent = 'Edit Order';
+      del.style.display = 'inline-flex';
+    }
+  }
+  m.classList.add('open');
+}
+
+function saveCFOrder() {
+  const editId = document.getElementById('cf-edit-id').value;
+  const name = document.getElementById('cf-name').value.trim();
+  if (!name) { alert('Please enter an order name.'); return; }
+  const entry = {
+    id: editId || uid(),
+    name,
+    orderDate:       document.getElementById('cf-order-date').value,
+    arrivalDate:     document.getElementById('cf-arrive-date').value,
+    sellByDate:      document.getElementById('cf-sellby-date').value,
+    cashInDate:      document.getElementById('cf-cashin-date').value,
+    orderCost:       parseFloat(document.getElementById('cf-cost').value)||0,
+    expectedRevenue: parseFloat(document.getElementById('cf-revenue').value)||0,
+    notes:           document.getElementById('cf-notes').value.trim(),
+  };
+  if (!DB.bizCashflow) DB.bizCashflow = [];
+  if (editId) {
+    const idx = DB.bizCashflow.findIndex(x=>x.id===editId);
+    if (idx > -1) DB.bizCashflow[idx] = entry; else DB.bizCashflow.push(entry);
+  } else {
+    DB.bizCashflow.push(entry);
+  }
+  save();
+  closeModal('cf-modal');
+  renderCashFlow();
+}
+
+function deleteCFOrder() {
+  const id = document.getElementById('cf-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this order?')) return;
+  DB.bizCashflow = (DB.bizCashflow||[]).filter(x=>x.id!==id);
+  save();
+  closeModal('cf-modal');
+  renderCashFlow();
+}
 </script>
 </body>
 </html>
