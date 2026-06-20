@@ -1683,17 +1683,19 @@ a:hover{text-decoration:underline;}
 
   <!-- Cash Flow Timeline -->
   <div class="page" id="page-b-cashflow">
-    <div class="section-header" style="margin-bottom:16px;">
+    <div class="section-header" style="margin-bottom:20px;">
       <div>
-        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">💸 Cash Flow Timeline</h2>
-        <p style="color:var(--text-secondary);font-size:13px;margin-top:4px;">Track each order from payment to cash received — spot your cash gaps at a glance.</p>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">💸 Cash Flow</h2>
+        <p style="color:var(--text-secondary);font-size:13px;margin-top:3px;">Track money out → stock arriving → selling → cash in</p>
       </div>
       <button class="btn btn-primary" onclick="openCFModal()">+ Add Order</button>
     </div>
-    <div id="cf-summary" style="margin-bottom:16px;"></div>
-    <div class="card" style="padding:0;overflow-x:auto;">
-      <div id="cf-gantt" style="min-width:600px;"></div>
-    </div>
+    <!-- Summary strip -->
+    <div id="cf-summary" style="margin-bottom:20px;"></div>
+    <!-- Filter tabs -->
+    <div id="cf-tabs" style="display:flex;gap:6px;margin-bottom:16px;"></div>
+    <!-- Order cards -->
+    <div id="cf-cards"></div>
   </div>
 
 
@@ -7561,66 +7563,151 @@ setInterval(initDateGreeting,60000);
 // ============================================================
 // CASH FLOW TIMELINE
 // ============================================================
-function renderCashFlow() {
-  const orders = DB.bizCashflow || [];
-  renderCFSummary(orders);
-  renderCFGantt(orders);
-}
-function renderCFSummary(orders) {
-  const el = document.getElementById('cf-summary');
-  if (!el) return;
-  if (!orders.length) { el.innerHTML = ''; return; }
-  const tod = new Date(); tod.setHours(0,0,0,0);
-  const gaps = orders.filter(o=>o.orderDate&&o.cashInDate).map(o=>(new Date(o.cashInDate)-new Date(o.orderDate))/86400000);
-  const avgGap = gaps.length ? Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length) : null;
-  const inTransit = orders.filter(o=>o.orderDate&&o.arrivalDate&&new Date(o.orderDate)<=tod&&tod<new Date(o.arrivalDate));
-  const selling   = orders.filter(o=>o.arrivalDate&&o.sellByDate&&new Date(o.arrivalDate)<=tod&&tod<new Date(o.sellByDate));
-  const upcoming  = orders.filter(o=>o.cashInDate&&new Date(o.cashInDate)>=tod).sort((a,b)=>new Date(a.cashInDate)-new Date(b.cashInDate))[0];
-  const cashOut   = orders.filter(o=>o.orderDate&&new Date(o.orderDate)<=tod).reduce((a,o)=>a+(o.orderCost||0),0);
-  const cashIn    = orders.filter(o=>o.cashInDate&&new Date(o.cashInDate)<=tod).reduce((a,o)=>a+(o.expectedRevenue||0),0);
-  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:4px;">
-    <div class="card" style="padding:14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Avg Cash Gap</div><div style="font-size:22px;font-weight:800;color:var(--b-accent);">${avgGap!==null?avgGap+'d':'—'}</div></div>
-    <div class="card" style="padding:14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">In Transit</div><div style="font-size:22px;font-weight:800;color:#ef4444;">${inTransit.length}</div></div>
-    <div class="card" style="padding:14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Currently Selling</div><div style="font-size:22px;font-weight:800;color:#22c55e;">${selling.length}</div></div>
-    <div class="card" style="padding:14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Next Cash In</div><div style="font-size:16px;font-weight:700;color:#3b82f6;">${upcoming?cfFmtDate(upcoming.cashInDate):'—'}</div>${upcoming?'<div style="font-size:10px;color:var(--text-secondary);">€'+(upcoming.expectedRevenue||0).toFixed(2)+'</div>':''}</div>
-    <div class="card" style="padding:14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Net Position</div><div style="font-size:20px;font-weight:800;color:${cashIn-cashOut>=0?'#22c55e':'#ef4444'};">€${(cashIn-cashOut).toFixed(2)}</div><div style="font-size:10px;color:var(--text-secondary);">received − paid out</div></div>
-  </div>`;
-}
+var _cfFilter = 'all';
+
 function cfFmtDate(d) {
-  if (!d) return '';
-  const parts = d.slice(0,10).split('-');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return parseInt(parts[2])+' '+months[parseInt(parts[1])-1];
+  if (!d) return '—';
+  var p = d.slice(0,10).split('-');
+  var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return parseInt(p[2])+' '+mo[parseInt(p[1])-1];
 }
-function renderCFGantt(orders) {
-  const el = document.getElementById('cf-gantt');
-  if (!el) return;
+
+function cfStatus(o) {
+  var tod = new Date(); tod.setHours(0,0,0,0);
+  if (o.cashInDate && new Date(o.cashInDate) <= tod) return 'complete';
+  if (o.arrivalDate && o.sellByDate && new Date(o.arrivalDate) <= tod && tod < new Date(o.sellByDate)) return 'selling';
+  if (o.orderDate && o.arrivalDate && new Date(o.orderDate) <= tod && tod < new Date(o.arrivalDate)) return 'transit';
+  if (o.cashInDate && new Date(o.cashInDate) > tod) return 'awaiting';
+  return 'upcoming';
+}
+
+function renderCashFlow() {
+  var orders = DB.bizCashflow || [];
+  var tod = new Date(); tod.setHours(0,0,0,0);
+
+  // Summary strip — always shown
+  var gaps = orders.filter(function(o){return o.orderDate&&o.cashInDate;}).map(function(o){return (new Date(o.cashInDate)-new Date(o.orderDate))/86400000;});
+  var avgGap = gaps.length ? Math.round(gaps.reduce(function(a,b){return a+b;},0)/gaps.length) : null;
+  var inTransit = orders.filter(function(o){return cfStatus(o)==='transit';});
+  var selling   = orders.filter(function(o){return cfStatus(o)==='selling';});
+  var cashOut   = orders.reduce(function(a,o){return a+(o.orderCost||0);},0);
+  var cashIn    = orders.filter(function(o){return o.cashInDate&&new Date(o.cashInDate)<=tod;}).reduce(function(a,o){return a+(o.expectedRevenue||0);},0);
+  var net = cashIn - cashOut;
+
+  var sumEl = document.getElementById('cf-summary');
+  if (sumEl) {
+    if (!orders.length) {
+      sumEl.innerHTML = '';
+    } else {
+      sumEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">'
+        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Avg Cash Gap</div><div style="font-size:26px;font-weight:800;color:var(--b-accent);">'+(avgGap!==null?avgGap+'d':'—')+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">order → cash in</div></div>'
+        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">In Transit</div><div style="font-size:26px;font-weight:800;color:#ef4444;">'+inTransit.length+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">orders en route</div></div>'
+        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selling Now</div><div style="font-size:26px;font-weight:800;color:#22c55e;">'+selling.length+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">active batches</div></div>'
+        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Spent</div><div style="font-size:26px;font-weight:800;color:#f59e0b;">€'+cashOut.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">across all orders</div></div>'
+        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Net Position</div><div style="font-size:26px;font-weight:800;color:'+(net>=0?'#22c55e':'#ef4444')+';">€'+net.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">received − paid</div></div>'
+        +'</div>';
+    }
+  }
+
+  // Filter tabs
+  var tabs = [
+    {id:'all', label:'All orders', count: orders.length},
+    {id:'transit', label:'🚚 In transit', count: orders.filter(function(o){return cfStatus(o)==='transit';}).length},
+    {id:'selling', label:'🛍 Selling', count: orders.filter(function(o){return cfStatus(o)==='selling';}).length},
+    {id:'awaiting', label:'⏳ Awaiting cash', count: orders.filter(function(o){return cfStatus(o)==='awaiting';}).length},
+    {id:'complete', label:'✅ Complete', count: orders.filter(function(o){return cfStatus(o)==='complete';}).length}
+  ];
+  var tabEl = document.getElementById('cf-tabs');
+  if (tabEl) {
+    tabEl.innerHTML = tabs.map(function(t){
+      var active = _cfFilter===t.id;
+      return '<button onclick="_cfFilter=\''+t.id+'\';renderCashFlow();" style="padding:7px 14px;border-radius:20px;border:1.5px solid '+(active?'var(--b-accent)':'var(--border)')+';background:'+(active?'var(--b-accent)':'transparent')+';color:'+(active?'white':'var(--text)')+';font-size:13px;font-weight:600;cursor:pointer;">'+t.label+(t.count?' <span style="font-size:11px;opacity:.75;">('+t.count+')</span>':'')+'</button>';
+    }).join('');
+    tabEl.style.display = orders.length ? 'flex' : 'none';
+    tabEl.style.flexWrap = 'wrap';
+  }
+
+  // Order cards
+  var cardsEl = document.getElementById('cf-cards');
+  if (!cardsEl) return;
+
+  var filtered = _cfFilter==='all' ? orders : orders.filter(function(o){return cfStatus(o)===_cfFilter;});
+
   if (!orders.length) {
-    el.innerHTML = '<div style="padding:48px;text-align:center;color:var(--text-secondary);"><div style="font-size:40px;margin-bottom:8px;">📦</div><div style="font-weight:600;">No orders yet</div><div style="font-size:13px;margin-top:4px;">Add your first order to start tracking cash flow.</div></div>';
+    cardsEl.innerHTML = '<div class="card" style="padding:56px 24px;text-align:center;">'
+      +'<div style="font-size:48px;margin-bottom:12px;">📦</div>'
+      +'<div style="font-size:17px;font-weight:700;margin-bottom:6px;">No orders yet</div>'
+      +'<div style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">Add your first order batch to start tracking your cash flow gap.</div>'
+      +'<button class="btn btn-primary" onclick="openCFModal()">+ Add First Order</button>'
+      +'</div>';
     return;
   }
-  const allDates = orders.flatMap(o=>[o.orderDate,o.arrivalDate,o.sellByDate,o.cashInDate].filter(Boolean));
-  const minD = new Date(allDates.reduce((a,b)=>a<b?a:b)); minD.setDate(minD.getDate()-3);
-  const maxD = new Date(allDates.reduce((a,b)=>a>b?a:b)); maxD.setDate(maxD.getDate()+5);
-  const totalDays = Math.max(1,(maxD-minD)/86400000);
-  const pct  = d => ((new Date(d)-minD)/86400000/totalDays*100).toFixed(2)+'%';
-  const rngW = (d1,d2) => Math.max(0.5,(new Date(d2)-new Date(d1))/86400000/totalDays*100).toFixed(2)+'%';
-  const todayPct = ((new Date()-minD)/86400000/totalDays*100);
-  let axisLabels='', cur=new Date(minD);
-  while(cur<=maxD){ const p=((cur-minD)/86400000/totalDays*100).toFixed(2); axisLabels+=`<div style="position:absolute;left:${p}%;transform:translateX(-50%);font-size:10px;color:var(--text-secondary);white-space:nowrap;">${cfFmtDate(cur.toISOString().slice(0,10))}</div>`; cur.setDate(cur.getDate()+7); }
-  const rows = orders.map(o=>{
-    const gap=(o.orderDate&&o.cashInDate)?Math.round((new Date(o.cashInDate)-new Date(o.orderDate))/86400000)+'d gap':'';
-    return `<div style="padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;">
-      <div style="width:160px;min-width:160px;font-size:12px;font-weight:600;padding-right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.name||''}">${o.name||'Order'}<br><span style="font-weight:400;color:var(--text-secondary);font-size:10px;">€${(o.orderCost||0).toFixed(0)} out · €${(o.expectedRevenue||0).toFixed(0)} in · ${gap}</span></div>
-      <div style="flex:1;position:relative;height:28px;">
-        ${o.orderDate&&o.arrivalDate?`<div onclick="openCFModal('${o.id}')" title="In transit" style="cursor:pointer;position:absolute;left:${pct(o.orderDate)};width:${rngW(o.orderDate,o.arrivalDate)};height:20px;top:4px;background:#ef4444;border-radius:4px;opacity:0.85;"></div>`:''}
-        ${o.arrivalDate&&o.sellByDate?`<div onclick="openCFModal('${o.id}')" title="Selling" style="cursor:pointer;position:absolute;left:${pct(o.arrivalDate)};width:${rngW(o.arrivalDate,o.sellByDate)};height:20px;top:4px;background:#22c55e;border-radius:4px;opacity:0.85;"></div>`:''}
-        ${o.cashInDate?`<div onclick="openCFModal('${o.id}')" title="Cash in" style="cursor:pointer;position:absolute;left:${pct(o.cashInDate)};transform:translateX(-50%);width:12px;height:12px;top:8px;background:#3b82f6;border-radius:50%;border:2px solid white;box-shadow:0 0 0 2px #3b82f6;"></div>`:''}
-      </div>
-    </div>`;
+
+  if (!filtered.length) {
+    cardsEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-secondary);font-size:14px;">No orders in this category.</div>';
+    return;
+  }
+
+  // Sort: active first (transit, selling, awaiting), then complete, then upcoming
+  var order_prio = {transit:0, selling:1, awaiting:2, upcoming:3, complete:4};
+  filtered = filtered.slice().sort(function(a,b){ return order_prio[cfStatus(a)] - order_prio[cfStatus(b)]; });
+
+  cardsEl.innerHTML = filtered.map(function(o) {
+    var st = cfStatus(o);
+    var statusMeta = {
+      transit:  {label:'In Transit',     color:'#ef4444', bg:'#fef2f2', step:1},
+      selling:  {label:'Selling',         color:'#22c55e', bg:'#f0fdf4', step:2},
+      awaiting: {label:'Awaiting Cash',   color:'#3b82f6', bg:'#eff6ff', step:3},
+      complete: {label:'Complete',        color:'#6b7280', bg:'#f3f4f6', step:4},
+      upcoming: {label:'Upcoming',        color:'#f59e0b', bg:'#fffbeb', step:0}
+    }[st] || {label:'Unknown', color:'#6b7280', bg:'#f3f4f6', step:0};
+
+    var gap = (o.orderDate&&o.cashInDate) ? Math.round((new Date(o.cashInDate)-new Date(o.orderDate))/86400000) : null;
+    var profit = (o.expectedRevenue||0) - (o.orderCost||0);
+
+    // Pipeline steps
+    var steps = [
+      {icon:'💸', label:'Ordered',  date: o.orderDate,    done: !!o.orderDate},
+      {icon:'📦', label:'Arrived',  date: o.arrivalDate,  done: !!o.arrivalDate && new Date(o.arrivalDate) <= new Date()},
+      {icon:'🛍', label:'Sold',     date: o.sellByDate,   done: !!o.sellByDate && new Date(o.sellByDate) <= new Date()},
+      {icon:'💰', label:'Cash In',  date: o.cashInDate,   done: !!o.cashInDate && new Date(o.cashInDate) <= new Date()}
+    ];
+
+    var pipeline = '<div style="display:flex;align-items:center;gap:0;margin:14px 0 4px;">';
+    steps.forEach(function(s, i) {
+      var active = statusMeta.step === i;
+      var stepColor = s.done ? '#22c55e' : (active ? statusMeta.color : 'var(--border)');
+      pipeline += '<div style="flex:1;text-align:center;">'
+        +'<div style="width:32px;height:32px;border-radius:50%;background:'+(s.done?'#22c55e':(active?statusMeta.color:'var(--surface-alt,#f3f4f6)'))+';display:inline-flex;align-items:center;justify-content:center;font-size:14px;border:2px solid '+(s.done?'#22c55e':(active?statusMeta.color:'var(--border)'))+';margin-bottom:4px;">'+(s.done?'✓':s.icon)+'</div>'
+        +'<div style="font-size:10px;font-weight:600;color:'+(s.done||active?'var(--text)':'var(--text-secondary)')+';">'+s.label+'</div>'
+        +'<div style="font-size:10px;color:var(--text-secondary);">'+cfFmtDate(s.date)+'</div>'
+        +'</div>';
+      if (i < steps.length-1) {
+        pipeline += '<div style="height:2px;width:16px;min-width:16px;background:'+(s.done?'#22c55e':'var(--border)')+';margin-bottom:20px;"></div>';
+      }
+    });
+    pipeline += '</div>';
+
+    return '<div class="card" style="padding:18px 20px;margin-bottom:12px;cursor:pointer;" onclick="openCFModal(\''+o.id+'\')">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px;">'
+      +'<span style="font-size:15px;font-weight:700;">'+o.name+'</span>'
+      +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;background:'+statusMeta.bg+';color:'+statusMeta.color+';">'+statusMeta.label+'</span>'
+      +(gap!==null?'<span style="font-size:11px;color:var(--text-secondary);">'+gap+'d cash gap</span>':'')
+      +'</div>'
+      +(o.notes?'<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">'+o.notes+'</div>':'')
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0;">'
+      +'<div style="font-size:13px;font-weight:700;color:'+(profit>=0?'#22c55e':'#ef4444')+';">'+(profit>=0?'+':'')+'€'+profit.toFixed(0)+' profit</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);">€'+(o.orderCost||0).toFixed(0)+' → €'+(o.expectedRevenue||0).toFixed(0)+'</div>'
+      +'</div>'
+      +'</div>'
+      + pipeline
+      +'</div>';
   }).join('');
-  el.innerHTML = `<div style="display:flex;"><div style="width:160px;min-width:160px;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text-secondary);border-bottom:2px solid var(--border);">ORDER</div><div style="flex:1;position:relative;height:32px;border-bottom:2px solid var(--border);">${axisLabels}${todayPct>=0&&todayPct<=100?`<div style="position:absolute;left:${todayPct.toFixed(2)}%;top:0;bottom:0;width:2px;background:#f59e0b;z-index:1;"></div>`:''}</div></div>${rows}<div style="padding:10px 12px;display:flex;gap:16px;font-size:11px;color:var(--text-secondary);border-top:1px solid var(--border);flex-wrap:wrap;"><span><span style="display:inline-block;width:12px;height:8px;background:#ef4444;border-radius:2px;margin-right:4px;"></span>In transit</span><span><span style="display:inline-block;width:12px;height:8px;background:#22c55e;border-radius:2px;margin-right:4px;"></span>Selling</span><span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:50%;margin-right:4px;"></span>Cash received</span><span><span style="display:inline-block;width:2px;height:12px;background:#f59e0b;margin-right:4px;vertical-align:middle;"></span>Today</span></div>`;
 }
+
 function openCFModal(id) {
   var m=document.getElementById('cf-modal');
   var del=document.getElementById('cf-delete-btn');
