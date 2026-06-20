@@ -1696,32 +1696,6 @@ a:hover{text-decoration:underline;}
     </div>
   </div>
 
-  <!-- CF Modal -->
-  <div class="modal-overlay" id="cf-modal">
-    <div class="modal" style="max-width:480px;">
-      <h3 id="cf-modal-title">Add Order</h3>
-      <input type="hidden" id="cf-edit-id">
-      <div class="form-group"><label>Order Name</label><input type="text" id="cf-name" placeholder="e.g. Mega Dream Batch 6"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group"><label>Order Date <span style="font-size:10px;color:var(--text-muted);">(money goes out)</span></label><input type="date" id="cf-order-date"></div>
-        <div class="form-group"><label>Order Cost (€)</label><input type="number" id="cf-cost" placeholder="0.00" min="0" step="0.01"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group"><label>Arrival Date</label><input type="date" id="cf-arrive-date"></div>
-        <div class="form-group"><label>Expected Revenue (€)</label><input type="number" id="cf-revenue" placeholder="0.00" min="0" step="0.01"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group"><label>Sell-By Date <span style="font-size:10px;color:var(--text-muted);">(est. all sold)</span></label><input type="date" id="cf-sellby-date"></div>
-        <div class="form-group"><label>Cash-In Date <span style="font-size:10px;color:var(--text-muted);">(you receive money)</span></label><input type="date" id="cf-cashin-date"></div>
-      </div>
-      <div class="form-group"><label>Notes</label><textarea id="cf-notes" rows="2" placeholder="Supplier name, platform, anything relevant…"></textarea></div>
-      <div class="form-actions">
-        <button class="btn btn-danger" id="cf-delete-btn" style="display:none;margin-right:auto;" onclick="deleteCFOrder()">Delete</button>
-        <button class="btn btn-secondary" onclick="closeModal('cf-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveCFOrder()">Save</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Supplier Calendar -->
   <div class="page" id="page-b-calendar">
@@ -7584,6 +7558,33 @@ updateBizBadges();
 if(DB.satGoal&&DB.satGoal.total){document.getElementById('sat-goal-total').value=DB.satGoal.total||'';document.getElementById('sat-goal-rw').value=DB.satGoal.rw||'';document.getElementById('sat-goal-math').value=DB.satGoal.math||'';}
 setInterval(initDateGreeting,60000);
 </script>
+
+<!-- CF Modal -->
+<div class="modal-overlay" id="cf-modal">
+  <div class="modal" style="max-width:480px;">
+    <h3 id="cf-modal-title">Add Order</h3>
+    <input type="hidden" id="cf-edit-id">
+    <div class="form-group"><label>Order Name</label><input type="text" id="cf-name" placeholder="e.g. Mega Dream Batch 6"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Order Date <span style="font-size:10px;color:var(--text-muted);">(money goes out)</span></label><input type="date" id="cf-order-date"></div>
+      <div class="form-group"><label>Order Cost (€)</label><input type="number" id="cf-cost" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Arrival Date</label><input type="date" id="cf-arrive-date"></div>
+      <div class="form-group"><label>Expected Revenue (€)</label><input type="number" id="cf-revenue" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Sell-By Date <span style="font-size:10px;color:var(--text-muted);">(est. all sold)</span></label><input type="date" id="cf-sellby-date"></div>
+      <div class="form-group"><label>Cash-In Date <span style="font-size:10px;color:var(--text-muted);">(you receive money)</span></label><input type="date" id="cf-cashin-date"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="cf-notes" rows="2" placeholder="Supplier name, platform, anything relevant…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger" id="cf-delete-btn" style="display:none;margin-right:auto;" onclick="deleteCFOrder()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('cf-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCFOrder()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- Floating timer bar -->
 <div id="timer-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--l-accent);color:white;padding:10px 20px;align-items:center;gap:14px;box-shadow:0 -2px 16px rgba(0,0,0,0.15);">
