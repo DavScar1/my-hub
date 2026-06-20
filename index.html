@@ -940,9 +940,51 @@ a:hover{text-decoration:underline;}
       </div>
     </div>
     <div class="section-header"><h3>Test Attempts</h3><button class="btn btn-primary" onclick="openModal('sat-modal')">+ Add Score</button></div>
-    <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:28px;">
       <table><thead><tr><th>Date</th><th>Total</th><th>R&amp;W</th><th>Math</th><th>Notes</th><th></th></tr></thead>
       <tbody id="sat-table"><tr><td colspan="6"><div class="empty-state"><div class="ei">✏️</div><p>Add SAT scores above.</p></div></td></tr></tbody></table>
+    </div>
+
+    <!-- Study Plan -->
+    <div class="section-header"><h3>📚 Study Plan</h3></div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+        <div><label style="display:block;margin-bottom:4px;">Test Date</label><input type="date" id="sat-plan-test-date" style="width:160px;" oninput="saveSATPlanField('testDate', this.value)"></div>
+        <div id="sat-plan-countdown" style="font-size:13px;font-weight:700;color:var(--c-accent);padding-bottom:9px;"></div>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Topics</h4><button class="btn btn-secondary btn-sm" onclick="addSATTopic()">+ Add Topic</button></div>
+    <div id="sat-plan-topics" style="margin-bottom:24px;"></div>
+
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Study Sessions</h4><button class="btn btn-secondary btn-sm" onclick="openSATSessionModal()">+ Add Session</button></div>
+    <div id="sat-plan-sessions" style="margin-bottom:24px;"></div>
+
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Notes &amp; Strategy</h4></div>
+    <div class="card" style="padding:0;">
+      <textarea id="sat-plan-notes" placeholder="Weak areas, pacing strategy, resources to use, reminders…" style="width:100%;min-height:140px;border:none;resize:vertical;padding:16px;font-size:13px;line-height:1.6;outline:none;background:transparent;font-family:inherit;" oninput="saveSATPlanField('notes', this.value)"></textarea>
+    </div>
+  </div>
+
+  <!-- SAT Study Session Modal -->
+  <div class="modal-overlay" id="sat-session-modal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title" id="sat-session-modal-title">Add Study Session</div>
+        <button class="modal-close" onclick="closeModal('sat-session-modal')">×</button>
+      </div>
+      <input type="hidden" id="sat-session-edit-id">
+      <div class="form-group"><label>Date</label><input type="date" id="sat-session-date"></div>
+      <div class="form-group"><label>Topic</label>
+        <select id="sat-session-topic"></select>
+      </div>
+      <div class="form-group"><label>Duration (minutes)</label><input type="number" id="sat-session-duration" min="0" placeholder="60"></div>
+      <div class="form-group"><label>Notes</label><textarea id="sat-session-notes" rows="2" placeholder="What you'll cover…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="sat-session-delete-btn" style="display:none;margin-right:auto;" onclick="deleteSATSession()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeModal('sat-session-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSATSession()">Save</button>
+      </div>
     </div>
   </div>
 
@@ -2545,6 +2587,18 @@ function ensureDBDefaults() {
     commonEssayStatus:'not_started', commonEssayPrompt:'', commonEssayNotes:''
   };
   if (!DB.caSchools) DB.caSchools = [];
+  if (!DB.satPlan) DB.satPlan = {
+    testDate: '',
+    notes: '',
+    topics: [
+      { id:'t1', name:'Reading', tasks:[] },
+      { id:'t2', name:'Writing & Language', tasks:[] },
+      { id:'t3', name:'Math — No Calculator', tasks:[] },
+      { id:'t4', name:'Math — Calculator', tasks:[] },
+      { id:'t5', name:'Full Practice Tests', tasks:[] }
+    ],
+    sessions: []
+  };
 }
 
 function load() {
@@ -3260,12 +3314,177 @@ function renderSAT() {
   renderSATGoalProgress();
   const tbody=document.getElementById('sat-table');
   const sorted=[...DB.sat].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(sorted.length===0){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✏️</div><p>Add your SAT scores above.</p></div></td></tr>`;return;}
-  tbody.innerHTML=sorted.map(s=>{
-    const isBest=best&&s.id===best.id;
-    const date=new Date(s.date+'-01').toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    return `<tr><td>${date}</td><td><strong style="font-size:16px;">${s.total}</strong> ${isBest?'<span class="badge badge-green">Best</span>':''}</td><td>${s.rw}</td><td>${s.math}</td><td style="font-size:12px;color:var(--text-secondary);">${s.notes||''}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editSAT('${s.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteSAT('${s.id}')">🗑</button></div></td></tr>`;
-  }).join('');
+  if(sorted.length===0){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✏️</div><p>Add your SAT scores above.</p></div></td></tr>`;}
+  else {
+    tbody.innerHTML=sorted.map(s=>{
+      const isBest=best&&s.id===best.id;
+      const date=new Date(s.date+'-01').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+      return `<tr><td>${date}</td><td><strong style="font-size:16px;">${s.total}</strong> ${isBest?'<span class="badge badge-green">Best</span>':''}</td><td>${s.rw}</td><td>${s.math}</td><td style="font-size:12px;color:var(--text-secondary);">${s.notes||''}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="editSAT('${s.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteSAT('${s.id}')">🗑</button></div></td></tr>`;
+    }).join('');
+  }
+  renderSATPlan();
+}
+
+// ============================================================
+// SAT STUDY PLAN
+// ============================================================
+function saveSATPlanField(field, value) {
+  DB.satPlan[field] = value;
+  save();
+  if (field === 'testDate') renderSATPlanCountdown();
+}
+function renderSATPlanCountdown() {
+  const el = document.getElementById('sat-plan-countdown');
+  if (!el) return;
+  const d = DB.satPlan.testDate;
+  if (!d) { el.textContent = ''; return; }
+  const days = Math.ceil((new Date(d+'T00:00:00') - new Date(new Date().toDateString())) / 86400000);
+  el.textContent = days > 0 ? `${days} day${days===1?'':'s'} until test day` : (days === 0 ? 'Test day is today!' : 'Test date has passed');
+}
+function addSATTopic() {
+  const name = prompt('Topic name (e.g. "Grammar Rules", "Algebra")');
+  if (!name || !name.trim()) return;
+  DB.satPlan.topics.push({ id: uid(), name: name.trim(), tasks: [] });
+  save(); renderSATPlan();
+}
+function deleteSATTopic(topicId) {
+  if (!confirm('Delete this topic and all its tasks?')) return;
+  DB.satPlan.topics = DB.satPlan.topics.filter(t => t.id !== topicId);
+  save(); renderSATPlan();
+}
+function addSATTask(topicId) {
+  const text = prompt('Task / sub-topic to study');
+  if (!text || !text.trim()) return;
+  const t = DB.satPlan.topics.find(t => t.id === topicId); if (!t) return;
+  t.tasks.push({ id: uid(), text: text.trim(), done: false });
+  save(); renderSATPlan();
+}
+function toggleSATTask(topicId, taskId) {
+  const t = DB.satPlan.topics.find(t => t.id === topicId); if (!t) return;
+  const task = t.tasks.find(x => x.id === taskId); if (!task) return;
+  task.done = !task.done;
+  save(); renderSATPlan();
+}
+function deleteSATTask(topicId, taskId) {
+  const t = DB.satPlan.topics.find(t => t.id === topicId); if (!t) return;
+  t.tasks = t.tasks.filter(x => x.id !== taskId);
+  save(); renderSATPlan();
+}
+function openSATSessionModal(id) {
+  document.getElementById('sat-session-edit-id').value = '';
+  document.getElementById('sat-session-date').value = '';
+  document.getElementById('sat-session-duration').value = '';
+  document.getElementById('sat-session-notes').value = '';
+  document.getElementById('sat-session-modal-title').textContent = 'Add Study Session';
+  document.getElementById('sat-session-delete-btn').style.display = 'none';
+  const sel = document.getElementById('sat-session-topic');
+  sel.innerHTML = DB.satPlan.topics.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  if (id) {
+    const s = DB.satPlan.sessions.find(x => x.id === id);
+    if (s) {
+      document.getElementById('sat-session-edit-id').value = s.id;
+      document.getElementById('sat-session-date').value = s.date || '';
+      sel.value = s.topicId || '';
+      document.getElementById('sat-session-duration').value = s.duration || '';
+      document.getElementById('sat-session-notes').value = s.notes || '';
+      document.getElementById('sat-session-modal-title').textContent = 'Edit Study Session';
+      document.getElementById('sat-session-delete-btn').style.display = 'inline-flex';
+    }
+  }
+  openModal('sat-session-modal', id);
+}
+function saveSATSession() {
+  const date = document.getElementById('sat-session-date').value;
+  if (!date) { alert('Please pick a date.'); return; }
+  const editId = document.getElementById('sat-session-edit-id').value;
+  const entry = {
+    id: editId || uid(),
+    date,
+    topicId: document.getElementById('sat-session-topic').value,
+    duration: parseInt(document.getElementById('sat-session-duration').value) || 0,
+    notes: document.getElementById('sat-session-notes').value.trim(),
+    done: false
+  };
+  if (editId) {
+    const i = DB.satPlan.sessions.findIndex(x => x.id === editId);
+    if (i >= 0) entry.done = DB.satPlan.sessions[i].done;
+    if (i >= 0) DB.satPlan.sessions[i] = entry; else DB.satPlan.sessions.push(entry);
+  } else {
+    DB.satPlan.sessions.push(entry);
+  }
+  save(); closeModal('sat-session-modal'); renderSATPlan();
+}
+function deleteSATSession() {
+  const id = document.getElementById('sat-session-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this session?')) return;
+  DB.satPlan.sessions = DB.satPlan.sessions.filter(x => x.id !== id);
+  save(); closeModal('sat-session-modal'); renderSATPlan();
+}
+function toggleSATSession(id) {
+  const s = DB.satPlan.sessions.find(x => x.id === id); if (!s) return;
+  s.done = !s.done;
+  save(); renderSATPlan();
+}
+function renderSATPlan() {
+  if (!DB.satPlan) return;
+  const dateEl = document.getElementById('sat-plan-test-date');
+  if (dateEl) dateEl.value = DB.satPlan.testDate || '';
+  const notesEl = document.getElementById('sat-plan-notes');
+  if (notesEl) notesEl.value = DB.satPlan.notes || '';
+  renderSATPlanCountdown();
+
+  // Topics
+  const topicsEl = document.getElementById('sat-plan-topics');
+  if (topicsEl) {
+    if (!DB.satPlan.topics.length) {
+      topicsEl.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No topics yet — add one to break your prep into subjects.</p></div>`;
+    } else {
+      topicsEl.innerHTML = DB.satPlan.topics.map(t => {
+        const total = t.tasks.length;
+        const doneCt = t.tasks.filter(x => x.done).length;
+        const pct = total ? Math.round(doneCt / total * 100) : 0;
+        return `<div class="card" style="margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+            <div style="font-weight:700;font-size:14px;">${t.name}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="font-size:11px;color:var(--text-secondary);">${doneCt}/${total}</div>
+              <button class="btn btn-secondary btn-sm" onclick="addSATTask('${t.id}')">+ Task</button>
+              <button class="btn btn-danger btn-sm btn-icon" onclick="deleteSATTopic('${t.id}')">🗑</button>
+            </div>
+          </div>
+          <div class="progress-bar" style="margin-bottom:${total?'10px':'0'};"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>
+          ${t.tasks.map(task => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
+            <input type="checkbox" ${task.done?'checked':''} onchange="toggleSATTask('${t.id}','${task.id}')" style="width:16px;height:16px;accent-color:var(--c-accent);cursor:pointer;flex-shrink:0;">
+            <div style="flex:1;font-size:13px;${task.done?'opacity:.5;text-decoration:line-through;':''}">${task.text}</div>
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="deleteSATTask('${t.id}','${task.id}')" style="opacity:.6;">✕</button>
+          </div>`).join('')}
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Sessions
+  const sessEl = document.getElementById('sat-plan-sessions');
+  if (sessEl) {
+    if (!DB.satPlan.sessions.length) {
+      sessEl.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No study sessions scheduled yet.</p></div>`;
+    } else {
+      const sorted = [...DB.satPlan.sessions].sort((a,b) => a.date.localeCompare(b.date));
+      sessEl.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">` + sorted.map(s => {
+        const topic = DB.satPlan.topics.find(t => t.id === s.topicId);
+        const dateLbl = new Date(s.date+'T12:00:00').toLocaleDateString('en-IE', { day:'numeric', month:'short', year:'numeric', weekday:'short' });
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-light);${s.done?'opacity:.5;':''}">
+          <input type="checkbox" ${s.done?'checked':''} onchange="toggleSATSession('${s.id}')" style="width:18px;height:18px;accent-color:var(--c-accent);cursor:pointer;flex-shrink:0;">
+          <div style="flex:1;min-width:0;${s.done?'text-decoration:line-through;':''}">
+            <div style="font-weight:600;font-size:13px;">${dateLbl}${topic?' · '+topic.name:''}${s.duration?' · '+s.duration+'min':''}</div>
+            ${s.notes?`<div style="font-size:11px;color:var(--text-muted);">${s.notes}</div>`:''}
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="openSATSessionModal('${s.id}')">Edit</button>
+        </div>`;
+      }).join('') + `</div>`;
+    }
+  }
 }
 
 // ============================================================
