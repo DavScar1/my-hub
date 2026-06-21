@@ -3323,6 +3323,11 @@ function renderSATPlanCountdown() {
   const days = Math.ceil((new Date(d+'T00:00:00') - new Date(new Date().toDateString())) / 86400000);
   el.textContent = days > 0 ? `${days} day${days===1?'':'s'} until test day` : (days === 0 ? 'Test day is today!' : 'Test date has passed');
 }
+let _satDayOpen = {};
+function toggleSATDay(dayKey) {
+  _satDayOpen[dayKey] = !_satDayOpen[dayKey];
+  renderSATPlan();
+}
 function _satWeekDates(startDate, weekIndex) {
   const start = new Date(startDate + 'T00:00:00');
   start.setDate(start.getDate() + weekIndex * 7);
@@ -3413,13 +3418,26 @@ function renderSATPlan() {
             <div style="font-weight:800;font-size:14px;">Week ${wi+1} <span style="font-weight:400;color:var(--text-secondary);font-size:12px;">${rangeLbl}</span></div>
             <button class="btn btn-danger btn-sm btn-icon" onclick="deleteSATWeek('${w.id}')">🗑</button>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
             ${w.days.map((d, di) => {
               const dObj = new Date(d+'T12:00:00');
               const isToday = d === today();
-              return `<div style="border:1.5px solid ${isToday?'var(--c-accent)':'var(--border)'};border-radius:var(--radius);padding:8px;">
-                <div style="font-size:11px;font-weight:700;color:${isToday?'var(--c-accent)':'var(--text-secondary)'};margin-bottom:4px;">${dow[di]} ${dObj.getDate()}/${dObj.getMonth()+1}</div>
-                <textarea oninput="saveSATDayText('${w.id}',${di},this.value)" placeholder="What will you study?" style="width:100%;min-height:64px;border:none;resize:vertical;font-size:12px;line-height:1.5;outline:none;background:transparent;font-family:inherit;">${w.days[di].text||''}</textarea>
+              const dayKey = w.id+'-'+di;
+              const isOpen = !!_satDayOpen[dayKey];
+              const text = w.days[di].text || '';
+              const preview = text.replace(/\n/g,' ').slice(0,60);
+              return `<div style="border:1.5px solid ${isToday?'var(--c-accent)':'var(--border)'};border-radius:var(--radius);overflow:hidden;">
+                <div onclick="toggleSATDay('${dayKey}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;cursor:pointer;background:${isToday?'rgba(99,102,241,.06)':'transparent'};">
+                  <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+                    <span style="font-size:12px;transition:transform .15s;display:inline-block;transform:rotate(${isOpen?90:0}deg);">▶</span>
+                    <span style="font-size:13px;font-weight:700;color:${isToday?'var(--c-accent)':'var(--text)'};white-space:nowrap;">${dow[di]} ${dObj.getDate()}/${dObj.getMonth()+1}</span>
+                    ${!isOpen && preview ? `<span style="font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">— ${preview}</span>` : ''}
+                  </div>
+                  ${!isOpen && !preview ? `<span style="font-size:11px;color:var(--text-muted);">Tap to add</span>` : ''}
+                </div>
+                <div style="display:${isOpen?'block':'none'};border-top:1px solid var(--border-light);">
+                  <textarea oninput="saveSATDayText('${w.id}',${di},this.value)" placeholder="What will you study?" style="width:100%;min-height:180px;border:none;resize:vertical;font-size:13px;line-height:1.6;outline:none;background:transparent;font-family:inherit;padding:14px;">${text}</textarea>
+                </div>
               </div>`;
             }).join('')}
           </div>
