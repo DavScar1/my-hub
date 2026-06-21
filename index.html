@@ -7879,8 +7879,8 @@ function renderCashFlow() {
   var inTransit = orders.filter(function(o){return cfStatus(o)==='transit';});
   var selling   = orders.filter(function(o){return cfStatus(o)==='selling';});
   var cashOut   = orders.reduce(function(a,o){return a+(o.orderCost||0);},0);
-  var totalIncome = orders.reduce(function(a,o){return a+(o.expectedRevenue||0);},0);
   var cashIn    = orders.filter(function(o){return o.cashInDate&&new Date(o.cashInDate)<=tod;}).reduce(function(a,o){return a+(o.expectedRevenue||0);},0);
+  var totalIncome = cashIn;
   var net = cashIn - cashOut;
 
   var sumEl = document.getElementById('cf-summary');
@@ -7893,7 +7893,7 @@ function renderCashFlow() {
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">In Transit</div><div style="font-size:26px;font-weight:800;color:#ef4444;">'+inTransit.length+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">orders en route</div></div>'
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selling Now</div><div style="font-size:26px;font-weight:800;color:#22c55e;">'+selling.length+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">active batches</div></div>'
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Spent</div><div style="font-size:26px;font-weight:800;color:#f59e0b;">€'+cashOut.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">across all orders</div></div>'
-        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Income</div><div style="font-size:26px;font-weight:800;color:#22c55e;">€'+totalIncome.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">expected across all orders</div></div>'
+        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Income</div><div style="font-size:26px;font-weight:800;color:#22c55e;">€'+totalIncome.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">cash actually received</div></div>'
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Net Position</div><div style="font-size:26px;font-weight:800;color:'+(net>=0?'#22c55e':'#ef4444')+';">€'+net.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">received − paid</div></div>'
         +'</div>';
     }
