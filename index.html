@@ -952,6 +952,18 @@ a:hover{text-decoration:underline;}
       <tbody id="sat-table"><tr><td colspan="6"><div class="empty-state"><div class="ei">✏️</div><p>Add SAT scores above.</p></div></td></tr></tbody></table>
     </div>
 
+    <!-- SAT Study Hub entry -->
+    <div class="card" style="margin-bottom:28px;background:linear-gradient(135deg,var(--c-accent-light),transparent);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div>
+          <div class="card-title" style="margin-bottom:4px;">🎯 SAT Study Hub</div>
+          <div style="font-size:13px;color:var(--text-secondary);">Full syllabus broken into trackable skills, worked examples, study tips, and a personalized "what to study next" list.</div>
+          <div id="sat-hub-summary-line" style="font-size:12px;font-weight:700;color:var(--c-accent);margin-top:8px;"></div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('c-sat-hub')">Open Study Hub →</button>
+      </div>
+    </div>
+
     <!-- Study Plan -->
     <div class="section-header"><h3>📚 Study Plan</h3></div>
     <div class="card" style="margin-bottom:20px;">
@@ -982,6 +994,120 @@ a:hover{text-decoration:underline;}
         style="width:100%;min-height:calc(100vh - 220px);padding:20px;border:none;resize:none;font-size:14px;line-height:1.7;outline:none;background:transparent;font-family:inherit;"
         placeholder="Write anything — strategies, formulas, vocab, mistakes to avoid…"
         oninput="saveSATNote()"></textarea>
+    </div>
+  </div>
+
+  <!-- SAT Study Hub -->
+  <div class="page" id="page-c-sat-hub">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('c-sat')">← Back</button>
+      <h2 style="font-size:21px;font-weight:800;margin:0;flex:1;">🎯 SAT Study Hub</h2>
+      <button class="btn btn-secondary btn-sm" onclick="openSATDiagnostic()">📋 Diagnostic Questionnaire</button>
+      <button class="btn btn-secondary btn-sm" onclick="openSATLogModal()">+ Log Study Session</button>
+    </div>
+
+    <!-- Overall progress -->
+    <div class="grid-2" style="margin-bottom:18px;">
+      <div class="card">
+        <div class="card-title">Overall Completion</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:6px;">
+          <div style="font-size:32px;font-weight:800;color:var(--c-accent);" id="sat-hub-overall-pct">0%</div>
+          <div style="flex:1;">
+            <div class="progress-bar" style="margin-bottom:6px;"><div class="progress-fill" id="sat-hub-overall-bar" style="width:0%"></div></div>
+            <div style="display:flex;gap:14px;font-size:12px;color:var(--text-secondary);">
+              <span>R&amp;W: <strong id="sat-hub-rw-pct">0%</strong></span>
+              <span>Math: <strong id="sat-hub-math-pct">0%</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Study Time Logged</div>
+        <div style="font-size:32px;font-weight:800;color:var(--c-accent);margin-top:6px;" id="sat-hub-total-minutes">0 min</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="sat-hub-log-count">0 sessions logged</div>
+      </div>
+    </div>
+
+    <!-- Recommended next -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">🔥 Recommended Next</h4></div>
+    <div id="sat-hub-recommended" style="margin-bottom:24px;"></div>
+
+    <!-- Syllabus tree -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Full Syllabus</h4></div>
+    <div id="sat-hub-syllabus" style="margin-bottom:24px;"></div>
+
+    <!-- Study log -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Study Log</h4></div>
+    <div id="sat-hub-log-list" style="margin-bottom:24px;"></div>
+  </div>
+
+  <!-- SAT Skill Detail -->
+  <div class="page" id="page-c-sat-skill">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('c-sat-hub')">← Back to Hub</button>
+    </div>
+    <div id="sat-skill-content"></div>
+  </div>
+
+  <!-- SAT Diagnostic Modal -->
+  <div class="modal-overlay" id="sat-diagnostic-modal">
+    <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+      <div class="modal-header">
+        <div class="modal-title">📋 SAT Diagnostic</div>
+        <button class="modal-close" onclick="closeModal('sat-diagnostic-modal')">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Answer honestly — this drives your "Recommended Next" list. Takes ~2 minutes.</div>
+
+      <div class="form-group"><label>Last R&amp;W practice score (200–800, optional)</label><input type="number" id="sat-diag-rw-score" min="200" max="800" placeholder="e.g. 620"></div>
+      <div class="form-group"><label>Last Math practice score (200–800, optional)</label><input type="number" id="sat-diag-math-score" min="200" max="800" placeholder="e.g. 580"></div>
+
+      <div class="form-group">
+        <label>Which domains have you already studied? (check any)</label>
+        <div id="sat-diag-domains-checklist" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Where do you struggle more?</label>
+        <select id="sat-diag-struggle">
+          <option value="content">Content knowledge (I don't know the rule/method)</option>
+          <option value="timing">Timing / pacing (I know it but run out of time)</option>
+          <option value="both">Both, about equally</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Which section worries you more?</label>
+        <select id="sat-diag-priority-section">
+          <option value="rw">Reading &amp; Writing</option>
+          <option value="math">Math</option>
+          <option value="even">About even</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal('sat-diagnostic-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSATDiagnostic()">Save &amp; Get Recommendations</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAT Study Log Modal -->
+  <div class="modal-overlay" id="sat-log-modal">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-header">
+        <div class="modal-title">Log Study Session</div>
+        <button class="modal-close" onclick="closeModal('sat-log-modal')">×</button>
+      </div>
+      <input type="hidden" id="sat-log-edit-id">
+      <div class="form-group"><label>Date</label><input type="date" id="sat-log-date"></div>
+      <div class="form-group"><label>Skill</label><select id="sat-log-skill"></select></div>
+      <div class="form-group"><label>Minutes Spent</label><input type="number" id="sat-log-minutes" min="0" placeholder="30"></div>
+      <div class="form-group"><label>Notes</label><textarea id="sat-log-notes" rows="2" placeholder="What you covered, what felt hard…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="sat-log-delete-btn" style="display:none;margin-right:auto;" onclick="deleteSATLog()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeModal('sat-log-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSATLog()">Save</button>
+      </div>
     </div>
   </div>
 
@@ -2593,6 +2719,10 @@ function ensureDBDefaults() {
   if (DB.satPlan.weeks === undefined) DB.satPlan.weeks = [];
   if (DB.satPlan.notesPages === undefined) DB.satPlan.notesPages = [];
   if (DB.satPlan.startDate === undefined) DB.satPlan.startDate = '';
+  if (!DB.satHub) DB.satHub = { ratings:{}, diagnostic:null, studyLog:[] };
+  if (DB.satHub.ratings === undefined) DB.satHub.ratings = {};
+  if (DB.satHub.diagnostic === undefined) DB.satHub.diagnostic = null;
+  if (DB.satHub.studyLog === undefined) DB.satHub.studyLog = [];
 }
 
 function load() {
@@ -2859,6 +2989,7 @@ function renderPage(id) {
   if (id === 'c-colleges') { renderColleges(); updateEssayCollegeFilter(); }
   if (id === 'c-leavingcert') renderGrades();
   if (id === 'c-sat') renderSAT();
+  if (id === 'c-sat-hub') renderSATHub();
   if (id === 'c-activities') renderActivities();
   if (id === 'c-essays') renderEssays();
   if (id === 'c-planner') renderPlanner();
@@ -3317,6 +3448,7 @@ function renderSAT() {
     }).join('');
   }
   renderSATPlan();
+  renderSATHubSummaryLine();
 }
 
 // ============================================================
@@ -3476,6 +3608,540 @@ function renderSATPlan() {
       }).join('') + `</div>`;
     }
   }
+}
+
+// ============================================================
+// SAT STUDY HUB — syllabus data
+// ============================================================
+const SAT_SYLLABUS = [
+  { id:'rw', name:'Reading & Writing', meta:'54 questions · ~64 min', domains:[
+    { id:'rw-ideas', name:'Information and Ideas', weight:26, skills:[
+      { id:'rw-ideas-central', name:'Central Ideas and Details',
+        explain:'Tests whether you can identify a passage\'s main point and the details that support it, without bringing in outside opinions.',
+        examples:[
+          { q:'(Easy) A short passage describes how urban beekeeping has grown in popularity over the last decade. What is the main idea?', answer:'Urban beekeeping has become significantly more popular in recent years.',
+            explain:'The main idea is the single broadest claim the whole passage supports — not a supporting detail like a specific city\'s ordinance.' },
+          { q:'(Hard) A passage gives three examples of how a historical figure\'s reputation changed after new documents were found, then states the documents "complicate the simple narrative historians had told." Which detail best supports the central claim?', answer:'The sentence about documents "complicating the simple narrative."',
+            explain:'On harder questions, the central-idea-supporting detail is often a single signal sentence near the end that reframes everything before it — look for words like "however," "complicate," "reveal."' }
+        ],
+        tips:['Read the first and last sentence of each paragraph first — central ideas are rarely buried mid-paragraph.','Underline (mentally) any sentence with "however/but/yet" — these often state the real point.','Never pick an answer that\'s true but too narrow (a detail) or too broad (goes beyond the passage).'] },
+      { id:'rw-ideas-inference', name:'Inferences',
+        explain:'Asks you to draw a logical conclusion that the text strongly implies but never states outright — using only what\'s in the passage.',
+        examples:[
+          { q:'(Easy) A passage states a plant only blooms after a wildfire passes through. What can be inferred?', answer:'The plant has likely evolved a fire-dependent reproduction strategy.',
+            explain:'Pick the conclusion that follows necessarily from the stated fact, not one that requires extra outside knowledge.' },
+          { q:'(Hard) A researcher notes that two competing studies used different sample sizes, but doesn\'t say which is more reliable. The question asks what the passage suggests about the studies\' conclusions. Trap answers often claim one study is "wrong" — what\'s the safe inference?', answer:'The differing sample sizes may at least partly explain why the studies reached different conclusions.',
+            explain:'Strong inference answers are usually hedged ("may," "could") — answers that overclaim certainty are almost always traps.' }
+        ],
+        tips:['Treat inference questions as "the answer is basically restating the passage, just one small logical step further" — not a leap.','Eliminate any choice using outside knowledge not stated in the passage, even if it\'s true in real life.','If two answers seem plausible, pick the more cautious/hedged one.'] },
+      { id:'rw-ideas-evidence-text', name:'Command of Evidence — Textual',
+        explain:'Gives you a claim and asks which quotation or detail from the passage best supports it.',
+        examples:[
+          { q:'(Easy) Claim: "The author believes the policy was rushed." Which quote best supports this?', answer:'A quote where the author directly says something like "lawmakers passed it within a week, without public hearings."',
+            explain:'Look for the quote that most directly and specifically backs the claim — not one that\'s merely related to the topic.' },
+          { q:'(Hard) Claim: "The scientist\'s tone toward the new theory is cautiously skeptical." Multiple quotes mention the theory — which fits "cautious skepticism" rather than outright rejection?', answer:'A quote with hedging language like "while promising, the theory has not yet been tested under real-world conditions."',
+            explain:'On harder questions, several quotes will be topically relevant — the right one matches the *exact tone/degree* of the claim, not just the subject.' }
+        ],
+        tips:['Restate the claim in your own words first, then scan quotes for the one that matches that restatement most precisely.','Watch for quotes that are on-topic but support the opposite or a stronger/weaker version of the claim — these are the traps.'] },
+      { id:'rw-ideas-evidence-quant', name:'Command of Evidence — Quantitative',
+        explain:'Pairs a passage with a graph or table; you must pick the data point that best supports or completes a given claim.',
+        examples:[
+          { q:'(Easy) A bar chart shows yearly sales for four products. Claim: "Product C sold the least every year." Which data point would contradict the claim?', answer:'Any single year where Product C\'s bar is not the lowest.',
+            explain:'For "every year" claims, you only need one counter-example to break it — check all years, not just one.' },
+          { q:'(Hard) A scatterplot shows a weak positive trend with one clear outlier. The claim says "there is a strong positive relationship between X and Y." Does the data support this?', answer:'No — point to the outlier and the otherwise loose scatter as evidence the relationship is weak, not strong.',
+            explain:'"Strong" vs "weak" relationship questions hinge on how tightly points cluster around a trend line — eyeball the spread, not just the direction.' }
+        ],
+        tips:['Always check the axis labels and units before reading the trend — a classic trap is misreading what\'s being measured.','For "supports/does not support" questions, find the specific number that directly confirms or denies the claim — don\'t reason from the general shape alone.'] }
+    ]},
+    { id:'rw-craft', name:'Craft and Structure', weight:28, skills:[
+      { id:'rw-craft-words', name:'Words in Context',
+        explain:'Vocabulary-in-context: picks the word/phrase whose precise meaning and tone fit the surrounding sentence — not just a dictionary synonym.',
+        examples:[
+          { q:'(Easy) "The critic\'s review was so ___ that the director refused to read any more of his work." Which word fits — harsh, brief, or unbiased?', answer:'harsh',
+            explain:'The clue "refused to read any more" signals a strongly negative tone, which only "harsh" matches.' },
+          { q:'(Hard) "Far from being ___, her explanation only deepened the committee\'s confusion." Choices include "lucid," "thorough," "lengthy" — pick the best fit.', answer:'lucid',
+            explain:'"Far from being X" + "deepened confusion" tells you X must mean clear — "thorough" and "lengthy" don\'t imply clarity and are traps for skimmers.' }
+        ],
+        tips:['Always reread one sentence before and after — never judge the word alone.','Cover the answer choices and predict your own word first, then match.','Watch for negation words ("far from," "hardly") that flip the expected meaning.'] },
+      { id:'rw-craft-structure', name:'Text Structure and Purpose',
+        explain:'Asks why the author organized or wrote a passage/paragraph the way they did — its function, not its content.',
+        examples:[
+          { q:'(Easy) A paragraph opens by describing a common belief, then spends the rest disproving it. What\'s its structure?', answer:'It sets up a misconception in order to refute it.',
+            explain:'Look at the shape of the whole paragraph — intro of an idea followed by a pivot ("but," "in fact") signals a setup-and-refute structure.' },
+          { q:'(Hard) A passage spends two paragraphs on a minor historical figure before connecting them to a major event in the final paragraph. What\'s the function of the early paragraphs?', answer:'To build context/credibility before showing the figure\'s broader significance.',
+            explain:'Function questions about early paragraphs in a build-up structure usually answer "why does this come before the main point" — think setup, not standalone content.' }
+        ],
+        tips:['Ask "what job is this paragraph doing for the passage as a whole?" rather than "what does it say."','Common functions: introduce a contrast, provide a counterexample, build toward a conclusion, qualify an earlier claim.'] },
+      { id:'rw-craft-crosstext', name:'Cross-Text Connections',
+        explain:'Gives two short passages on a related topic and asks how they relate — agree, disagree, or one extends the other.',
+        examples:[
+          { q:'(Easy) Passage 1 argues a policy helped the economy. Passage 2 argues the same policy hurt small businesses. How do the texts relate?', answer:'They present conflicting evaluations of the same policy.',
+            explain:'When both passages take a clear stance on the same subject and those stances clash, the relationship is straightforward disagreement.' },
+          { q:'(Hard) Passage 1 proposes a theory with one piece of supporting evidence. Passage 2, on a related but narrower topic, provides data that happens to undercut that one piece of evidence — without addressing the theory directly. How do they relate?', answer:'Passage 2 indirectly weakens a key piece of evidence Passage 1 relies on, without directly engaging the broader theory.',
+            explain:'Harder cross-text questions involve partial/indirect relationships — resist the urge to force a clean "agree/disagree" framing when the actual link is narrower.' }
+        ],
+        tips:['Summarize each passage\'s main claim in one short phrase before comparing.','Decide first whether they\'re about the exact same claim or only overlapping topics — this changes what kind of relationship is even possible.'] }
+    ]},
+    { id:'rw-expression', name:'Expression of Ideas', weight:20, skills:[
+      { id:'rw-expr-synthesis', name:'Rhetorical Synthesis',
+        explain:'Gives you bullet-point notes and a stated goal; you pick the sentence that best combines the notes to achieve that exact goal.',
+        examples:[
+          { q:'(Easy) Notes: "Maria ran a marathon in 2019." "She trained for 6 months." Goal: emphasize the length of her preparation. Pick the best sentence.', answer:'"After six months of training, Maria ran a marathon in 2019."',
+            explain:'The goal tells you what to foreground — here, "six months of training" should lead or be emphasized, not buried.' },
+          { q:'(Hard) Notes: "City X built a new park (2015)." "Park visits rose 40% by 2020." "Nearby home values rose 15% in the same period." Goal: highlight a possible link between green space and property value, without overstating causation. Pick the best sentence.', answer:'"Following the 2015 opening of a new park in City X, nearby home values rose 15% by 2020, a period that also saw a 40% increase in park visits."',
+            explain:'On harder synthesis questions, the trap answers state causation directly ("the park caused home values to rise"). The credited answer juxtaposes facts without asserting cause.' }
+        ],
+        tips:['Underline the goal phrase first ("emphasize," "contrast," "without stating a cause") — it\'s the actual grading criterion.','Eliminate any choice that adds information not in the bullet points or that asserts a relationship the notes don\'t support.'] },
+      { id:'rw-expr-transitions', name:'Transitions',
+        explain:'Choose the logical connector (however, therefore, similarly, etc.) that correctly links two ideas.',
+        examples:[
+          { q:'(Easy) "The bridge was closed for repairs. ___, traffic was rerouted through downtown." Which transition fits — therefore, however, or for example?', answer:'therefore',
+            explain:'The second sentence is a direct consequence of the first, so a cause/effect transition is needed.' },
+          { q:'(Hard) "Many assumed the new policy would reduce costs. ___, internal reports show costs rose by 12% in the first year — though officials maintain the long-term savings will outweigh this." Best transition?', answer:'However',
+            explain:'Watch for sentences with a built-in concession at the end ("though officials maintain…") — the main transition still needs to mark the contrast between expectation and result, regardless of the trailing clause.' }
+        ],
+        tips:['Identify the logical relationship first in plain English (cause/effect, contrast, addition, example) before looking at choices.','Don\'t be fooled by transitions that are grammatically fine but logically backwards (e.g., "therefore" where the sentences actually contrast).'] }
+    ]},
+    { id:'rw-conventions', name:'Standard English Conventions', weight:26, skills:[
+      { id:'rw-conv-boundaries', name:'Boundaries',
+        explain:'Sentence-boundary punctuation: commas, semicolons, colons, and periods used to correctly join or separate clauses.',
+        examples:[
+          { q:'(Easy) "The store closed early, the owner was sick." Is this correctly punctuated?', answer:'No — two independent clauses can\'t be joined with just a comma (comma splice). Use a semicolon or period: "The store closed early; the owner was sick."',
+            explain:'A comma alone can\'t join two complete sentences — that\'s the single most common Boundaries error.' },
+          { q:'(Hard) "The committee reached a decision after years of debate: to approve the merger, but only under strict conditions." Is the colon used correctly?', answer:'Yes — a colon can introduce an explanation/elaboration of the preceding independent clause, which this does correctly.',
+            explain:'Harder Boundaries questions test colons/semicolons in less common but valid patterns — the rule (colon follows a complete sentence and introduces elaboration) still applies.' }
+        ],
+        tips:['Test every comma: cover one side — if both sides are full sentences on their own, a comma alone is wrong.','Memorize: semicolon = period swap between two related independent clauses; colon = explanation/list follows a complete sentence.'] },
+      { id:'rw-conv-form', name:'Form, Structure, and Sense',
+        explain:'Subject-verb agreement, pronoun agreement, modifier placement, and verb tense consistency.',
+        examples:[
+          { q:'(Easy) "The list of items ___ on the table." Was or were?', answer:'was',
+            explain:'The subject is "list" (singular), not "items" — ignore the prepositional phrase in between when checking agreement.' },
+          { q:'(Hard) "Each of the researchers submitted their own analysis, which, having been peer-reviewed twice, was published last spring." Is "their" correct here, and is the modifier placed correctly?', answer:'"Their" is commonly accepted in modern usage for "each," but on the Digital SAT, "his or her" or rephrasing for clarity may be preferred; the modifier clause "having been peer-reviewed twice" correctly attaches to "analysis," which is fine.',
+            explain:'Harder Form/Structure questions stack multiple checks (agreement + modifier placement) in one sentence — isolate each grammatical issue separately before judging the whole sentence.' }
+        ],
+        tips:['For agreement, mentally delete prepositional phrases between subject and verb.','For modifiers, ask "what is this phrase describing?" and check it\'s placed right next to that word.','For tense, check the whole passage\'s timeline, not just the one sentence.'] }
+    ]}
+  ]},
+  { id:'math', name:'Math', meta:'44 questions · ~70 min', domains:[
+    { id:'math-algebra', name:'Algebra', weight:35, skills:[
+      { id:'math-alg-linear1', name:'Linear Equations in One Variable',
+        explain:'Solving equations like 3x + 5 = 20 for a single unknown.',
+        examples:[
+          { q:'(Easy) Solve: 4x - 7 = 13', answer:'x = 5', explain:'Add 7 to both sides (4x = 20), then divide by 4.' },
+          { q:'(Hard) Solve for x: (2x - 1)/3 + x/2 = 5', answer:'x = 4', explain:'Multiply every term by 6 (LCD of 3 and 2) to clear fractions: 2(2x-1) + 3x = 30 → 4x - 2 + 3x = 30 → 7x = 32... recheck arithmetic carefully — always re-verify by plugging your answer back into the original equation, which is the single best error-catcher on this skill.' }
+        ],
+        tips:['Do the algebra by hand first, then verify with Desmos or by plugging the answer back in — don\'t skip the hand-work even if you\'re confident.','Clear fractions/decimals first by multiplying both sides by the common denominator.'] },
+      { id:'math-alg-linear2', name:'Linear Equations in Two Variables',
+        explain:'Working with equations like y = mx + b or Ax + By = C, including finding slope/intercepts.',
+        examples:[
+          { q:'(Easy) What is the slope of the line through (2,3) and (4,9)?', answer:'3', explain:'Slope = (9-3)/(4-2) = 6/2 = 3.' },
+          { q:'(Hard) A line passes through (1,4) and is parallel to 2x - 3y = 6. What is its equation in slope-intercept form?', answer:'y = (2/3)x + 10/3', explain:'Rewrite the given line as y = (2/3)x - 2 to find slope 2/3. Parallel lines share slope, so use point-slope with (1,4): y - 4 = (2/3)(x-1) → y = (2/3)x + 10/3.' }
+        ],
+        tips:['Always convert to slope-intercept form (y = mx + b) early — it makes slope, intercept, and parallel/perpendicular questions trivial.','Parallel = same slope; perpendicular = negative reciprocal slope.'] },
+      { id:'math-alg-functions', name:'Linear Functions',
+        explain:'Interpreting and building linear functions f(x) = mx + b, including real-world rate-of-change scenarios.',
+        examples:[
+          { q:'(Easy) A taxi charges $3 plus $2 per mile. Write f(x) for cost after x miles.', answer:'f(x) = 2x + 3', explain:'The flat fee is the y-intercept (b=3); the per-mile rate is the slope (m=2).' },
+          { q:'(Hard) f(x) is linear. f(2) = 11 and f(5) = 23. Find f(10).', answer:'f(10) = 43', explain:'Slope = (23-11)/(5-2) = 4. Using f(2)=11: f(x) = 4(x-2)+11 = 4x+3. f(10) = 43.' }
+        ],
+        tips:['Translate word problems into "starting value + rate × variable" — that\'s always m and b for a linear function.','When given two points instead of an equation, find slope first, then build the equation from any one point.'] },
+      { id:'math-alg-systems', name:'Systems of Two Linear Equations',
+        explain:'Solving two equations simultaneously by substitution or elimination, including word problems and ratio-trap setups.',
+        examples:[
+          { q:'(Easy) Solve: x + y = 10, x - y = 2', answer:'x = 6, y = 4', explain:'Add the equations: 2x = 12 → x = 6, then y = 10 - 6 = 4.' },
+          { q:'(Hard) For what value of k does the system 2x + 3y = 12 and 4x + ky = 24 have infinitely many solutions?', answer:'k = 6', explain:'For infinitely many solutions, the second equation must be a multiple of the first. Multiplying the first by 2 gives 4x + 6y = 24, so k must equal 6 — this is the classic "ratio trap": students often only check the constant term and miss matching all three coefficients proportionally.' }
+        ],
+        tips:['For "no solution / infinite solutions" questions, compare the ratio of x-coefficients, y-coefficients, AND constants — not just one pair.','Elimination is usually faster than substitution when both equations are already in standard form.'] },
+      { id:'math-alg-inequalities', name:'Linear Inequalities in One or Two Variables',
+        explain:'Solving and graphing inequalities, including flipping the sign when multiplying/dividing by a negative.',
+        examples:[
+          { q:'(Easy) Solve: -2x + 5 > 11', answer:'x < -3', explain:'Subtract 5: -2x > 6. Divide by -2 and flip the inequality: x < -3.' },
+          { q:'(Hard) A factory produces x widgets and y gadgets. Constraints: 3x + 2y ≤ 60 and x ≥ 0, y ≥ 0. If the factory makes 12 widgets, what is the maximum number of gadgets?', answer:'12 gadgets', explain:'Substitute x=12: 36 + 2y ≤ 60 → 2y ≤ 24 → y ≤ 12.' }
+        ],
+        tips:['The #1 error: forgetting to flip the inequality sign when multiplying/dividing by a negative — double-check this every time.','For two-variable word problems, substitute known values first to reduce to one variable.'] }
+    ]},
+    { id:'math-advanced', name:'Advanced Math', weight:35, skills:[
+      { id:'math-adv-equiv', name:'Equivalent Expressions',
+        explain:'Factoring, expanding, and rewriting expressions into equivalent forms — often to reveal a hidden simplification.',
+        examples:[
+          { q:'(Easy) Factor: x² + 7x + 12', answer:'(x + 3)(x + 4)', explain:'Find two numbers that multiply to 12 and add to 7: 3 and 4.' },
+          { q:'(Hard) Simplify: (x² - 9)/(x² - x - 12)', answer:'(x + 3)/(x + 4), for x ≠ 4, -3', explain:'Factor both: numerator (x-3)(x+3), denominator (x-4)(x+3). Cancel (x+3), leaving (x-3)/(x-4)... recheck: denominator factors as (x-4)(x+3), so canceling (x+3) leaves (x-3)/(x-4). Always state the excluded values where the original denominator was zero.' }
+        ],
+        tips:['Always try factoring before any other method — most "simplify this expression" questions resolve to canceling a common factor.','When canceling, note which x-values are excluded (where the original denominator = 0).'] },
+      { id:'math-adv-nonlinear-eq', name:'Nonlinear Equations and Systems',
+        explain:'Solving quadratics, and systems mixing a line with a parabola or other curve.',
+        examples:[
+          { q:'(Easy) Solve: x² - 5x + 6 = 0', answer:'x = 2 or x = 3', explain:'Factor to (x-2)(x-3)=0.' },
+          { q:'(Hard) Find all solutions to the system: y = x² - 4, y = 2x - 1', answer:'x = -1, y = -3 and x = 3, y = 5', explain:'Set equal: x² - 4 = 2x - 1 → x² - 2x - 3 = 0 → (x-3)(x+1)=0 → x=3 or x=-1. Substitute back into either equation to get y.' }
+        ],
+        tips:['For line-meets-curve systems, set the two expressions for y equal and solve the resulting quadratic — then substitute back for y.','Always check both solutions satisfy BOTH original equations — extraneous roots happen.'] },
+      { id:'math-adv-nonlinear-fn', name:'Nonlinear Functions',
+        explain:'Quadratic, exponential, polynomial, rational, and radical functions — their graphs, transformations, and behavior.',
+        examples:[
+          { q:'(Easy) What is the vertex of y = (x - 3)² + 5?', answer:'(3, 5)', explain:'In vertex form y = (x-h)² + k, the vertex is (h,k).' },
+          { q:'(Hard) A population grows according to P(t) = 200(1.05)^t. After how many years does the population first exceed 400?', answer:'About 14.2 years, so the 15th year', explain:'Set 200(1.05)^t > 400 → 1.05^t > 2 → t > log(2)/log(1.05) ≈ 14.2. Since population is checked at whole-year intervals, the answer rounds up to year 15, not down — a common rounding-direction trap.' }
+        ],
+        tips:['For exponential growth/decay word problems, identify the initial value and rate from the equation\'s structure (a·b^t) before solving.','For "exceeds" or "at least" questions, round in the direction that satisfies the inequality, not just to the nearest whole number.'] }
+    ]},
+    { id:'math-psda', name:'Problem-Solving and Data Analysis', weight:15, skills:[
+      { id:'math-psda-ratios', name:'Ratios, Rates, Proportions, Units',
+        explain:'Setting up and solving proportional relationships, including unit conversions.',
+        examples:[
+          { q:'(Easy) A recipe uses 2 cups of flour for 12 cookies. How much flour for 30 cookies?', answer:'5 cups', explain:'Set up the proportion 2/12 = x/30 → x = 5.' },
+          { q:'(Hard) A car travels at a constant speed and covers 5 miles in 6 minutes. At this rate, how many minutes to travel 1 mile, and what is the speed in mph?', answer:'1.2 minutes per mile; 50 mph', explain:'6 min / 5 mi = 1.2 min/mi. For mph: 5 miles in 6 minutes = 5 miles in 0.1 hours = 50 mph — convert minutes to hours carefully, a frequent unit-conversion trap.' }
+        ],
+        tips:['Always write units next to every number during setup — this catches conversion errors before they happen.','Cross-multiply proportions rather than estimating, especially under time pressure.'] },
+      { id:'math-psda-percent', name:'Percentages',
+        explain:'Percent increase/decrease, percent of a quantity, and compounding scenarios.',
+        examples:[
+          { q:'(Easy) A $80 jacket is discounted 25%. What is the sale price?', answer:'$60', explain:'25% of 80 is 20; 80 - 20 = 60.' },
+          { q:'(Hard) A stock drops 20% then rises 25%. What is the net percent change from the original price?', answer:'A 0% net change (back to original)', explain:'Use a sample value, e.g. $100 → drops to $80 (×0.8) → rises to $100 (×1.25). Percent changes don\'t simply subtract (20% drop + 25% rise ≠ +5%) — always multiply successive factors, never add the percentages directly.' }
+        ],
+        tips:['For sequential percent changes, multiply the decimal factors together (e.g., ×0.8 then ×1.25) — never add/subtract the percentages.','Plug in $100 as a sample starting value to make percent problems concrete.'] },
+      { id:'math-psda-onevar', name:'One-Variable Data: Distributions and Measures',
+        explain:'Mean, median, mode, range, standard deviation, and how outliers/shape affect them.',
+        examples:[
+          { q:'(Easy) Data: 4, 6, 6, 8, 10. Find the mean and median.', answer:'Mean = 6.8, Median = 6', explain:'Mean = sum/count = 34/5 = 6.8. Median is the middle value when sorted = 6.' },
+          { q:'(Hard) A data set has mean 50. One value of 50 is replaced with 90. What happens to the mean, and can you determine the new median without more info?', answer:'The mean increases; the median cannot be determined without knowing the full ordered list.', explain:'Mean is sensitive to every value, so swapping in a larger number always raises it predictably. Median depends on relative position/order, which you can\'t determine from a single swapped value without seeing the whole sorted set — a key distinction the SAT tests directly.' }
+        ],
+        tips:['Mean is sensitive to outliers; median is not — use this to quickly judge how a changed/added value affects each.','Memorize: adding a constant to every value shifts mean and median by that constant; doesn\'t change range or standard deviation.'] },
+      { id:'math-psda-twovar', name:'Two-Variable Data: Scatterplots and Lines of Best Fit',
+        explain:'Reading scatterplots, interpreting correlation, and using/interpreting a line of best fit equation.',
+        examples:[
+          { q:'(Easy) A line of best fit is y = 2x + 5. Predict y when x = 10.', answer:'y = 25', explain:'Substitute x=10 into the equation: 2(10)+5=25.' },
+          { q:'(Hard) A scatterplot shows a strong positive correlation between hours studied and test score, with a best-fit line y = 4x + 60. A student studied 0 hours but scored 80, well above the predicted 60. What does this point represent, and does it disprove the trend?', answer:'It\'s an outlier/residual — a point far from the line — but a single outlier does not disprove an overall trend across many points.', explain:'Distinguish "this point doesn\'t fit the line well" (true) from "the trend is wrong" (not supported by one data point) — a key reasoning trap on harder questions.' }
+        ],
+        tips:['The slope of a best-fit line is its real-world rate of change — always state it with units in context questions.','One outlier doesn\'t invalidate a trend across many points — don\'t over-conclude from a single data point.'] },
+      { id:'math-psda-prob', name:'Probability and Conditional Probability',
+        explain:'Basic probability, "and/or" combinations, and conditional probability from two-way tables.',
+        examples:[
+          { q:'(Easy) A bag has 5 red and 3 blue marbles. What is the probability of drawing a red marble?', answer:'5/8', explain:'Favorable outcomes (5 red) over total outcomes (8 total).' },
+          { q:'(Hard) A two-way table shows 40 students: 25 study Spanish, 15 study French, 5 study both. What is the probability a randomly chosen student studies French, given that they study Spanish?', answer:'5/25 = 1/5', explain:'Conditional probability P(French | Spanish) = (students who study both) / (students who study Spanish) = 5/25. The denominator is the "given" group, not the full 40 — this is the most common conditional-probability error.' }
+        ],
+        tips:['For conditional probability, the denominator is always the "given" subgroup, never the full total.','Build a quick 2x2 table for "and/or" probability word problems — it prevents double-counting overlaps.'] },
+      { id:'math-psda-inference', name:'Inference from Sample Statistics and Margin of Error',
+        explain:'Using a sample statistic (and its margin of error) to make a claim about a full population.',
+        examples:[
+          { q:'(Easy) A poll of 500 people finds 60% support a policy, with a margin of error of ±4%. What is the likely range of true support in the full population?', answer:'56% to 64%', explain:'Subtract and add the margin of error to the sample statistic.' },
+          { q:'(Hard) A survey of 200 randomly selected students from School A finds 70% prefer online classes. Can this be generalized to all students nationwide?', answer:'No — the sample was randomly selected only from School A, so it can only be generalized to School A\'s student population, not nationwide.', explain:'Random sampling only justifies generalizing to the population the sample was actually drawn from — a frequent SAT trap is extending a valid sample\'s conclusion to a broader population it wasn\'t drawn from.' }
+        ],
+        tips:['A result can only be generalized to the population the sample was randomly drawn from — check this every time before trusting a "can we conclude X about everyone" answer.','Larger sample size → smaller margin of error, all else equal.'] },
+      { id:'math-psda-claims', name:'Evaluating Statistical Claims: Observational Studies vs. Experiments',
+        explain:'Distinguishing studies that can support causal claims (randomized experiments) from those that can only show correlation (observational studies).',
+        examples:[
+          { q:'(Easy) Researchers observe that people who exercise more also report less stress. Can they conclude exercise causes lower stress?', answer:'No — this is an observational study, so it can only establish correlation, not causation.', explain:'Without random assignment to "exercise" vs "no exercise" groups, other factors could explain the link.' },
+          { q:'(Hard) A study randomly assigns 200 participants to either a new study technique or the old one, controlling for prior GPA, and finds the new technique group scores significantly higher. Can researchers claim the technique caused the improvement?', answer:'Yes — random assignment with controlled confounders in a true experiment supports a causal claim.', explain:'The presence of random assignment is the deciding factor for causal language — the SAT often tests whether you can spot it correctly even when other details (sample size, controls) are also mentioned to distract.' }
+        ],
+        tips:['The single deciding question: "were subjects randomly assigned to groups?" If yes → experiment, causal claims OK. If no → observational, correlation only.','Watch for answer choices that smuggle in causal language ("causes," "leads to") when the study described is observational.'] }
+    ]},
+    { id:'math-geo', name:'Geometry and Trigonometry', weight:15, skills:[
+      { id:'math-geo-area', name:'Area and Volume',
+        explain:'Formulas for area/perimeter of 2D shapes and volume/surface area of 3D solids.',
+        examples:[
+          { q:'(Easy) Find the area of a triangle with base 10 and height 6.', answer:'30', explain:'Area = (1/2)(base)(height) = (1/2)(10)(6) = 30.' },
+          { q:'(Hard) A cylinder has volume 200π cubic units and height 8. A cone with the same radius and the same height is removed from inside it (imagine an empty cone-shaped cavity). What is the remaining volume?', answer:'(400/3)π cubic units', explain:'First find the radius from V=πr²h: 200π = πr²(8) → r²=25 → r=5. Cone volume = (1/3)πr²h = (1/3)π(25)(8) = (200/3)π. Remaining = 200π - (200/3)π = (400/3)π — multi-step volume problems are common at the hard end; solve for the unknown dimension first, then apply the second formula.' }
+        ],
+        tips:['Memorize the core formulas cold (rectangle, triangle, circle, cylinder, cone, sphere) — you won\'t always get a reference sheet on every question.','For composite-shape problems, find any missing dimension from one formula before plugging into the next.'] },
+      { id:'math-geo-lines', name:'Lines, Angles, and Triangles',
+        explain:'Angle relationships (parallel lines, triangle angle sum) and triangle similarity/congruence.',
+        examples:[
+          { q:'(Easy) Two parallel lines are cut by a transversal. One angle measures 70°. What is its corresponding angle?', answer:'70°', explain:'Corresponding angles formed by a transversal across parallel lines are always equal.' },
+          { q:'(Hard) Triangle ABC is similar to triangle DEF, with a scale factor of 3:2 (ABC:DEF). If the area of ABC is 54, what is the area of DEF?', answer:'24', explain:'Area scales with the SQUARE of the linear scale factor, not the factor itself. Scale factor 3:2 means area ratio 9:4. 54/9 × 4 = 24 — forgetting to square the scale factor for area (or cube it for volume) is the single most common similarity error.' }
+        ],
+        tips:['For similar figures: lengths scale by the ratio, area scales by the ratio squared, volume scales by the ratio cubed — memorize this distinction cold.','Redraw the figure and mark every angle you can deduce — most "find the missing angle" problems chain several simple facts together.'] },
+      { id:'math-geo-trig', name:'Right Triangle Trigonometry',
+        explain:'Sine, cosine, and tangent ratios in right triangles, including the relationship sin(θ) = cos(90°-θ).',
+        examples:[
+          { q:'(Easy) In a right triangle, the side opposite a 30° angle is 5. The hypotenuse is 10. Find sin(30°).', answer:'0.5', explain:'sin(θ) = opposite/hypotenuse = 5/10 = 0.5.' },
+          { q:'(Hard) If sin(x°) = cos(20°) and both x and 20 are acute angles, what is the value of x?', answer:'x = 70', explain:'For acute angles, sin(θ) = cos(90° - θ). So cos(20°) = sin(70°), meaning x = 70 — this complementary-angle identity is tested directly and often without a triangle diagram given.' }
+        ],
+        tips:['Memorize SOH-CAH-TOA cold, and also the identity sin(θ) = cos(90°-θ) — it\'s tested as a pure algebra fact without any triangle picture sometimes.','Draw the triangle yourself if one isn\'t given — labeling opposite/adjacent/hypotenuse relative to the given angle prevents mix-ups.'] },
+      { id:'math-geo-circles', name:'Circles: Arc Length, Radians, Equations',
+        explain:'Arc length/sector area formulas, radian-degree conversion, and the equation of a circle (x-h)² + (y-k)² = r².',
+        examples:[
+          { q:'(Easy) A circle has equation (x-3)² + (y+2)² = 16. What is its center and radius?', answer:'Center (3, -2), radius 4', explain:'Compare to (x-h)²+(y-k)²=r²: h=3, k=-2 (note the sign flip), r²=16 so r=4.' },
+          { q:'(Hard) A circle has radius 9. What is the length of an arc subtended by a central angle of 120°?', answer:'6π', explain:'Arc length = (angle/360°) × 2πr = (120/360)(2π)(9) = (1/3)(18π) = 6π. Convert the angle fraction of the full circle first, then multiply by circumference — mixing up arc length with sector area formulas is the most common error here.' }
+        ],
+        tips:['For circle equations, remember the center coordinates are the OPPOSITE sign of what appears in the equation: (x-h)² means center x-coordinate is +h.','Arc length = (fraction of circle) × circumference; sector area = (fraction of circle) × full area — keep these two formulas clearly separated in your head.'] }
+    ]}
+  ]}
+];
+
+// ============================================================
+// SAT STUDY HUB — logic
+// ============================================================
+const SAT_RATINGS = ['not_started','learning','confident','mastered'];
+const SAT_RATING_LABELS = { not_started:'Not Started', learning:'Learning', confident:'Confident', mastered:'Mastered' };
+const SAT_RATING_SCORE = { not_started:0, learning:0.4, confident:0.75, mastered:1 };
+const SAT_RATING_COLOR = { not_started:'badge-gray', learning:'badge-amber', confident:'badge-blue', mastered:'badge-green' };
+let _satOpenDomains = {};
+let _satCurrentSkillId = null;
+
+function satAllSkills() {
+  const out = [];
+  SAT_SYLLABUS.forEach(sec => sec.domains.forEach(dom => dom.skills.forEach(sk => out.push({ sec, dom, sk }))));
+  return out;
+}
+function satFindSkill(skillId) { return satAllSkills().find(x => x.sk.id === skillId) || null; }
+function satRatingOf(skillId) { return (DB.satHub.ratings && DB.satHub.ratings[skillId]) || 'not_started'; }
+
+function satDomainProgress(dom) {
+  const total = dom.skills.length;
+  const sum = dom.skills.reduce((a,sk) => a + SAT_RATING_SCORE[satRatingOf(sk.id)], 0);
+  return total ? Math.round(sum/total*100) : 0;
+}
+function satSectionProgress(sec) {
+  const all = sec.domains.flatMap(d => d.skills);
+  const sum = all.reduce((a,sk) => a + SAT_RATING_SCORE[satRatingOf(sk.id)], 0);
+  return all.length ? Math.round(sum/all.length*100) : 0;
+}
+function satOverallProgress() {
+  const all = satAllSkills();
+  const sum = all.reduce((a,x) => a + SAT_RATING_SCORE[satRatingOf(x.sk.id)], 0);
+  return all.length ? Math.round(sum/all.length*100) : 0;
+}
+
+function toggleSatDomain(domId) {
+  _satOpenDomains[domId] = !_satOpenDomains[domId];
+  renderSATHub();
+}
+
+function setSATRating(skillId, rating) {
+  DB.satHub.ratings[skillId] = rating;
+  save();
+  if (currentPageId === 'c-sat-skill') openSATSkill(skillId);
+  if (currentPageId === 'c-sat-hub') renderSATHub();
+}
+
+function openSATSkill(skillId) {
+  const found = satFindSkill(skillId); if (!found) return;
+  _satCurrentSkillId = skillId;
+  const { sec, dom, sk } = found;
+  const rating = satRatingOf(skillId);
+  document.getElementById('sat-skill-content').innerHTML = `
+    <div style="margin-bottom:6px;font-size:12px;color:var(--text-secondary);">${sec.name} → ${dom.name}</div>
+    <h2 style="font-size:21px;font-weight:800;margin:0 0 14px;">${sk.name}</h2>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-title">What this tests</div>
+      <p style="font-size:13px;line-height:1.6;margin-top:6px;">${sk.explain}</p>
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-title">Worked Examples</div>
+      ${sk.examples.map((ex,i) => `<div style="margin-top:${i?'14px':'8px'};padding-top:${i?'14px':'0'};${i?'border-top:1px solid var(--border-light);':''}">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${ex.q}</div>
+        <div style="font-size:13px;margin-bottom:4px;"><strong>Answer:</strong> ${ex.answer}</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">${ex.explain}</div>
+      </div>`).join('')}
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-title">How to Study This</div>
+      <ul style="margin:8px 0 0;padding-left:20px;font-size:13px;line-height:1.7;">
+        ${sk.tips.map(t => `<li>${t}</li>`).join('')}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px;">Self-Rating</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${SAT_RATINGS.map(r => `<button class="btn ${rating===r?'btn-primary':'btn-secondary'} btn-sm" onclick="setSATRating('${sk.id}','${r}')">${SAT_RATING_LABELS[r]}</button>`).join('')}
+      </div>
+    </div>`;
+  showPage('c-sat-skill');
+}
+
+function openSATDiagnostic() {
+  const d = DB.satHub.diagnostic || {};
+  document.getElementById('sat-diag-rw-score').value = d.rwScore || '';
+  document.getElementById('sat-diag-math-score').value = d.mathScore || '';
+  document.getElementById('sat-diag-struggle').value = d.struggle || 'content';
+  document.getElementById('sat-diag-priority-section').value = d.prioritySection || 'even';
+  const list = document.getElementById('sat-diag-domains-checklist');
+  const studied = d.domainsStudied || [];
+  list.innerHTML = SAT_SYLLABUS.flatMap(sec => sec.domains).map(dom =>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:400;">
+      <input type="checkbox" value="${dom.id}" ${studied.includes(dom.id)?'checked':''} style="width:15px;height:15px;accent-color:var(--c-accent);">
+      ${dom.name}
+    </label>`).join('');
+  openModal('sat-diagnostic-modal');
+}
+function saveSATDiagnostic() {
+  const domainsStudied = Array.from(document.querySelectorAll('#sat-diag-domains-checklist input:checked')).map(i => i.value);
+  DB.satHub.diagnostic = {
+    rwScore: parseInt(document.getElementById('sat-diag-rw-score').value) || null,
+    mathScore: parseInt(document.getElementById('sat-diag-math-score').value) || null,
+    domainsStudied,
+    struggle: document.getElementById('sat-diag-struggle').value,
+    prioritySection: document.getElementById('sat-diag-priority-section').value,
+    takenAt: Date.now()
+  };
+  save();
+  closeModal('sat-diagnostic-modal');
+  renderSATHub();
+}
+
+function satRecommendations() {
+  const diag = DB.satHub.diagnostic;
+  const all = satAllSkills();
+  // Score each un-mastered skill: higher domain weight + lower self-rating + diagnostic adjustments = higher priority
+  const scored = all
+    .filter(x => satRatingOf(x.sk.id) !== 'mastered')
+    .map(x => {
+      let score = x.dom.weight * (1 - SAT_RATING_SCORE[satRatingOf(x.sk.id)]);
+      if (diag) {
+        if (!diag.domainsStudied.includes(x.dom.id)) score *= 1.3;
+        if (diag.prioritySection === x.sec.id) score *= 1.25;
+        if (diag.struggle === 'content') score *= 1.1;
+      }
+      return { ...x, score };
+    })
+    .sort((a,b) => b.score - a.score);
+  return scored.slice(0, 6);
+}
+
+function renderSATHub() {
+  if (!DB.satHub) return;
+  document.getElementById('sat-hub-overall-pct').textContent = satOverallProgress() + '%';
+  document.getElementById('sat-hub-overall-bar').style.width = satOverallProgress() + '%';
+  document.getElementById('sat-hub-rw-pct').textContent = satSectionProgress(SAT_SYLLABUS[0]) + '%';
+  document.getElementById('sat-hub-math-pct').textContent = satSectionProgress(SAT_SYLLABUS[1]) + '%';
+
+  const log = DB.satHub.studyLog || [];
+  const totalMin = log.reduce((a,l) => a + (l.minutes||0), 0);
+  document.getElementById('sat-hub-total-minutes').textContent = totalMin + ' min';
+  document.getElementById('sat-hub-log-count').textContent = log.length + ' session' + (log.length===1?'':'s') + ' logged';
+
+  // Recommended next
+  const recs = satRecommendations();
+  const recEl = document.getElementById('sat-hub-recommended');
+  if (!DB.satHub.diagnostic) {
+    recEl.innerHTML = `<div class="card" style="padding:18px;"><p style="font-size:13px;margin-bottom:10px;">Take the diagnostic questionnaire to get a personalized study order — for now, here's a weight-based default.</p>${recs.length?recs.map(satRenderRecRow).join(''):'<p style="font-size:13px;color:var(--text-secondary);">Great work — everything is mastered!</p>'}</div>`;
+  } else if (!recs.length) {
+    recEl.innerHTML = `<div class="card" style="padding:18px;"><p style="font-size:13px;color:var(--text-secondary);">Everything is mastered — nice work! Consider a full practice test.</p></div>`;
+  } else {
+    recEl.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">${recs.map(satRenderRecRow).join('')}</div>`;
+  }
+
+  // Syllabus tree
+  const sylEl = document.getElementById('sat-hub-syllabus');
+  sylEl.innerHTML = SAT_SYLLABUS.map(sec => `
+    <div style="margin-bottom:18px;">
+      <div style="font-weight:800;font-size:15px;margin-bottom:8px;">${sec.name} <span style="font-weight:400;color:var(--text-secondary);font-size:12px;">${sec.meta} · ${satSectionProgress(sec)}% done</span></div>
+      ${sec.domains.map(dom => {
+        const open = !!_satOpenDomains[dom.id];
+        const pct = satDomainProgress(dom);
+        return `<div class="card" style="margin-bottom:8px;padding:0;overflow:hidden;">
+          <div onclick="toggleSatDomain('${dom.id}')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;">
+            <span style="font-size:11px;transform:rotate(${open?90:0}deg);transition:transform .15s;display:inline-block;">▶</span>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-weight:700;font-size:13px;">${dom.name}</span>
+                <span class="badge badge-gray">${dom.weight}% of section</span>
+              </div>
+              <div class="progress-bar" style="margin-top:6px;"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:var(--c-accent);">${pct}%</div>
+          </div>
+          <div style="display:${open?'block':'none'};border-top:1px solid var(--border-light);padding:6px 14px 10px;">
+            ${dom.skills.map(sk => {
+              const r = satRatingOf(sk.id);
+              return `<div onclick="openSATSkill('${sk.id}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;cursor:pointer;border-bottom:1px solid var(--border-light);">
+                <span style="font-size:13px;">${sk.name}</span>
+                <span class="badge ${SAT_RATING_COLOR[r]}">${SAT_RATING_LABELS[r]}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  renderSATLogList();
+  renderSATHubSummaryLine();
+}
+
+function satRenderRecRow(x) {
+  const r = satRatingOf(x.sk.id);
+  return `<div onclick="openSATSkill('${x.sk.id}')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border-light);cursor:pointer;">
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:13px;">${x.sk.name}</div>
+      <div style="font-size:11px;color:var(--text-muted);">${x.sec.name} → ${x.dom.name} · ${x.dom.weight}% of section</div>
+    </div>
+    <span class="badge ${SAT_RATING_COLOR[r]}">${SAT_RATING_LABELS[r]}</span>
+  </div>`;
+}
+
+function renderSATHubSummaryLine() {
+  const el = document.getElementById('sat-hub-summary-line');
+  if (!el) return;
+  el.textContent = satOverallProgress() + '% of syllabus covered';
+}
+
+function openSATLogModal(id) {
+  const sel = document.getElementById('sat-log-skill');
+  sel.innerHTML = satAllSkills().map(x => `<option value="${x.sk.id}">${x.sec.name} → ${x.sk.name}</option>`).join('');
+  document.getElementById('sat-log-edit-id').value = '';
+  document.getElementById('sat-log-date').value = today();
+  document.getElementById('sat-log-minutes').value = '';
+  document.getElementById('sat-log-notes').value = '';
+  document.getElementById('sat-log-delete-btn').style.display = 'none';
+  if (id) {
+    const l = DB.satHub.studyLog.find(x => x.id === id);
+    if (l) {
+      document.getElementById('sat-log-edit-id').value = l.id;
+      document.getElementById('sat-log-date').value = l.date;
+      sel.value = l.skillId;
+      document.getElementById('sat-log-minutes').value = l.minutes;
+      document.getElementById('sat-log-notes').value = l.notes || '';
+      document.getElementById('sat-log-delete-btn').style.display = 'inline-flex';
+    }
+  }
+  openModal('sat-log-modal', id);
+}
+function saveSATLog() {
+  const date = document.getElementById('sat-log-date').value;
+  if (!date) { alert('Please pick a date.'); return; }
+  const editId = document.getElementById('sat-log-edit-id').value;
+  const entry = {
+    id: editId || uid(),
+    date,
+    skillId: document.getElementById('sat-log-skill').value,
+    minutes: parseInt(document.getElementById('sat-log-minutes').value) || 0,
+    notes: document.getElementById('sat-log-notes').value.trim()
+  };
+  if (editId) {
+    const i = DB.satHub.studyLog.findIndex(x => x.id === editId);
+    if (i >= 0) DB.satHub.studyLog[i] = entry; else DB.satHub.studyLog.push(entry);
+  } else {
+    DB.satHub.studyLog.push(entry);
+  }
+  save(); closeModal('sat-log-modal'); renderSATHub();
+}
+function deleteSATLog() {
+  const id = document.getElementById('sat-log-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this log entry?')) return;
+  DB.satHub.studyLog = DB.satHub.studyLog.filter(x => x.id !== id);
+  save(); closeModal('sat-log-modal'); renderSATHub();
+}
+function renderSATLogList() {
+  const el = document.getElementById('sat-hub-log-list');
+  if (!el) return;
+  const log = DB.satHub.studyLog || [];
+  if (!log.length) {
+    el.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No study sessions logged yet.</p></div>`;
+    return;
+  }
+  const sorted = [...log].sort((a,b) => b.date.localeCompare(a.date));
+  el.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">` + sorted.map(l => {
+    const found = satFindSkill(l.skillId);
+    const dateLbl = new Date(l.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-light);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;">${found?found.sk.name:'Unknown skill'} <span style="font-weight:400;color:var(--text-muted);">· ${l.minutes} min</span></div>
+        <div style="font-size:11px;color:var(--text-muted);">${dateLbl}${l.notes?' · '+l.notes:''}</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="openSATLogModal('${l.id}')">Edit</button>
+    </div>`;
+  }).join('') + `</div>`;
 }
 
 // ============================================================
