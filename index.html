@@ -1003,7 +1003,6 @@ a:hover{text-decoration:underline;}
       <button class="btn btn-secondary btn-sm" onclick="showPage('c-sat')">← Back</button>
       <h2 style="font-size:21px;font-weight:800;margin:0;flex:1;">🎯 SAT Study Hub</h2>
       <button class="btn btn-secondary btn-sm" onclick="openSATDiagnostic()">📋 Diagnostic Questionnaire</button>
-      <button class="btn btn-secondary btn-sm" onclick="openSATLogModal()">+ Log Study Session</button>
     </div>
 
     <!-- Overall progress -->
@@ -1022,8 +1021,11 @@ a:hover{text-decoration:underline;}
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Study Time Logged</div>
-        <div style="font-size:32px;font-weight:800;color:var(--c-accent);margin-top:6px;" id="sat-hub-total-minutes">0 min</div>
+        <div class="card-title">Study Time (from Time Tracker)</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:6px;">
+          <div style="font-size:32px;font-weight:800;color:var(--c-accent);" id="sat-hub-total-minutes">0 min</div>
+          <button class="btn btn-secondary btn-sm" id="sat-hub-timer-btn" onclick="satHubToggleTimer()" style="margin-left:auto;">▶ Start Timer</button>
+        </div>
         <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="sat-hub-log-count">0 sessions logged</div>
       </div>
     </div>
@@ -1036,8 +1038,8 @@ a:hover{text-decoration:underline;}
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Full Syllabus</h4></div>
     <div id="sat-hub-syllabus" style="margin-bottom:24px;"></div>
 
-    <!-- Study log -->
-    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Study Log</h4></div>
+    <!-- Auto time-tracker sessions -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Recent Study Sessions</h4></div>
     <div id="sat-hub-log-list" style="margin-bottom:24px;"></div>
   </div>
 
@@ -1087,26 +1089,6 @@ a:hover{text-decoration:underline;}
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeModal('sat-diagnostic-modal')">Cancel</button>
         <button class="btn btn-primary" onclick="saveSATDiagnostic()">Save &amp; Get Recommendations</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SAT Study Log Modal -->
-  <div class="modal-overlay" id="sat-log-modal">
-    <div class="modal" style="max-width:440px;">
-      <div class="modal-header">
-        <div class="modal-title">Log Study Session</div>
-        <button class="modal-close" onclick="closeModal('sat-log-modal')">×</button>
-      </div>
-      <input type="hidden" id="sat-log-edit-id">
-      <div class="form-group"><label>Date</label><input type="date" id="sat-log-date"></div>
-      <div class="form-group"><label>Skill</label><select id="sat-log-skill"></select></div>
-      <div class="form-group"><label>Minutes Spent</label><input type="number" id="sat-log-minutes" min="0" placeholder="30"></div>
-      <div class="form-group"><label>Notes</label><textarea id="sat-log-notes" rows="2" placeholder="What you covered, what felt hard…"></textarea></div>
-      <div class="form-actions">
-        <button class="btn btn-danger" id="sat-log-delete-btn" style="display:none;margin-right:auto;" onclick="deleteSATLog()">Delete</button>
-        <button class="btn btn-secondary" onclick="closeModal('sat-log-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveSATLog()">Save</button>
       </div>
     </div>
   </div>
@@ -4005,10 +3987,7 @@ function renderSATHub() {
   document.getElementById('sat-hub-rw-pct').textContent = satSectionProgress(SAT_SYLLABUS[0]) + '%';
   document.getElementById('sat-hub-math-pct').textContent = satSectionProgress(SAT_SYLLABUS[1]) + '%';
 
-  const log = DB.satHub.studyLog || [];
-  const totalMin = log.reduce((a,l) => a + (l.minutes||0), 0);
-  document.getElementById('sat-hub-total-minutes').textContent = totalMin + ' min';
-  document.getElementById('sat-hub-log-count').textContent = log.length + ' session' + (log.length===1?'':'s') + ' logged';
+  renderSATHubTimeCard();
 
   // Recommended next
   const recs = satRecommendations();
@@ -4054,7 +4033,7 @@ function renderSATHub() {
       }).join('')}
     </div>`).join('');
 
-  renderSATLogList();
+  renderSATHubSessions();
   renderSATHubSummaryLine();
 }
 
@@ -4075,71 +4054,65 @@ function renderSATHubSummaryLine() {
   el.textContent = satOverallProgress() + '% of syllabus covered';
 }
 
-function openSATLogModal(id) {
-  const sel = document.getElementById('sat-log-skill');
-  sel.innerHTML = satAllSkills().map(x => `<option value="${x.sk.id}">${x.sec.name} → ${x.sk.name}</option>`).join('');
-  document.getElementById('sat-log-edit-id').value = '';
-  document.getElementById('sat-log-date').value = today();
-  document.getElementById('sat-log-minutes').value = '';
-  document.getElementById('sat-log-notes').value = '';
-  document.getElementById('sat-log-delete-btn').style.display = 'none';
-  if (id) {
-    const l = DB.satHub.studyLog.find(x => x.id === id);
-    if (l) {
-      document.getElementById('sat-log-edit-id').value = l.id;
-      document.getElementById('sat-log-date').value = l.date;
-      sel.value = l.skillId;
-      document.getElementById('sat-log-minutes').value = l.minutes;
-      document.getElementById('sat-log-notes').value = l.notes || '';
-      document.getElementById('sat-log-delete-btn').style.display = 'inline-flex';
-    }
-  }
-  openModal('sat-log-modal', id);
+// SAT time is read live from the existing Time Tracker (DB.focusActivities / DB.timeSessions) —
+// any focus activity whose name contains "sat" counts automatically, no manual logging needed.
+function satHubTimeActivities() {
+  return (DB.focusActivities || []).filter(a => a.name.toLowerCase().includes('sat'));
 }
-function saveSATLog() {
-  const date = document.getElementById('sat-log-date').value;
-  if (!date) { alert('Please pick a date.'); return; }
-  const editId = document.getElementById('sat-log-edit-id').value;
-  const entry = {
-    id: editId || uid(),
-    date,
-    skillId: document.getElementById('sat-log-skill').value,
-    minutes: parseInt(document.getElementById('sat-log-minutes').value) || 0,
-    notes: document.getElementById('sat-log-notes').value.trim()
-  };
-  if (editId) {
-    const i = DB.satHub.studyLog.findIndex(x => x.id === editId);
-    if (i >= 0) DB.satHub.studyLog[i] = entry; else DB.satHub.studyLog.push(entry);
+function satHubEnsureActivity() {
+  let acts = satHubTimeActivities();
+  if (acts.length) return acts[0];
+  const act = { id: uid(), name: 'SAT Study', icon: '📚', category: 'study', type: 'focus', baselineSecs: 0, groupId: '' };
+  DB.focusActivities.push(act);
+  save();
+  return act;
+}
+function satHubToggleTimer() {
+  const act = satHubEnsureActivity();
+  if (DB.activeTimer && DB.activeTimer.activityId === act.id) {
+    stopTimer();
   } else {
-    DB.satHub.studyLog.push(entry);
+    startTimer(act.id, act.name, act.icon);
   }
-  save(); closeModal('sat-log-modal'); renderSATHub();
+  renderSATHubTimeCard();
+  renderSATHubSessions();
 }
-function deleteSATLog() {
-  const id = document.getElementById('sat-log-edit-id').value;
-  if (!id) return;
-  if (!confirm('Delete this log entry?')) return;
-  DB.satHub.studyLog = DB.satHub.studyLog.filter(x => x.id !== id);
-  save(); closeModal('sat-log-modal'); renderSATHub();
+function renderSATHubTimeCard() {
+  const btn = document.getElementById('sat-hub-timer-btn');
+  const minsEl = document.getElementById('sat-hub-total-minutes');
+  const countEl = document.getElementById('sat-hub-log-count');
+  if (!minsEl) return;
+  const ids = new Set(satHubTimeActivities().map(a => a.id));
+  const sessions = (DB.timeSessions || []).filter(s => ids.has(s.activityId));
+  let totalSecs = sessions.reduce((a,s) => a + (s.duration||0), 0);
+  const isRunning = DB.activeTimer && ids.has(DB.activeTimer.activityId);
+  if (isRunning) totalSecs += Math.floor((Date.now() - DB.activeTimer.startTs) / 1000);
+  minsEl.textContent = Math.floor(totalSecs/60) + ' min';
+  countEl.textContent = sessions.length + ' session' + (sessions.length===1?'':'s') + ' logged';
+  if (btn) {
+    btn.textContent = isRunning ? '■ Stop Timer' : '▶ Start Timer';
+    btn.className = 'btn btn-sm ' + (isRunning ? 'btn-danger' : 'btn-secondary');
+  }
 }
-function renderSATLogList() {
+function renderSATHubSessions() {
   const el = document.getElementById('sat-hub-log-list');
   if (!el) return;
-  const log = DB.satHub.studyLog || [];
-  if (!log.length) {
-    el.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No study sessions logged yet.</p></div>`;
+  const ids = new Set(satHubTimeActivities().map(a => a.id));
+  const sessions = (DB.timeSessions || []).filter(s => ids.has(s.activityId));
+  if (!sessions.length) {
+    el.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No SAT time tracked yet. Click "Start Timer" above, or time it from the Time Tracker in Habit Tracker (any activity named "SAT…" counts automatically).</p></div>`;
     return;
   }
-  const sorted = [...log].sort((a,b) => b.date.localeCompare(a.date));
-  el.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">` + sorted.map(l => {
-    const found = satFindSkill(l.skillId);
-    const dateLbl = new Date(l.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+  const sorted = [...sessions].sort((a,b) => b.date.localeCompare(a.date));
+  el.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">` + sorted.map(s => {
+    const dateLbl = new Date(s.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+    const mins = Math.round((s.duration||0)/60);
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-light);">
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;font-size:13px;">${found?found.sk.name:'Unknown skill'} <span style="font-weight:400;color:var(--text-muted);">· ${l.minutes} min</span></div>
-        <div style="font-size:11px;color:var(--text-muted);">${dateLbl}${l.notes?' · '+l.notes:''}</div>
+        <div style="font-weight:600;font-size:13px;">${s.icon||'📚'} ${s.activityName||'SAT Study'} <span style="font-weight:400;color:var(--text-muted);">· ${mins} min</span></div>
+        <div style="font-size:11px;color:var(--text-muted);">${dateLbl}</div>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="openSATLogModal('${l.id}')">Edit</button>
+      <button class="btn btn-secondary btn-sm btn-icon" onclick="deleteSession('${s.id}');renderSATHubTimeCard();renderSATHubSessions();">🗑</button>
     </div>`;
   }).join('') + `</div>`;
 }
@@ -6893,6 +6866,7 @@ function _startTimerUI() {
       renderTimeTracker();
       if (document.getElementById('tt-tab-today').style.display !== 'none') renderTodayTab();
     }
+    if (document.getElementById('page-c-sat-hub').classList.contains('active')) renderSATHubTimeCard();
   }, 1000);
   renderTimeTracker();
 }
