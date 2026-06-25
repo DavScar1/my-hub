@@ -1044,7 +1044,20 @@ a:hover{text-decoration:underline;}
 
     <!-- Question Bank Log -->
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">📋 Question Bank Log</h4><button class="btn btn-secondary btn-sm" onclick="openQBLogModal()">+ Log Question</button></div>
+    <div class="card" style="margin-bottom:12px;padding:14px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">Section</label><select id="qbf-section" onchange="qbFilterSectionChanged()" style="font-size:12px;padding:6px 8px;"><option value="">All</option><option value="rw">Reading &amp; Writing</option><option value="math">Math</option></select></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">Skill</label><select id="qbf-skill" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option></select></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">Result</label><select id="qbf-result" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option><option value="correct">Right</option><option value="lucky">Right (guessed)</option><option value="wrong">Wrong</option></select></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">How I found it</label><select id="qbf-how" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option><option value="easy">Easy</option><option value="doable">Doable</option><option value="tricky">Tricky</option><option value="confusing">Confusing</option><option value="timing">Timing</option><option value="careless">Careless</option></select></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">From</label><input type="date" id="qbf-from" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">To</label><input type="date" id="qbf-to" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">Search Question ID</label><input type="text" id="qbf-search" oninput="renderQBLog()" placeholder="e.g. 7d5a0f4e" style="font-size:12px;padding:6px 8px;"></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="qbClearFilters()">Clear Filters</button>
+    </div>
     <div id="sat-qb-stats" style="margin-bottom:12px;"></div>
+    <div id="sat-qb-extra-stats" style="margin-bottom:16px;"></div>
     <div id="sat-qb-list" style="margin-bottom:24px;"></div>
   </div>
 
@@ -4227,18 +4240,62 @@ function deleteQBLogEntry() {
   DB.satHub.qbLog = DB.satHub.qbLog.filter(x => x.id !== id);
   save(); closeModal('sat-qb-modal'); renderQBLog();
 }
+function qbFilterSectionChanged() {
+  document.getElementById('qbf-skill').value = '';
+  renderQBLog();
+}
+function qbClearFilters() {
+  ['qbf-section','qbf-skill','qbf-result','qbf-how'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('qbf-from').value = '';
+  document.getElementById('qbf-to').value = '';
+  document.getElementById('qbf-search').value = '';
+  renderQBLog();
+}
+function qbPopulateSkillFilter() {
+  const sel = document.getElementById('qbf-skill');
+  if (!sel) return;
+  const sectionFilter = document.getElementById('qbf-section').value;
+  const prev = sel.value;
+  const skills = satAllSkills().filter(x => !sectionFilter || x.sec.id === sectionFilter);
+  sel.innerHTML = '<option value="">All</option>' + skills.map(x => `<option value="${x.sk.id}">${x.dom.name} → ${x.sk.name}</option>`).join('');
+  if (skills.some(x => x.sk.id === prev)) sel.value = prev;
+}
+function qbGetFiltered() {
+  qbPopulateSkillFilter();
+  const log = DB.satHub.qbLog || [];
+  const section = document.getElementById('qbf-section').value;
+  const skillId = document.getElementById('qbf-skill').value;
+  const result = document.getElementById('qbf-result').value;
+  const how = document.getElementById('qbf-how').value;
+  const from = document.getElementById('qbf-from').value;
+  const to = document.getElementById('qbf-to').value;
+  const search = document.getElementById('qbf-search').value.trim().toLowerCase();
+  return log.filter(e => {
+    if (skillId && e.skillId !== skillId) return false;
+    if (!skillId && section) { const f = e.skillId ? satFindSkill(e.skillId) : null; if (!f || f.sec.id !== section) return false; }
+    if (result && e.result !== result) return false;
+    if (how && e.howIFound !== how) return false;
+    if (from && e.date < from) return false;
+    if (to && e.date > to) return false;
+    if (search && !(e.qid||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
 function renderQBLog() {
   const statsEl = document.getElementById('sat-qb-stats');
+  const extraEl = document.getElementById('sat-qb-extra-stats');
   const listEl = document.getElementById('sat-qb-list');
   if (!listEl) return;
-  const log = DB.satHub.qbLog || [];
+  const rawLog = DB.satHub.qbLog || [];
+  const log = qbGetFiltered();
 
   if (statsEl) {
-    if (!log.length) { statsEl.innerHTML = ''; }
+    if (!rawLog.length) { statsEl.innerHTML = ''; }
     else {
       const total = log.length;
       const correct = log.filter(e => e.result === 'correct' || e.result === 'lucky').length;
-      const acc = Math.round(correct/total*100);
+      const wrongCt = log.filter(e => e.result === 'wrong').length;
+      const acc = total ? Math.round(correct/total*100) : 0;
       const hardCt = log.filter(e => e.difficulty === 'hard').length;
       const trapCt = log.filter(e => e.howIFound === 'tricky').length;
       const timingCt = log.filter(e => e.howIFound === 'timing').length;
@@ -4246,6 +4303,7 @@ function renderQBLog() {
       statsEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
         <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Logged</div><div style="font-size:20px;font-weight:800;color:var(--c-accent);">${total}</div></div>
         <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Accuracy</div><div style="font-size:20px;font-weight:800;color:${acc>=70?'#22c55e':'#ef4444'};">${acc}%</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Got Wrong</div><div style="font-size:20px;font-weight:800;color:#ef4444;">${wrongCt}</div></div>
         <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Hard Qs Done</div><div style="font-size:20px;font-weight:800;color:#ef4444;">${hardCt}</div></div>
         <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Trap Hits</div><div style="font-size:20px;font-weight:800;color:#f59e0b;">${trapCt}</div></div>
         <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Timing Issues</div><div style="font-size:20px;font-weight:800;color:#f59e0b;">${timingCt}</div></div>
@@ -4254,8 +4312,78 @@ function renderQBLog() {
     }
   }
 
-  if (!log.length) {
+  if (extraEl) {
+    if (!rawLog.length || !log.length) { extraEl.innerHTML = ''; }
+    else {
+      // Accuracy by skill (worst first)
+      const bySkill = {};
+      log.forEach(e => {
+        const key = e.skillId || '_general';
+        if (!bySkill[key]) bySkill[key] = { total:0, correct:0 };
+        bySkill[key].total++;
+        if (e.result === 'correct' || e.result === 'lucky') bySkill[key].correct++;
+      });
+      const skillRows = Object.keys(bySkill).map(key => {
+        const f = key === '_general' ? null : satFindSkill(key);
+        const name = f ? f.sk.name : 'General / Mixed';
+        const { total, correct } = bySkill[key];
+        return { name, total, acc: Math.round(correct/total*100) };
+      }).sort((a,b) => a.acc - b.acc).slice(0, 6);
+
+      // Accuracy by difficulty
+      const byDiff = {};
+      ['easy','medium','hard'].forEach(d => {
+        const items = log.filter(e => e.difficulty === d);
+        const correctCt = items.filter(e => e.result === 'correct' || e.result === 'lucky').length;
+        byDiff[d] = { total: items.length, acc: items.length ? Math.round(correctCt/items.length*100) : null };
+      });
+
+      // Accuracy trend by week (last 6 weeks with data)
+      const byWeek = {};
+      log.forEach(e => {
+        const d = new Date(e.date+'T00:00:00');
+        const monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay()+6)%7));
+        const key = dateStr(monday);
+        if (!byWeek[key]) byWeek[key] = { total:0, correct:0 };
+        byWeek[key].total++;
+        if (e.result === 'correct' || e.result === 'lucky') byWeek[key].correct++;
+      });
+      const weekKeys = Object.keys(byWeek).sort().slice(-6);
+      const weekData = weekKeys.map(k => ({ label: new Date(k+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'}), acc: Math.round(byWeek[k].correct/byWeek[k].total*100) }));
+
+      extraEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:8px;">Accuracy by Skill (weakest first)</div>
+          ${skillRows.map(r => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="flex:1;font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name} <span style="color:var(--text-muted);">(${r.total})</span></div>
+            <div class="progress-bar" style="width:60px;"><div class="progress-fill${r.acc>=70?' green':''}" style="width:${r.acc}%;background:${r.acc<50?'#ef4444':r.acc<70?'#f59e0b':''};"></div></div>
+            <div style="font-size:12px;font-weight:700;width:34px;text-align:right;">${r.acc}%</div>
+          </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:8px;">Accuracy by Difficulty</div>
+          ${['easy','medium','hard'].map(d => byDiff[d].total ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="flex:1;font-size:12px;">${SAT_QB_DIFF_LABEL[d]} <span style="color:var(--text-muted);">(${byDiff[d].total})</span></div>
+            <div class="progress-bar" style="width:60px;"><div class="progress-fill${byDiff[d].acc>=70?' green':''}" style="width:${byDiff[d].acc}%;background:${byDiff[d].acc<50?'#ef4444':byDiff[d].acc<70?'#f59e0b':''};"></div></div>
+            <div style="font-size:12px;font-weight:700;width:34px;text-align:right;">${byDiff[d].acc}%</div>
+          </div>` : `<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${SAT_QB_DIFF_LABEL[d]}: no data</div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:8px;">Accuracy Trend (by week)</div>
+          ${weekData.length < 2 ? `<div style="font-size:12px;color:var(--text-muted);">Log questions across more weeks to see a trend.</div>` : `<div style="display:flex;align-items:flex-end;gap:6px;height:70px;">
+            ${weekData.map(w => `<div style="flex:1;text-align:center;"><div style="background:var(--c-accent);border-radius:3px 3px 0 0;height:${Math.max(4,w.acc*0.6)}px;" title="${w.acc}%"></div><div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${w.label}</div></div>`).join('')}
+          </div>`}
+        </div>
+      </div>`;
+    }
+  }
+
+  if (!rawLog.length) {
     listEl.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No questions logged yet. After working through questions on College Board's <a href="https://satsuite.collegeboard.org/practice/student-question-bank" target="_blank" rel="noopener">Student Question Bank</a>, log them here to track patterns in what trips you up.</p></div>`;
+    return;
+  }
+  if (!log.length) {
+    listEl.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No logged questions match these filters.</p></div>`;
     return;
   }
   const sorted = [...log].sort((a,b) => b.date.localeCompare(a.date));
