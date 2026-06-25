@@ -2751,6 +2751,14 @@ function ensureDBDefaults() {
   if (DB.satHub.diagnostic === undefined) DB.satHub.diagnostic = null;
   if (DB.satHub.studyLog === undefined) DB.satHub.studyLog = [];
   if (DB.satHub.qbLog === undefined) DB.satHub.qbLog = [];
+  // Migrate old 4-tier rating keys (learning/confident/mastered) to new 5-tier keys
+  if (DB.satHub.ratings) {
+    const _satRatingMigrate = { learning:'decent', confident:'good', mastered:'ready' };
+    Object.keys(DB.satHub.ratings).forEach(k => {
+      const old = DB.satHub.ratings[k];
+      if (_satRatingMigrate[old]) DB.satHub.ratings[k] = _satRatingMigrate[old];
+    });
+  }
 }
 
 function load() {
@@ -3888,10 +3896,10 @@ const SAT_SYLLABUS = [
 // ============================================================
 // SAT STUDY HUB — logic
 // ============================================================
-const SAT_RATINGS = ['not_started','learning','confident','mastered'];
-const SAT_RATING_LABELS = { not_started:'Started', learning:'Decent', confident:'Good', mastered:'Ready' };
-const SAT_RATING_SCORE = { not_started:0, learning:0.4, confident:0.75, mastered:1 };
-const SAT_RATING_COLOR = { not_started:'badge-gray', learning:'badge-amber', confident:'badge-blue', mastered:'badge-green' };
+const SAT_RATINGS = ['not_started','started','decent','good','ready'];
+const SAT_RATING_LABELS = { not_started:'Not Started', started:'Started', decent:'Decent', good:'Good', ready:'Ready' };
+const SAT_RATING_SCORE = { not_started:0, started:0.25, decent:0.5, good:0.75, ready:1 };
+const SAT_RATING_COLOR = { not_started:'badge-gray', started:'badge-amber', decent:'badge-amber', good:'badge-blue', ready:'badge-green' };
 let _satOpenDomains = {};
 let _satCurrentSkillId = null;
 
@@ -3997,7 +4005,7 @@ function satRecommendations() {
   const all = satAllSkills();
   // Score each un-mastered skill: higher domain weight + lower self-rating + diagnostic adjustments = higher priority
   const scored = all
-    .filter(x => satRatingOf(x.sk.id) !== 'mastered')
+    .filter(x => satRatingOf(x.sk.id) !== 'ready')
     .map(x => {
       let score = x.dom.weight * (1 - SAT_RATING_SCORE[satRatingOf(x.sk.id)]);
       if (diag) {
