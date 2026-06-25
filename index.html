@@ -1041,6 +1041,51 @@ a:hover{text-decoration:underline;}
     <!-- Auto time-tracker sessions -->
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Recent Study Sessions</h4></div>
     <div id="sat-hub-log-list" style="margin-bottom:24px;"></div>
+
+    <!-- Question Bank Log -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">📋 Question Bank Log</h4><button class="btn btn-secondary btn-sm" onclick="openQBLogModal()">+ Log Question</button></div>
+    <div id="sat-qb-stats" style="margin-bottom:12px;"></div>
+    <div id="sat-qb-list" style="margin-bottom:24px;"></div>
+  </div>
+
+  <!-- Question Bank Log Modal -->
+  <div class="modal-overlay" id="sat-qb-modal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header">
+        <div class="modal-title" id="sat-qb-modal-title">Log Question Bank Question</div>
+        <button class="modal-close" onclick="closeModal('sat-qb-modal')">×</button>
+      </div>
+      <input type="hidden" id="sat-qb-edit-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Date</label><input type="date" id="sat-qb-date"></div>
+        <div class="form-group"><label>Skill</label><select id="sat-qb-skill"></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Difficulty (as tagged in Question Bank)</label>
+          <select id="sat-qb-difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+        </div>
+        <div class="form-group"><label>Result</label>
+          <select id="sat-qb-result"><option value="correct">Got it right</option><option value="lucky">Right, but guessed</option><option value="wrong">Got it wrong</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>How I found it</label>
+        <select id="sat-qb-how">
+          <option value="easy">Easy — no issue</option>
+          <option value="doable">Doable, took a bit of thought</option>
+          <option value="tricky">Tricky — fell for a trap answer</option>
+          <option value="confusing">Confusing — didn't understand what was asked</option>
+          <option value="timing">Knew it, but ran out of time</option>
+          <option value="careless">Careless mistake (knew it, slipped up)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>What I need to do</label><textarea id="sat-qb-todo" rows="2" placeholder="e.g. Re-learn the rule for dangling modifiers; drill 10 more like this"></textarea></div>
+      <div class="form-group"><label>Notes</label><textarea id="sat-qb-notes" rows="2" placeholder="Anything else worth remembering about this question…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="sat-qb-delete-btn" style="display:none;margin-right:auto;" onclick="deleteQBLogEntry()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeModal('sat-qb-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveQBLogEntry()">Save</button>
+      </div>
+    </div>
   </div>
 
   <!-- SAT Skill Detail -->
@@ -2701,10 +2746,11 @@ function ensureDBDefaults() {
   if (DB.satPlan.weeks === undefined) DB.satPlan.weeks = [];
   if (DB.satPlan.notesPages === undefined) DB.satPlan.notesPages = [];
   if (DB.satPlan.startDate === undefined) DB.satPlan.startDate = '';
-  if (!DB.satHub) DB.satHub = { ratings:{}, diagnostic:null, studyLog:[] };
+  if (!DB.satHub) DB.satHub = { ratings:{}, diagnostic:null, studyLog:[], qbLog:[] };
   if (DB.satHub.ratings === undefined) DB.satHub.ratings = {};
   if (DB.satHub.diagnostic === undefined) DB.satHub.diagnostic = null;
   if (DB.satHub.studyLog === undefined) DB.satHub.studyLog = [];
+  if (DB.satHub.qbLog === undefined) DB.satHub.qbLog = [];
 }
 
 function load() {
@@ -3843,7 +3889,7 @@ const SAT_SYLLABUS = [
 // SAT STUDY HUB — logic
 // ============================================================
 const SAT_RATINGS = ['not_started','learning','confident','mastered'];
-const SAT_RATING_LABELS = { not_started:'Not Started', learning:'Learning', confident:'Confident', mastered:'Mastered' };
+const SAT_RATING_LABELS = { not_started:'Started', learning:'Decent', confident:'Good', mastered:'Ready' };
 const SAT_RATING_SCORE = { not_started:0, learning:0.4, confident:0.75, mastered:1 };
 const SAT_RATING_COLOR = { not_started:'badge-gray', learning:'badge-amber', confident:'badge-blue', mastered:'badge-green' };
 let _satOpenDomains = {};
@@ -4019,6 +4065,7 @@ function renderSATHub() {
     </div>`).join('');
 
   renderSATHubSessions();
+  renderQBLog();
   renderSATHubSummaryLine();
 }
 
@@ -4098,6 +4145,122 @@ function renderSATHubSessions() {
         <div style="font-size:11px;color:var(--text-muted);">${dateLbl}</div>
       </div>
       <button class="btn btn-secondary btn-sm btn-icon" onclick="deleteSession('${s.id}');renderSATHubTimeCard();renderSATHubSessions();">🗑</button>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+// ============================================================
+// QUESTION BANK LOG
+// ============================================================
+const SAT_QB_DIFF_LABEL = { easy:'Easy', medium:'Medium', hard:'Hard' };
+const SAT_QB_DIFF_COLOR = { easy:'badge-green', medium:'badge-amber', hard:'badge-red' };
+const SAT_QB_RESULT_LABEL = { correct:'✅ Right', lucky:'🍀 Right (guessed)', wrong:'❌ Wrong' };
+const SAT_QB_HOW_LABEL = { easy:'Easy — no issue', doable:'Doable, took thought', tricky:'Tricky — trap answer', confusing:"Confusing — didn't understand the ask", timing:'Knew it, ran out of time', careless:'Careless mistake' };
+
+function openQBLogModal(id) {
+  const sel = document.getElementById('sat-qb-skill');
+  sel.innerHTML = '<option value="">General / Mixed</option>' + satAllSkills().map(x => `<option value="${x.sk.id}">${x.sec.name} → ${x.sk.name}</option>`).join('');
+  document.getElementById('sat-qb-edit-id').value = '';
+  document.getElementById('sat-qb-date').value = today();
+  document.getElementById('sat-qb-difficulty').value = 'medium';
+  document.getElementById('sat-qb-result').value = 'correct';
+  document.getElementById('sat-qb-how').value = 'easy';
+  document.getElementById('sat-qb-todo').value = '';
+  document.getElementById('sat-qb-notes').value = '';
+  document.getElementById('sat-qb-modal-title').textContent = 'Log Question Bank Question';
+  document.getElementById('sat-qb-delete-btn').style.display = 'none';
+  if (id) {
+    const e = DB.satHub.qbLog.find(x => x.id === id);
+    if (e) {
+      document.getElementById('sat-qb-edit-id').value = e.id;
+      document.getElementById('sat-qb-date').value = e.date;
+      sel.value = e.skillId || '';
+      document.getElementById('sat-qb-difficulty').value = e.difficulty;
+      document.getElementById('sat-qb-result').value = e.result;
+      document.getElementById('sat-qb-how').value = e.howIFound;
+      document.getElementById('sat-qb-todo').value = e.whatToDo || '';
+      document.getElementById('sat-qb-notes').value = e.notes || '';
+      document.getElementById('sat-qb-modal-title').textContent = 'Edit Logged Question';
+      document.getElementById('sat-qb-delete-btn').style.display = 'inline-flex';
+    }
+  }
+  openModal('sat-qb-modal', id);
+}
+function saveQBLogEntry() {
+  const date = document.getElementById('sat-qb-date').value;
+  if (!date) { alert('Please pick a date.'); return; }
+  const editId = document.getElementById('sat-qb-edit-id').value;
+  const entry = {
+    id: editId || uid(),
+    date,
+    skillId: document.getElementById('sat-qb-skill').value,
+    difficulty: document.getElementById('sat-qb-difficulty').value,
+    result: document.getElementById('sat-qb-result').value,
+    howIFound: document.getElementById('sat-qb-how').value,
+    whatToDo: document.getElementById('sat-qb-todo').value.trim(),
+    notes: document.getElementById('sat-qb-notes').value.trim()
+  };
+  if (editId) {
+    const i = DB.satHub.qbLog.findIndex(x => x.id === editId);
+    if (i >= 0) DB.satHub.qbLog[i] = entry; else DB.satHub.qbLog.push(entry);
+  } else {
+    DB.satHub.qbLog.push(entry);
+  }
+  save(); closeModal('sat-qb-modal'); renderQBLog();
+}
+function deleteQBLogEntry() {
+  const id = document.getElementById('sat-qb-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this logged question?')) return;
+  DB.satHub.qbLog = DB.satHub.qbLog.filter(x => x.id !== id);
+  save(); closeModal('sat-qb-modal'); renderQBLog();
+}
+function renderQBLog() {
+  const statsEl = document.getElementById('sat-qb-stats');
+  const listEl = document.getElementById('sat-qb-list');
+  if (!listEl) return;
+  const log = DB.satHub.qbLog || [];
+
+  if (statsEl) {
+    if (!log.length) { statsEl.innerHTML = ''; }
+    else {
+      const total = log.length;
+      const correct = log.filter(e => e.result === 'correct' || e.result === 'lucky').length;
+      const acc = Math.round(correct/total*100);
+      const hardCt = log.filter(e => e.difficulty === 'hard').length;
+      const trapCt = log.filter(e => e.howIFound === 'tricky').length;
+      const timingCt = log.filter(e => e.howIFound === 'timing').length;
+      const carelessCt = log.filter(e => e.howIFound === 'careless').length;
+      statsEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Logged</div><div style="font-size:20px;font-weight:800;color:var(--c-accent);">${total}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Accuracy</div><div style="font-size:20px;font-weight:800;color:${acc>=70?'#22c55e':'#ef4444'};">${acc}%</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Hard Qs Done</div><div style="font-size:20px;font-weight:800;color:#ef4444;">${hardCt}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Trap Hits</div><div style="font-size:20px;font-weight:800;color:#f59e0b;">${trapCt}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Timing Issues</div><div style="font-size:20px;font-weight:800;color:#f59e0b;">${timingCt}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Careless Slips</div><div style="font-size:20px;font-weight:800;color:#f59e0b;">${carelessCt}</div></div>
+      </div>`;
+    }
+  }
+
+  if (!log.length) {
+    listEl.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No questions logged yet. After working through questions on College Board's <a href="https://satsuite.collegeboard.org/practice/student-question-bank" target="_blank" rel="noopener">Student Question Bank</a>, log them here to track patterns in what trips you up.</p></div>`;
+    return;
+  }
+  const sorted = [...log].sort((a,b) => b.date.localeCompare(a.date));
+  listEl.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">` + sorted.map(e => {
+    const found = e.skillId ? satFindSkill(e.skillId) : null;
+    const dateLbl = new Date(e.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+    const flagged = e.howIFound === 'tricky' || e.howIFound === 'confusing' || e.result === 'wrong';
+    return `<div onclick="openQBLogModal('${e.id}')" style="cursor:pointer;padding:11px 14px;border-bottom:1px solid var(--border-light);${flagged?'background:#fef2f2;':''}">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+        <span style="font-weight:700;font-size:13px;">${found ? found.sk.name : 'General / Mixed'}</span>
+        <span class="badge ${SAT_QB_DIFF_COLOR[e.difficulty]}">${SAT_QB_DIFF_LABEL[e.difficulty]}</span>
+        <span style="font-size:12px;">${SAT_QB_RESULT_LABEL[e.result]}</span>
+        <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${dateLbl}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);">${SAT_QB_HOW_LABEL[e.howIFound]}</div>
+      ${e.whatToDo ? `<div style="font-size:12px;margin-top:4px;"><strong>To do:</strong> ${e.whatToDo}</div>` : ''}
+      ${e.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${e.notes}</div>` : ''}
     </div>`;
   }).join('') + `</div>`;
 }
