@@ -1056,6 +1056,7 @@ a:hover{text-decoration:underline;}
         <button class="modal-close" onclick="closeModal('sat-qb-modal')">×</button>
       </div>
       <input type="hidden" id="sat-qb-edit-id">
+      <div class="form-group"><label>Question ID <span style="font-size:11px;color:var(--text-muted);">(the tag shown on the Question Bank, e.g. 7d5a0f4e)</span></label><input type="text" id="sat-qb-qid" placeholder="e.g. 7d5a0f4e"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-group"><label>Date</label><input type="date" id="sat-qb-date"></div>
         <div class="form-group"><label>Skill</label><select id="sat-qb-skill"></select></div>
@@ -3899,7 +3900,7 @@ const SAT_SYLLABUS = [
 const SAT_RATINGS = ['not_started','started','decent','good','ready'];
 const SAT_RATING_LABELS = { not_started:'Not Started', started:'Started', decent:'Decent', good:'Good', ready:'Ready' };
 const SAT_RATING_SCORE = { not_started:0, started:0.25, decent:0.5, good:0.75, ready:1 };
-const SAT_RATING_COLOR = { not_started:'badge-gray', started:'badge-amber', decent:'badge-amber', good:'badge-blue', ready:'badge-green' };
+const SAT_RATING_COLOR = { not_started:'badge-gray', started:'badge-red', decent:'badge-yellow', good:'badge-blue', ready:'badge-green' };
 let _satOpenDomains = {};
 let _satCurrentSkillId = null;
 
@@ -4169,6 +4170,7 @@ function openQBLogModal(id) {
   const sel = document.getElementById('sat-qb-skill');
   sel.innerHTML = '<option value="">General / Mixed</option>' + satAllSkills().map(x => `<option value="${x.sk.id}">${x.sec.name} → ${x.sk.name}</option>`).join('');
   document.getElementById('sat-qb-edit-id').value = '';
+  document.getElementById('sat-qb-qid').value = '';
   document.getElementById('sat-qb-date').value = today();
   document.getElementById('sat-qb-difficulty').value = 'medium';
   document.getElementById('sat-qb-result').value = 'correct';
@@ -4181,6 +4183,7 @@ function openQBLogModal(id) {
     const e = DB.satHub.qbLog.find(x => x.id === id);
     if (e) {
       document.getElementById('sat-qb-edit-id').value = e.id;
+      document.getElementById('sat-qb-qid').value = e.qid || '';
       document.getElementById('sat-qb-date').value = e.date;
       sel.value = e.skillId || '';
       document.getElementById('sat-qb-difficulty').value = e.difficulty;
@@ -4200,6 +4203,7 @@ function saveQBLogEntry() {
   const editId = document.getElementById('sat-qb-edit-id').value;
   const entry = {
     id: editId || uid(),
+    qid: document.getElementById('sat-qb-qid').value.trim(),
     date,
     skillId: document.getElementById('sat-qb-skill').value,
     difficulty: document.getElementById('sat-qb-difficulty').value,
@@ -4261,7 +4265,8 @@ function renderQBLog() {
     const flagged = e.howIFound === 'tricky' || e.howIFound === 'confusing' || e.result === 'wrong';
     return `<div onclick="openQBLogModal('${e.id}')" style="cursor:pointer;padding:11px 14px;border-bottom:1px solid var(--border-light);${flagged?'background:#fef2f2;':''}">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
-        <span style="font-weight:700;font-size:13px;">${found ? found.sk.name : 'General / Mixed'}</span>
+        <span style="font-weight:700;font-size:13px;font-family:monospace;">${e.qid ? e.qid : (found ? found.sk.name : 'General / Mixed')}</span>
+        ${e.qid ? `<span style="font-size:11px;color:var(--text-muted);">${found ? found.sk.name : 'General / Mixed'}</span>` : ''}
         <span class="badge ${SAT_QB_DIFF_COLOR[e.difficulty]}">${SAT_QB_DIFF_LABEL[e.difficulty]}</span>
         <span style="font-size:12px;">${SAT_QB_RESULT_LABEL[e.result]}</span>
         <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${dateLbl}</span>
