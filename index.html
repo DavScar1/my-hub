@@ -876,11 +876,12 @@ a:hover{text-decoration:underline;}
   <!-- Colleges -->
   <div class="page" id="page-c-colleges">
     <div class="page-header"><h2>Colleges</h2><p>Track each school, deadlines, and application status.</p></div>
-    <div class="grid-4" style="margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:20px;">
       <div class="stat-card"><div class="stat-value" id="col-stat-total">0</div><div class="stat-label">Total Schools</div><div class="stat-sub" id="col-stat-submitted">0 submitted</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-reach" style="color:var(--red);">0</div><div class="stat-label">Reach</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-match" style="color:var(--amber);">0</div><div class="stat-label">Match</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-safety" style="color:var(--green);">0</div><div class="stat-label">Safety</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-applying" style="color:var(--accent);">0</div><div class="stat-label">Currently Applying</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-reach" style="color:var(--red);">0</div><div class="stat-label">Reach</div><div class="stat-sub" id="col-stat-reach-applying">0 applying</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-match" style="color:var(--amber);">0</div><div class="stat-label">Match</div><div class="stat-sub" id="col-stat-match-applying">0 applying</div></div>
+      <div class="stat-card"><div class="stat-value" id="col-stat-safety" style="color:var(--green);">0</div><div class="stat-label">Safety</div><div class="stat-sub" id="col-stat-safety-applying">0 applying</div></div>
     </div>
     <div class="section-header">
       <select id="college-filter" onchange="renderColleges()" style="width:auto;padding:6px 10px;">
@@ -3187,7 +3188,7 @@ function saveCollege() {
   if (!name) { alert('Please enter a school name.'); return; }
   const id = document.getElementById('college-edit-id').value || uid();
   const existing = DB.colleges.findIndex(c => c.id===id);
-  const college = { id, name, type:document.getElementById('col-type').value, deadline:document.getElementById('col-deadline').value, appType:document.getElementById('col-app-type').value, status:document.getElementById('col-status').value, portal:document.getElementById('col-portal').value, satRange:document.getElementById('col-sat-range').value, notes:document.getElementById('col-notes').value };
+  const college = { id, name, type:document.getElementById('col-type').value, deadline:document.getElementById('col-deadline').value, appType:document.getElementById('col-app-type').value, status:document.getElementById('col-status').value, portal:document.getElementById('col-portal').value, satRange:document.getElementById('col-sat-range').value, notes:document.getElementById('col-notes').value, applying: existing>=0 ? DB.colleges[existing].applying : true };
   if (existing>=0) DB.colleges[existing]=college; else DB.colleges.push(college);
   save(); closeModal('college-modal'); renderColleges(); updateEssayCollegeFilter();
 }
@@ -3266,6 +3267,10 @@ function renderColleges() {
   document.getElementById('col-stat-reach').textContent = DB.colleges.filter(c=>c.type==='Reach').length;
   document.getElementById('col-stat-match').textContent = DB.colleges.filter(c=>c.type==='Match').length;
   document.getElementById('col-stat-safety').textContent = DB.colleges.filter(c=>c.type==='Safety').length;
+  document.getElementById('col-stat-applying').textContent = DB.colleges.filter(c=>c.applying).length;
+  document.getElementById('col-stat-reach-applying').textContent = `${DB.colleges.filter(c=>c.type==='Reach'&&c.applying).length} applying`;
+  document.getElementById('col-stat-match-applying').textContent = `${DB.colleges.filter(c=>c.type==='Match'&&c.applying).length} applying`;
+  document.getElementById('col-stat-safety-applying').textContent = `${DB.colleges.filter(c=>c.type==='Safety'&&c.applying).length} applying`;
 
   const groups = document.getElementById('colleges-groups');
   const list = filter ? DB.colleges.filter(c=>c.type===filter) : DB.colleges;
