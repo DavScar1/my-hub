@@ -928,13 +928,21 @@ a:hover{text-decoration:underline;}
   <!-- SAT -->
   <div class="page" id="page-c-sat">
     <div class="page-header"><h2>SAT Scores</h2><p>Track test attempts and set your target score.</p></div>
-    <div class="grid-2" style="margin-bottom:20px;">
+    <div class="grid-3" style="margin-bottom:20px;">
       <div class="card">
         <div class="card-title">Best Score</div>
         <div class="score-display" id="sat-best-total">—</div>
         <div style="display:flex;gap:24px;margin-top:12px;">
           <div class="score-section"><div class="val" id="sat-best-rw">—</div><div class="lbl">Reading &amp; Writing</div></div>
           <div class="score-section"><div class="val" id="sat-best-math">—</div><div class="lbl">Math</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Superscore <span style="font-size:11px;font-weight:400;color:var(--text-muted);">(best R&amp;W + best Math, any dates)</span></div>
+        <div class="score-display" id="sat-super-total" style="color:var(--c-accent);">—</div>
+        <div style="display:flex;gap:24px;margin-top:12px;">
+          <div class="score-section"><div class="val" id="sat-super-rw">—</div><div class="lbl" id="sat-super-rw-date">Reading &amp; Writing</div></div>
+          <div class="score-section"><div class="val" id="sat-super-math">—</div><div class="lbl" id="sat-super-math-date">Math</div></div>
         </div>
       </div>
       <div class="card">
@@ -1039,9 +1047,10 @@ a:hover{text-decoration:underline;}
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Full Syllabus</h4></div>
     <div id="sat-hub-syllabus" style="margin-bottom:24px;"></div>
 
-    <!-- Auto time-tracker sessions -->
-    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Recent Study Sessions</h4></div>
-    <div id="sat-hub-log-list" style="margin-bottom:24px;"></div>
+    <!-- Practice Tests -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">📝 Practice Tests</h4><button class="btn btn-secondary btn-sm" onclick="openPracticeTestModal()">+ Log Practice Test</button></div>
+    <div id="sat-pt-stats" style="margin-bottom:12px;"></div>
+    <div id="sat-pt-list" style="margin-bottom:24px;"></div>
 
     <!-- Question Bank Log -->
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">📋 Question Bank Log</h4><button class="btn btn-secondary btn-sm" onclick="openQBLogModal()">+ Log Question</button></div>
@@ -1051,6 +1060,7 @@ a:hover{text-decoration:underline;}
         <div class="form-group" style="margin:0;"><label style="font-size:11px;">Skill</label><select id="qbf-skill" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option></select></div>
         <div class="form-group" style="margin:0;"><label style="font-size:11px;">Result</label><select id="qbf-result" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option><option value="correct">Right</option><option value="lucky">Right (guessed)</option><option value="wrong">Wrong</option></select></div>
         <div class="form-group" style="margin:0;"><label style="font-size:11px;">How I found it</label><select id="qbf-how" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option><option value="easy">Easy</option><option value="doable">Doable</option><option value="tricky">Tricky</option><option value="confusing">Confusing</option><option value="timing">Timing</option><option value="careless">Careless</option></select></div>
+        <div class="form-group" style="margin:0;"><label style="font-size:11px;">Difficulty</label><select id="qbf-difficulty" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"><option value="">All</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></div>
         <div class="form-group" style="margin:0;"><label style="font-size:11px;">From</label><input type="date" id="qbf-from" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"></div>
         <div class="form-group" style="margin:0;"><label style="font-size:11px;">To</label><input type="date" id="qbf-to" onchange="renderQBLog()" style="font-size:12px;padding:6px 8px;"></div>
         <div class="form-group" style="margin:0;"><label style="font-size:11px;">Search Question ID</label><input type="text" id="qbf-search" oninput="renderQBLog()" placeholder="e.g. 7d5a0f4e" style="font-size:12px;padding:6px 8px;"></div>
@@ -1060,6 +1070,10 @@ a:hover{text-decoration:underline;}
     <div id="sat-qb-stats" style="margin-bottom:12px;"></div>
     <div id="sat-qb-extra-stats" style="margin-bottom:16px;"></div>
     <div id="sat-qb-list" style="margin-bottom:24px;"></div>
+
+    <!-- Auto time-tracker sessions -->
+    <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Recent Study Sessions</h4></div>
+    <div id="sat-hub-log-list" style="margin-bottom:24px;"></div>
   </div>
 
   <!-- Question Bank Log Modal -->
@@ -1099,6 +1113,33 @@ a:hover{text-decoration:underline;}
         <button class="btn btn-danger" id="sat-qb-delete-btn" style="display:none;margin-right:auto;" onclick="deleteQBLogEntry()">Delete</button>
         <button class="btn btn-secondary" onclick="closeModal('sat-qb-modal')">Cancel</button>
         <button class="btn btn-primary" onclick="saveQBLogEntry()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice Test Modal -->
+  <div class="modal-overlay" id="sat-pt-modal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header">
+        <div class="modal-title" id="sat-pt-modal-title">Log Practice Test</div>
+        <button class="modal-close" onclick="closeModal('sat-pt-modal')">×</button>
+      </div>
+      <input type="hidden" id="sat-pt-edit-id">
+      <div class="form-group"><label>Test Name / Source</label><input type="text" id="sat-pt-name" placeholder="e.g. Bluebook Practice Test 6"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Date</label><input type="date" id="sat-pt-date"></div>
+        <div class="form-group"><label>Full-length?</label><select id="sat-pt-fulllength"><option value="yes">Yes — full test</option><option value="no">No — section only</option></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>R&amp;W Score</label><input type="number" id="sat-pt-rw" min="200" max="800" placeholder="e.g. 620"></div>
+        <div class="form-group"><label>Math Score</label><input type="number" id="sat-pt-math" min="200" max="800" placeholder="e.g. 580"></div>
+      </div>
+      <div class="form-group"><label>Time Taken (minutes, optional)</label><input type="number" id="sat-pt-minutes" min="0" placeholder="e.g. 134"></div>
+      <div class="form-group"><label>Notes</label><textarea id="sat-pt-notes" rows="2" placeholder="Where you lost time, sections that felt rough, conditions (timed/untimed)…"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="sat-pt-delete-btn" style="display:none;margin-right:auto;" onclick="deletePracticeTest()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeModal('sat-pt-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="savePracticeTest()">Save</button>
       </div>
     </div>
   </div>
@@ -2766,6 +2807,7 @@ function ensureDBDefaults() {
   if (DB.satHub.diagnostic === undefined) DB.satHub.diagnostic = null;
   if (DB.satHub.studyLog === undefined) DB.satHub.studyLog = [];
   if (DB.satHub.qbLog === undefined) DB.satHub.qbLog = [];
+  if (DB.satHub.practiceTests === undefined) DB.satHub.practiceTests = [];
   // Migrate old 4-tier rating keys (learning/confident/mastered) to new 5-tier keys
   if (DB.satHub.ratings) {
     const _satRatingMigrate = { learning:'decent', confident:'good', mastered:'ready' };
@@ -3452,6 +3494,12 @@ function getBestSAT() {
   if(DB.sat.length===0)return null;
   return DB.sat.reduce((best,s)=>(!best||s.total>best.total)?s:best,null);
 }
+function getSuperscore() {
+  if(DB.sat.length===0)return null;
+  const bestRW = DB.sat.reduce((b,s)=>(!b||s.rw>b.rw)?s:b,null);
+  const bestMath = DB.sat.reduce((b,s)=>(!b||s.math>b.math)?s:b,null);
+  return { rw:bestRW.rw, rwDate:bestRW.date, math:bestMath.math, mathDate:bestMath.date, total:bestRW.rw+bestMath.math };
+}
 function saveSATGoal() {
   DB.satGoal={total:parseInt(document.getElementById('sat-goal-total').value)||0,rw:parseInt(document.getElementById('sat-goal-rw').value)||0,math:parseInt(document.getElementById('sat-goal-math').value)||0};
   save();renderSATGoalProgress();
@@ -3461,7 +3509,9 @@ function renderSATGoalProgress() {
   const container=document.getElementById('sat-goal-progress');
   if(!goal||!goal.total){container.innerHTML='';return;}
   const pct=best?Math.min(100,Math.round(best.total/goal.total*100)):0;
-  container.innerHTML=`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Total: ${best?best.total:'—'} / ${goal.total}</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div></div>${goal.rw?`<div class="sat-bar-row"><div class="sat-bar-label">R&W</div><div class="sat-bar-track"><div class="sat-bar-fill" style="width:${best?Math.min(100,Math.round(best.rw/goal.rw*100)):0}%"></div></div><div class="sat-bar-val">${best?best.rw:'—'}</div></div>`:''}${goal.math?`<div class="sat-bar-row"><div class="sat-bar-label">Math</div><div class="sat-bar-track"><div class="sat-bar-fill" style="width:${best?Math.min(100,Math.round(best.math/goal.math*100)):0}%"></div></div><div class="sat-bar-val">${best?best.math:'—'}</div></div>`:''}`;
+  const sup=getSuperscore();
+  const supPct=sup?Math.min(100,Math.round(sup.total/goal.total*100)):0;
+  container.innerHTML=`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Total: ${best?best.total:'—'} / ${goal.total}</span><span>${pct}%</span></div><div class="progress-bar"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div></div>${goal.rw?`<div class="sat-bar-row"><div class="sat-bar-label">R&W</div><div class="sat-bar-track"><div class="sat-bar-fill" style="width:${best?Math.min(100,Math.round(best.rw/goal.rw*100)):0}%"></div></div><div class="sat-bar-val">${best?best.rw:'—'}</div></div>`:''}${goal.math?`<div class="sat-bar-row"><div class="sat-bar-label">Math</div><div class="sat-bar-track"><div class="sat-bar-fill" style="width:${best?Math.min(100,Math.round(best.math/goal.math*100)):0}%"></div></div><div class="sat-bar-val">${best?best.math:'—'}</div></div>`:''}${sup?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border-light);"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--c-accent);margin-bottom:4px;"><span>Superscore: ${sup.total} / ${goal.total}</span><span>${supPct}%</span></div><div class="progress-bar"><div class="progress-fill${supPct>=100?' green':''}" style="width:${supPct}%;background:var(--c-accent);"></div></div></div>`:''}`;
 }
 function saveSAT() {
   const date=document.getElementById('sat-date').value;
@@ -3490,6 +3540,12 @@ function renderSAT() {
   document.getElementById('sat-best-total').textContent=best?best.total:'—';
   document.getElementById('sat-best-rw').textContent=best?best.rw:'—';
   document.getElementById('sat-best-math').textContent=best?best.math:'—';
+  const sup=getSuperscore();
+  document.getElementById('sat-super-total').textContent=sup?sup.total:'—';
+  document.getElementById('sat-super-rw').textContent=sup?sup.rw:'—';
+  document.getElementById('sat-super-math').textContent=sup?sup.math:'—';
+  document.getElementById('sat-super-rw-date').textContent='R&W'+(sup?' · '+new Date(sup.rwDate+'-01').toLocaleDateString('en-US',{month:'short',year:'numeric'}):'');
+  document.getElementById('sat-super-math-date').textContent='Math'+(sup?' · '+new Date(sup.mathDate+'-01').toLocaleDateString('en-US',{month:'short',year:'numeric'}):'');
   if(DB.satGoal&&DB.satGoal.total){document.getElementById('sat-goal-total').value=DB.satGoal.total||'';document.getElementById('sat-goal-rw').value=DB.satGoal.rw||'';document.getElementById('sat-goal-math').value=DB.satGoal.math||'';}
   renderSATGoalProgress();
   const tbody=document.getElementById('sat-table');
@@ -3525,6 +3581,11 @@ function renderSATPlanCountdown() {
 let _satDayOpen = {};
 function toggleSATDay(dayKey) {
   _satDayOpen[dayKey] = !_satDayOpen[dayKey];
+  renderSATPlan();
+}
+let _satWeekOpen = {};
+function toggleSATWeek(weekId) {
+  _satWeekOpen[weekId] = !_satWeekOpen[weekId];
   renderSATPlan();
 }
 function _satWeekDates(startDate, weekIndex) {
@@ -3612,11 +3673,18 @@ function renderSATPlan() {
         const rangeLbl = w.days.length
           ? new Date(w.days[0]+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'}) + ' – ' + new Date(w.days[6]+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})
           : '';
-        return `<div class="card" style="margin-bottom:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
-            <div style="font-weight:800;font-size:14px;">Week ${wi+1} <span style="font-weight:400;color:var(--text-secondary);font-size:12px;">${rangeLbl}</span></div>
-            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteSATWeek('${w.id}')">🗑</button>
+        const weekOpen = !!_satWeekOpen[w.id];
+        const filledCt = w.days.filter(d => d.text && d.text.trim()).length;
+        return `<div class="card" style="margin-bottom:10px;padding:0;overflow:hidden;">
+          <div onclick="toggleSATWeek('${w.id}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <span style="font-size:12px;transition:transform .15s;display:inline-block;transform:rotate(${weekOpen?90:0}deg);">▶</span>
+              <span style="font-weight:800;font-size:14px;">Week ${wi+1}</span>
+              <span style="font-weight:400;color:var(--text-secondary);font-size:12px;">${rangeLbl} · ${filledCt}/7 days planned</span>
+            </div>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="event.stopPropagation();deleteSATWeek('${w.id}')">🗑</button>
           </div>
+          <div style="display:${weekOpen?'block':'none'};padding:0 16px 16px;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             ${w.days.map((d, di) => {
               const dObj = new Date(d+'T12:00:00');
@@ -3639,6 +3707,7 @@ function renderSATPlan() {
                 </div>
               </div>`;
             }).join('')}
+          </div>
           </div>
         </div>`;
       }).join('');
@@ -4093,6 +4162,7 @@ function renderSATHub() {
 
   renderSATHubSessions();
   renderQBLog();
+  renderPracticeTests();
   renderSATHubSummaryLine();
 }
 
@@ -4177,6 +4247,109 @@ function renderSATHubSessions() {
 }
 
 // ============================================================
+// PRACTICE TESTS
+// ============================================================
+function openPracticeTestModal(id) {
+  document.getElementById('sat-pt-edit-id').value = '';
+  document.getElementById('sat-pt-name').value = '';
+  document.getElementById('sat-pt-date').value = today();
+  document.getElementById('sat-pt-fulllength').value = 'yes';
+  document.getElementById('sat-pt-rw').value = '';
+  document.getElementById('sat-pt-math').value = '';
+  document.getElementById('sat-pt-minutes').value = '';
+  document.getElementById('sat-pt-notes').value = '';
+  document.getElementById('sat-pt-modal-title').textContent = 'Log Practice Test';
+  document.getElementById('sat-pt-delete-btn').style.display = 'none';
+  if (id) {
+    const t = DB.satHub.practiceTests.find(x => x.id === id);
+    if (t) {
+      document.getElementById('sat-pt-edit-id').value = t.id;
+      document.getElementById('sat-pt-name').value = t.name || '';
+      document.getElementById('sat-pt-date').value = t.date;
+      document.getElementById('sat-pt-fulllength').value = t.fullLength ? 'yes' : 'no';
+      document.getElementById('sat-pt-rw').value = t.rw || '';
+      document.getElementById('sat-pt-math').value = t.math || '';
+      document.getElementById('sat-pt-minutes').value = t.minutes || '';
+      document.getElementById('sat-pt-notes').value = t.notes || '';
+      document.getElementById('sat-pt-modal-title').textContent = 'Edit Practice Test';
+      document.getElementById('sat-pt-delete-btn').style.display = 'inline-flex';
+    }
+  }
+  openModal('sat-pt-modal', id);
+}
+function savePracticeTest() {
+  const date = document.getElementById('sat-pt-date').value;
+  const name = document.getElementById('sat-pt-name').value.trim();
+  if (!date || !name) { alert('Please enter a name and date.'); return; }
+  const rw = parseInt(document.getElementById('sat-pt-rw').value) || 0;
+  const math = parseInt(document.getElementById('sat-pt-math').value) || 0;
+  const editId = document.getElementById('sat-pt-edit-id').value;
+  const entry = {
+    id: editId || uid(), name, date,
+    fullLength: document.getElementById('sat-pt-fulllength').value === 'yes',
+    rw, math, total: (rw||math) ? rw+math : 0,
+    minutes: parseInt(document.getElementById('sat-pt-minutes').value) || 0,
+    notes: document.getElementById('sat-pt-notes').value.trim()
+  };
+  if (editId) {
+    const i = DB.satHub.practiceTests.findIndex(x => x.id === editId);
+    if (i >= 0) DB.satHub.practiceTests[i] = entry; else DB.satHub.practiceTests.push(entry);
+  } else {
+    DB.satHub.practiceTests.push(entry);
+  }
+  save(); closeModal('sat-pt-modal'); renderPracticeTests();
+}
+function deletePracticeTest() {
+  const id = document.getElementById('sat-pt-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this practice test?')) return;
+  DB.satHub.practiceTests = DB.satHub.practiceTests.filter(x => x.id !== id);
+  save(); closeModal('sat-pt-modal'); renderPracticeTests();
+}
+function renderPracticeTests() {
+  const statsEl = document.getElementById('sat-pt-stats');
+  const listEl = document.getElementById('sat-pt-list');
+  if (!listEl) return;
+  const tests = DB.satHub.practiceTests || [];
+
+  if (statsEl) {
+    if (!tests.length) { statsEl.innerHTML = ''; }
+    else {
+      const sorted = [...tests].sort((a,b) => a.date.localeCompare(b.date));
+      const best = tests.reduce((b,t) => (!b||t.total>b.total)?t:b, null);
+      const avg = Math.round(tests.reduce((a,t)=>a+t.total,0)/tests.length);
+      const latest = sorted[sorted.length-1];
+      const prev = sorted.length>1 ? sorted[sorted.length-2] : null;
+      const delta = prev ? latest.total - prev.total : null;
+      statsEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Tests Taken</div><div style="font-size:20px;font-weight:800;color:var(--c-accent);">${tests.length}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Best Total</div><div style="font-size:20px;font-weight:800;color:#22c55e;">${best.total}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Average Total</div><div style="font-size:20px;font-weight:800;color:var(--c-accent);">${avg}</div></div>
+        <div class="card" style="padding:12px 14px;text-align:center;"><div style="font-size:11px;color:var(--text-secondary);">Latest vs Previous</div><div style="font-size:20px;font-weight:800;color:${delta===null?'var(--text-secondary)':delta>=0?'#22c55e':'#ef4444'};">${delta===null?'—':(delta>=0?'+':'')+delta}</div></div>
+      </div>`;
+    }
+  }
+
+  if (!tests.length) {
+    listEl.innerHTML = `<div class="empty-state card" style="padding:20px;"><p>No practice tests logged yet. Log each full-length or sectional practice test to track your score trend over time, separate from individual Question Bank questions.</p></div>`;
+    return;
+  }
+  const sorted = [...tests].sort((a,b) => b.date.localeCompare(a.date));
+  listEl.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">` + sorted.map(t => {
+    const dateLbl = new Date(t.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+    return `<div onclick="openPracticeTestModal('${t.id}')" style="cursor:pointer;padding:11px 14px;border-bottom:1px solid var(--border-light);">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+        <span style="font-weight:700;font-size:13px;">${t.name}</span>
+        ${!t.fullLength ? `<span class="badge badge-gray">Section only</span>` : ''}
+        <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${dateLbl}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);">Total ${t.total} <span style="color:var(--text-muted);">(R&W ${t.rw||'—'} · Math ${t.math||'—'})</span>${t.minutes?' · '+t.minutes+' min':''}</div>
+      ${t.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${t.notes}</div>` : ''}
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+// ============================================================
 // QUESTION BANK LOG
 // ============================================================
 const SAT_QB_DIFF_LABEL = { easy:'Easy', medium:'Medium', hard:'Hard' };
@@ -4250,7 +4423,7 @@ function qbFilterSectionChanged() {
   renderQBLog();
 }
 function qbClearFilters() {
-  ['qbf-section','qbf-skill','qbf-result','qbf-how'].forEach(id => document.getElementById(id).value = '');
+  ['qbf-section','qbf-skill','qbf-result','qbf-how','qbf-difficulty'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('qbf-from').value = '';
   document.getElementById('qbf-to').value = '';
   document.getElementById('qbf-search').value = '';
@@ -4272,6 +4445,7 @@ function qbGetFiltered() {
   const skillId = document.getElementById('qbf-skill').value;
   const result = document.getElementById('qbf-result').value;
   const how = document.getElementById('qbf-how').value;
+  const difficulty = document.getElementById('qbf-difficulty').value;
   const from = document.getElementById('qbf-from').value;
   const to = document.getElementById('qbf-to').value;
   const search = document.getElementById('qbf-search').value.trim().toLowerCase();
@@ -4280,6 +4454,7 @@ function qbGetFiltered() {
     if (!skillId && section) { const f = e.skillId ? satFindSkill(e.skillId) : null; if (!f || f.sec.id !== section) return false; }
     if (result && e.result !== result) return false;
     if (how && e.howIFound !== how) return false;
+    if (difficulty && e.difficulty !== difficulty) return false;
     if (from && e.date < from) return false;
     if (to && e.date > to) return false;
     if (search && !(e.qid||'').toLowerCase().includes(search)) return false;
