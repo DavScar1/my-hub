@@ -5778,7 +5778,7 @@ function deleteGoalCategory() {
 // ============================================================
 function changeHabitMonth(dir) {
   const [y,m]=DB.habitViewMonth.split('-').map(Number);
-  const d=new Date(y,m-1+dir,1);DB.habitViewMonth=d.toISOString().slice(0,7);renderHabits();
+  const d=new Date(y,m-1+dir,1);DB.habitViewMonth=d.toISOString().slice(0,7);save();renderHabits();
 }
 function saveHabit() {
   const name=document.getElementById('habit-name').value.trim();if(!name){alert('Please enter a habit name.');return;}
