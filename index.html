@@ -5776,7 +5776,7 @@ function deleteGoalCategory() {
 // ============================================================
 // LIFE — HABITS
 // ============================================================
-function changeMonth(dir) {
+function changeHabitMonth(dir) {
   const [y,m]=DB.habitViewMonth.split('-').map(Number);
   const d=new Date(y,m-1+dir,1);DB.habitViewMonth=d.toISOString().slice(0,7);renderHabits();
 }
