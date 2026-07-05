@@ -876,20 +876,48 @@ a:hover{text-decoration:underline;}
   <!-- Colleges -->
   <div class="page" id="page-c-colleges">
     <div class="page-header"><h2>Colleges</h2><p>Track each school, deadlines, and application status.</p></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:20px;">
-      <div class="stat-card"><div class="stat-value" id="col-stat-total">0</div><div class="stat-label">Total Schools</div><div class="stat-sub" id="col-stat-submitted">0 submitted</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-applying" style="color:var(--accent);">0</div><div class="stat-label">Currently Applying</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-reach" style="color:var(--red);">0</div><div class="stat-label">Reach</div><div class="stat-sub" id="col-stat-reach-applying">0 applying</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-match" style="color:var(--amber);">0</div><div class="stat-label">Match</div><div class="stat-sub" id="col-stat-match-applying">0 applying</div></div>
-      <div class="stat-card"><div class="stat-value" id="col-stat-safety" style="color:var(--green);">0</div><div class="stat-label">Safety</div><div class="stat-sub" id="col-stat-safety-applying">0 applying</div></div>
+
+    <!-- US / International tabs -->
+    <div class="tabs" style="margin-bottom:18px;">
+      <button class="tab-btn active" id="col-tab-us" onclick="switchCollegeTab('us',this)">🇺🇸 US Colleges</button>
+      <button class="tab-btn" id="col-tab-intl" onclick="switchCollegeTab('intl',this)">🌍 International</button>
     </div>
-    <div class="section-header">
-      <select id="college-filter" onchange="renderColleges()" style="width:auto;padding:6px 10px;">
-        <option value="">All Schools</option><option>Reach</option><option>Match</option><option>Safety</option>
-      </select>
-      <button class="btn btn-primary" onclick="openModal('college-modal')">+ Add College</button>
+
+    <!-- US tab -->
+    <div id="col-section-us">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="stat-card"><div class="stat-value" id="col-stat-total">0</div><div class="stat-label">Total Schools</div><div class="stat-sub" id="col-stat-submitted">0 submitted</div></div>
+        <div class="stat-card"><div class="stat-value" id="col-stat-applying" style="color:var(--accent);">0</div><div class="stat-label">Currently Applying</div></div>
+        <div class="stat-card"><div class="stat-value" id="col-stat-reach" style="color:var(--red);">0</div><div class="stat-label">Reach</div><div class="stat-sub" id="col-stat-reach-applying">0 applying</div></div>
+        <div class="stat-card"><div class="stat-value" id="col-stat-match" style="color:var(--amber);">0</div><div class="stat-label">Match</div><div class="stat-sub" id="col-stat-match-applying">0 applying</div></div>
+        <div class="stat-card"><div class="stat-value" id="col-stat-safety" style="color:var(--green);">0</div><div class="stat-label">Safety</div><div class="stat-sub" id="col-stat-safety-applying">0 applying</div></div>
+      </div>
+      <div class="section-header">
+        <select id="college-filter" onchange="renderColleges()" style="width:auto;padding:6px 10px;">
+          <option value="">All Schools</option><option>Reach</option><option>Match</option><option>Safety</option>
+        </select>
+        <button class="btn btn-primary" onclick="openModal('college-modal')">+ Add College</button>
+      </div>
+      <div id="colleges-groups"></div>
     </div>
-    <div id="colleges-groups"></div>
+
+    <!-- International tab -->
+    <div id="col-section-intl" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="stat-card"><div class="stat-value" id="intl-stat-total">0</div><div class="stat-label">Total Schools</div><div class="stat-sub" id="intl-stat-submitted">0 submitted</div></div>
+        <div class="stat-card"><div class="stat-value" id="intl-stat-applying" style="color:var(--accent);">0</div><div class="stat-label">Currently Applying</div></div>
+        <div class="stat-card"><div class="stat-value" id="intl-stat-reach" style="color:var(--red);">0</div><div class="stat-label">Reach</div><div class="stat-sub" id="intl-stat-reach-applying">0 applying</div></div>
+        <div class="stat-card"><div class="stat-value" id="intl-stat-match" style="color:var(--amber);">0</div><div class="stat-label">Match</div><div class="stat-sub" id="intl-stat-match-applying">0 applying</div></div>
+        <div class="stat-card"><div class="stat-value" id="intl-stat-safety" style="color:var(--green);">0</div><div class="stat-label">Safety</div><div class="stat-sub" id="intl-stat-safety-applying">0 applying</div></div>
+      </div>
+      <div class="section-header">
+        <select id="intl-filter" onchange="renderIntlColleges()" style="width:auto;padding:6px 10px;">
+          <option value="">All Schools</option><option>Reach</option><option>Match</option><option>Safety</option>
+        </select>
+        <button class="btn btn-primary" onclick="openIntlCollegeModal()">+ Add School</button>
+      </div>
+      <div id="intl-colleges-groups"></div>
+    </div>
   </div>
 
   <!-- Leaving Cert -->
@@ -1982,6 +2010,29 @@ a:hover{text-decoration:underline;}
      MODALS
 ============================================================ -->
 
+<!-- International College modal -->
+<div class="modal-overlay" id="intl-college-modal">
+  <div class="modal">
+    <h3 id="intl-college-modal-title">Add International School</h3>
+    <input type="hidden" id="intl-col-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>School Name *</label><input type="text" id="intl-col-name" placeholder="Bocconi University"></div>
+      <div class="form-group"><label>Country</label><input type="text" id="intl-col-country" placeholder="e.g. Italy, UK, Australia"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Type</label><select id="intl-col-type"><option>Reach</option><option>Match</option><option>Safety</option></select></div>
+      <div class="form-group"><label>Application Deadline</label><input type="date" id="intl-col-deadline"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label><select id="intl-col-status"><option>Researching</option><option>Planning to Apply</option><option>In Progress</option><option>Submitted</option><option>Interview</option><option>Accepted</option><option>Waitlisted</option><option>Rejected</option></select></div>
+      <div class="form-group"><label>Portal / Application URL</label><input type="url" id="intl-col-portal" placeholder="https://apply.school.edu"></div>
+    </div>
+    <div class="form-group"><label>Entry Requirements</label><input type="text" id="intl-col-requirements" placeholder="e.g. 500+ CAO points, 3 A-levels, IELTS 7.0"></div>
+    <div class="form-group"><label>Notes</label><textarea id="intl-col-notes" placeholder="Why this school? Visa info, scholarship deadlines…"></textarea></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('intl-college-modal')">Cancel</button><button class="btn btn-primary" onclick="saveIntlCollege()">Save</button></div>
+  </div>
+</div>
+
 <!-- College modal -->
 <div class="modal-overlay" id="college-modal">
   <div class="modal">
@@ -2791,6 +2842,8 @@ function ensureDBDefaults() {
   if (!DB.todoTasks) DB.todoTasks = [];
   if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
   DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
+  if (!DB.intlColleges) DB.intlColleges = [];
+  DB.intlColleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
   if (!DB.collegeMindmap) DB.collegeMindmap = {nodes:[],edges:[],strokes:[],panX:0,panY:0,zoom:1};
   if (!DB.caProfile) DB.caProfile = {
     legalName:false, contact:false, demographics:false, geoHistory:false, feeWaiver:false,
@@ -3297,6 +3350,125 @@ function setCollegeApplying(id, applying) {
 
 function setCollegeTarget(type, value) {
   const n = parseInt(value); DB.collegeTargets[type] = isNaN(n) ? 0 : n; save(); renderColleges();
+}
+
+// ============================================================
+// INTERNATIONAL COLLEGES
+// ============================================================
+let _colTab = 'us';
+function switchCollegeTab(tab, btn) {
+  _colTab = tab;
+  document.getElementById('col-section-us').style.display = tab==='us' ? '' : 'none';
+  document.getElementById('col-section-intl').style.display = tab==='intl' ? '' : 'none';
+  document.querySelectorAll('#page-c-colleges .tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab==='intl') renderIntlColleges();
+}
+
+function openIntlCollegeModal(id) {
+  document.getElementById('intl-college-modal-title').textContent = id ? 'Edit School' : 'Add International School';
+  document.getElementById('intl-col-edit-id').value = id || '';
+  const c = id ? DB.intlColleges.find(x=>x.id===id) : null;
+  document.getElementById('intl-col-name').value = c ? c.name : '';
+  document.getElementById('intl-col-country').value = c ? (c.country||'') : '';
+  document.getElementById('intl-col-type').value = c ? c.type : 'Reach';
+  document.getElementById('intl-col-deadline').value = c ? (c.deadline||'') : '';
+  document.getElementById('intl-col-status').value = c ? c.status : 'Researching';
+  document.getElementById('intl-col-portal').value = c ? (c.portal||'') : '';
+  document.getElementById('intl-col-requirements').value = c ? (c.requirements||'') : '';
+  document.getElementById('intl-col-notes').value = c ? (c.notes||'') : '';
+  openModal('intl-college-modal');
+}
+
+function saveIntlCollege() {
+  const name = document.getElementById('intl-col-name').value.trim();
+  if (!name) { alert('Please enter a school name.'); return; }
+  const id = document.getElementById('intl-col-edit-id').value || uid();
+  const existing = DB.intlColleges.findIndex(c=>c.id===id);
+  const college = { id, name,
+    country: document.getElementById('intl-col-country').value.trim(),
+    type: document.getElementById('intl-col-type').value,
+    deadline: document.getElementById('intl-col-deadline').value,
+    status: document.getElementById('intl-col-status').value,
+    portal: document.getElementById('intl-col-portal').value,
+    requirements: document.getElementById('intl-col-requirements').value.trim(),
+    notes: document.getElementById('intl-col-notes').value,
+    applying: existing>=0 ? DB.intlColleges[existing].applying : true
+  };
+  if (existing>=0) DB.intlColleges[existing]=college; else DB.intlColleges.push(college);
+  save(); closeModal('intl-college-modal'); renderIntlColleges();
+}
+
+function deleteIntlCollege(id) {
+  if (!confirm('Delete this school?')) return;
+  DB.intlColleges = DB.intlColleges.filter(c=>c.id!==id); save(); renderIntlColleges();
+}
+
+function setIntlCollegeApplying(id, applying) {
+  const c = DB.intlColleges.find(c=>c.id===id); if (!c) return;
+  c.applying = applying; save(); renderIntlColleges();
+}
+
+function intlCollegeRowHtml(c, applying) {
+  const deadline = c.deadline ? new Date(c.deadline+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+  const nameCell = c.portal ? `<a href="${c.portal}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">${c.name}</a>` : `<strong>${c.name}</strong>`;
+  const country = c.country ? `<span class="badge badge-gray" style="font-size:10px;">${c.country}</span>` : '';
+  const toggleBtn = applying
+    ? `<button class="btn btn-secondary btn-xs" onclick="setIntlCollegeApplying('${c.id}',false)">→ Considering</button>`
+    : `<button class="btn btn-primary btn-xs" onclick="setIntlCollegeApplying('${c.id}',true)">← Applying</button>`;
+  return `<div class="wish-item">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;display:flex;align-items:center;gap:6px;">${nameCell}${country}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${deadline} · ${statusBadge(c.status)}${c.requirements?` · ${c.requirements}`:''}</div>
+    </div>
+    ${toggleBtn}
+    <button class="btn btn-secondary btn-xs" onclick="openIntlCollegeModal('${c.id}')">✏️</button>
+    <button class="btn btn-danger btn-xs" onclick="deleteIntlCollege('${c.id}')">🗑</button>
+  </div>`;
+}
+
+function renderIntlColleges() {
+  const filter = document.getElementById('intl-filter').value;
+  const all = DB.intlColleges;
+  document.getElementById('intl-stat-total').textContent = all.length;
+  const submitted = all.filter(c=>['Submitted','Interview','Accepted','Waitlisted','Rejected'].includes(c.status)).length;
+  document.getElementById('intl-stat-submitted').textContent = `${submitted} submitted`;
+  document.getElementById('intl-stat-applying').textContent = all.filter(c=>c.applying).length;
+  document.getElementById('intl-stat-reach').textContent = all.filter(c=>c.type==='Reach').length;
+  document.getElementById('intl-stat-match').textContent = all.filter(c=>c.type==='Match').length;
+  document.getElementById('intl-stat-safety').textContent = all.filter(c=>c.type==='Safety').length;
+  document.getElementById('intl-stat-reach-applying').textContent = `${all.filter(c=>c.type==='Reach'&&c.applying).length} applying`;
+  document.getElementById('intl-stat-match-applying').textContent = `${all.filter(c=>c.type==='Match'&&c.applying).length} applying`;
+  document.getElementById('intl-stat-safety-applying').textContent = `${all.filter(c=>c.type==='Safety'&&c.applying).length} applying`;
+
+  const groups = document.getElementById('intl-colleges-groups');
+  const list = filter ? all.filter(c=>c.type===filter) : all;
+  if (list.length===0) { groups.innerHTML=`<div class="card"><div class="empty-state"><div class="empty-icon">🌍</div><p>Add your first international school.</p></div></div>`; return; }
+
+  if (filter) {
+    const applying = list.filter(c=>c.applying); const considering = list.filter(c=>!c.applying);
+    groups.innerHTML = `<div class="grid-2">
+      <div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:8px;">Applying (${applying.length})</div><div class="card">${applying.length?applying.map(c=>intlCollegeRowHtml(c,true)).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">None</div>'}</div></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:8px;">Considering (${considering.length})</div><div class="card">${considering.length?considering.map(c=>intlCollegeRowHtml(c,false)).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">None</div>'}</div></div>
+    </div>`;
+    return;
+  }
+
+  groups.innerHTML = ['Reach','Match','Safety'].map(type => {
+    const items = list.filter(c=>c.type===type);
+    if (!items.length) return '';
+    const applying = items.filter(c=>c.applying); const considering = items.filter(c=>!c.applying);
+    return `<div style="margin-bottom:24px;">
+      <div class="section-header" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">${typeBadge(type)}<span style="font-size:12px;color:var(--text-muted);">${items.length} school${items.length!==1?'s':''}</span></div>
+        <span style="font-size:12px;color:var(--text-muted);"><strong>${applying.length}</strong> applying</span>
+      </div>
+      <div class="grid-2">
+        <div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:8px;">Applying (${applying.length})</div><div class="card">${applying.length?applying.map(c=>intlCollegeRowHtml(c,true)).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">None</div>'}</div></div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:8px;">Considering (${considering.length})</div><div class="card">${considering.length?considering.map(c=>intlCollegeRowHtml(c,false)).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">None</div>'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderColleges() {
