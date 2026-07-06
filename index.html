@@ -1838,16 +1838,47 @@ a:hover{text-decoration:underline;}
 
   <!-- Countries Visited -->
   <div class="page" id="page-l-countries">
-    <div class="page-header"><h2>✈️ Countries Visited</h2><p>Click a country on the map to mark it as visited.</p></div>
-    <div id="countries-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:20px;"></div>
+    <div class="page-header"><h2>✈️ Countries Visited</h2><p>Build your travel map — visited countries, wishlist, and cities.</p></div>
+    <div id="countries-stats" style="margin-bottom:20px;"></div>
+
+    <!-- Map mode toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="tabs" style="margin-bottom:0;">
+        <button class="tab-btn active" id="ctab-visited" onclick="setCountryMode('visited',this)">🟢 Mark Visited</button>
+        <button class="tab-btn" id="ctab-wishlist" onclick="setCountryMode('wishlist',this)">🟡 Mark Wishlist</button>
+      </div>
+      <span id="countries-mode-hint" style="font-size:11px;color:var(--text-muted);">Click a country to mark as visited</span>
+    </div>
+
     <div id="countries-map-wrap" style="position:relative;background:#d4eaf7;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);">
       <div id="countries-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.75);color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;pointer-events:none;z-index:10;white-space:nowrap;"></div>
     </div>
-    <div style="margin-top:6px;font-size:11px;color:var(--text-muted);text-align:right;">Click to mark visited · Click again to remove</div>
-    <div style="margin-top:16px;">
+
+    <!-- Map legend -->
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--text-muted);">
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:#1d9e75;display:inline-block;"></span>Visited</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;display:inline-block;"></span>Wishlist</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:#c8dce8;display:inline-block;"></span>Not visited</span>
+    </div>
+
+    <!-- Micronations -->
+    <div style="margin-top:18px;">
       <div class="card-title" style="margin-bottom:10px;">Small Countries &amp; Micronations</div>
       <div id="countries-micronations" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
     </div>
+
+    <!-- Continent breakdown -->
+    <div id="countries-continents" style="margin-top:24px;"></div>
+
+    <!-- Cities & Airports log -->
+    <div style="margin-top:28px;">
+      <div class="section-header">
+        <div><span class="card-title">Cities &amp; Airports</span></div>
+        <button class="btn btn-primary btn-sm" onclick="openCityModal()">+ Add</button>
+      </div>
+      <div id="countries-cities"></div>
+    </div>
+
     <div id="countries-list" style="margin-top:20px;"></div>
   </div>
 
@@ -2025,6 +2056,28 @@ a:hover{text-decoration:underline;}
 <!-- ============================================================
      MODALS
 ============================================================ -->
+
+<!-- City / Airport modal -->
+<div class="modal-overlay" id="city-modal">
+  <div class="modal">
+    <h3 id="city-modal-title">Add City / Airport</h3>
+    <input type="hidden" id="city-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Name *</label><input type="text" id="city-name" placeholder="e.g. Rome, Heathrow Airport"></div>
+      <div class="form-group"><label>Type</label><select id="city-type"><option value="city">🏙 City</option><option value="airport">✈️ Airport</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Country</label><input type="text" id="city-country" placeholder="e.g. Italy"></div>
+      <div class="form-group"><label>Date visited</label><input type="date" id="city-date"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="city-notes" placeholder="Highlights, memories…" style="min-height:60px;"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="city-delete-btn" style="display:none;margin-right:auto;" onclick="deleteCity()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('city-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCity()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- International College modal -->
 <div class="modal-overlay" id="intl-college-modal">
@@ -2859,6 +2912,8 @@ function ensureDBDefaults() {
   if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
   DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
   if (!DB.countriesVisited) DB.countriesVisited = [];
+  if (!DB.countriesWishlist) DB.countriesWishlist = [];
+  if (!DB.citiesVisited) DB.citiesVisited = [];
   if (!DB.intlColleges) DB.intlColleges = [];
   DB.intlColleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
   if (!DB.collegeMindmap) DB.collegeMindmap = {nodes:[],edges:[],strokes:[],panX:0,panY:0,zoom:1};
@@ -3471,19 +3526,35 @@ const MICRONATIONS = [
 const TOTAL_COUNTRIES = 195;
 let _worldData = null;
 
+let _countryMode = 'visited';
+
+function setCountryMode(mode, btn) {
+  _countryMode = mode;
+  document.querySelectorAll('#page-l-countries .tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('countries-mode-hint').textContent = mode === 'visited' ? 'Click a country to mark as visited' : 'Click a country to add to wishlist';
+}
+
 function renderMicronations() {
   const el = document.getElementById('countries-micronations');
   if (!el) return;
   el.innerHTML = MICRONATIONS.map(c => {
     const visited = DB.countriesVisited.includes(c.id);
-    return `<span onclick="toggleCountryVisited('${c.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${visited?'var(--green)':'var(--border)'};background:${visited?'var(--green-light)':'var(--surface)'};color:${visited?'var(--green)':'var(--text-secondary)'};">${visited?'✓ ':''}${c.name}</span>`;
+    const wished  = DB.countriesWishlist.includes(c.id);
+    const bg = visited ? 'var(--green-light)' : wished ? '#fef3c7' : 'var(--surface)';
+    const col = visited ? 'var(--green)' : wished ? '#b45309' : 'var(--text-secondary)';
+    const border = visited ? 'var(--green)' : wished ? '#f59e0b' : 'var(--border)';
+    const icon = visited ? '✓ ' : wished ? '⭐ ' : '';
+    return `<span onclick="toggleCountryOnMap('${c.id}')" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${border};background:${bg};color:${col};">${icon}${c.name}</span>`;
   }).join('');
 }
 
 function renderCountriesPage() {
   renderCountriesStats();
+  renderCountriesContinents();
   renderCountriesList();
   renderMicronations();
+  renderCities();
   const wrap = document.getElementById('countries-map-wrap');
   if (_worldData) { drawCountriesMap(_worldData); return; }
   wrap.innerHTML = '<div id="countries-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.75);color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;pointer-events:none;z-index:10;white-space:nowrap;"></div><div style="padding:40px;text-align:center;color:var(--text-muted);font-size:13px;">Loading map…</div>';
@@ -3493,7 +3564,7 @@ function renderCountriesPage() {
   ]).then(() => fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'))
     .then(r => r.json())
     .then(data => { _worldData = data; drawCountriesMap(data); })
-    .catch(() => { document.getElementById('countries-map-wrap').innerHTML += '<p style="padding:20px;color:var(--red);">Map failed to load. Check your connection.</p>'; });
+    .catch(() => { document.getElementById('countries-map-wrap').innerHTML += '<p style="padding:20px;color:var(--red);">Map failed to load.</p>'; });
 }
 
 function loadScript(src) {
@@ -3501,6 +3572,12 @@ function loadScript(src) {
     const s = document.createElement('script'); s.src = src;
     s.onload = res; s.onerror = rej; document.head.appendChild(s);
   });
+}
+
+function countryFill(id) {
+  if (DB.countriesVisited.includes(id)) return '#1d9e75';
+  if (DB.countriesWishlist.includes(id)) return '#f59e0b';
+  return '#c8dce8';
 }
 
 function drawCountriesMap(world) {
@@ -3520,55 +3597,67 @@ function drawCountriesMap(world) {
     .enter().append('path')
     .attr('class','country')
     .attr('d', path)
-    .attr('fill', d => DB.countriesVisited.includes(String(d.id)) ? '#1d9e75' : '#c8dce8')
-    .attr('stroke','#fff')
-    .attr('stroke-width', 0.4)
-    .style('cursor','pointer')
-    .style('transition','fill .15s')
+    .attr('fill', d => countryFill(String(d.id)))
+    .attr('stroke','#fff').attr('stroke-width', 0.4)
+    .style('cursor','pointer').style('transition','fill .15s')
     .on('mousemove', function(event, d) {
+      const id = String(d.id);
       const name = COUNTRY_NAMES[d.id] || 'Unknown';
-      const visited = DB.countriesVisited.includes(String(d.id));
-      tooltip.textContent = name + (visited ? ' ✓' : '');
+      const tag = DB.countriesVisited.includes(id) ? ' ✓' : DB.countriesWishlist.includes(id) ? ' ⭐' : '';
+      tooltip.textContent = name + tag;
       tooltip.style.display = 'block';
       const rect = wrap.getBoundingClientRect();
       tooltip.style.left = (event.clientX - rect.left + 10) + 'px';
       tooltip.style.top  = (event.clientY - rect.top  - 28) + 'px';
     })
     .on('mouseleave', () => { tooltip.style.display = 'none'; })
-    .on('click', function(event, d) {
-      toggleCountryVisited(String(d.id));
-    });
+    .on('click', (event, d) => toggleCountryOnMap(String(d.id)));
 
   svg.append('path').datum(borders).attr('d',path).attr('fill','none').attr('stroke','#fff').attr('stroke-width',0.4);
 }
 
-function toggleCountryVisited(id) {
-  const idx = DB.countriesVisited.indexOf(id);
-  if (idx >= 0) DB.countriesVisited.splice(idx, 1);
-  else DB.countriesVisited.push(id);
+function toggleCountryOnMap(id) {
+  if (_countryMode === 'visited') {
+    const vi = DB.countriesVisited.indexOf(id);
+    const wi = DB.countriesWishlist.indexOf(id);
+    if (vi >= 0) DB.countriesVisited.splice(vi, 1);
+    else { DB.countriesVisited.push(id); if (wi >= 0) DB.countriesWishlist.splice(wi, 1); }
+  } else {
+    const wi = DB.countriesWishlist.indexOf(id);
+    const vi = DB.countriesVisited.indexOf(id);
+    if (wi >= 0) DB.countriesWishlist.splice(wi, 1);
+    else { DB.countriesWishlist.push(id); if (vi >= 0) DB.countriesVisited.splice(vi, 1); }
+  }
   save();
   renderCountriesStats();
+  renderCountriesContinents();
   renderCountriesList();
   renderMicronations();
   if (_worldData) {
     document.querySelectorAll('#countries-map-wrap path.country').forEach(el => {
       const d = d3.select(el).datum();
-      d3.select(el).attr('fill', DB.countriesVisited.includes(String(d.id)) ? '#1d9e75' : '#c8dce8');
+      d3.select(el).attr('fill', countryFill(String(d.id)));
     });
   }
 }
 
 function renderCountriesStats() {
   const n = DB.countriesVisited.length;
+  const w = DB.countriesWishlist.length;
   const pct = ((n / TOTAL_COUNTRIES) * 100).toFixed(1);
-  const continentCount = countContinents();
+  const cities = (DB.citiesVisited||[]).filter(c=>c.type==='city').length;
+  const airports = (DB.citiesVisited||[]).filter(c=>c.type==='airport').length;
   document.getElementById('countries-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-value" style="color:var(--green);">${n}</div><div class="stat-label">Countries visited</div><div class="stat-sub">of ${TOTAL_COUNTRIES} total</div></div>
-    <div class="stat-card"><div class="stat-value">${pct}%</div><div class="stat-label">World explored</div><div class="stat-sub">${TOTAL_COUNTRIES - n} left</div></div>
-    <div class="stat-card"><div class="stat-value">${continentCount}</div><div class="stat-label">Continents</div><div class="stat-sub">of 7</div></div>`;
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;">
+      <div class="stat-card"><div class="stat-value" style="color:var(--green);">${n}</div><div class="stat-label">Countries visited</div><div class="stat-sub">of ${TOTAL_COUNTRIES}</div></div>
+      <div class="stat-card"><div class="stat-value">${pct}%</div><div class="stat-label">World explored</div><div class="stat-sub">${TOTAL_COUNTRIES-n} left</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#b45309;">${w}</div><div class="stat-label">Wishlist</div><div class="stat-sub">want to visit</div></div>
+      <div class="stat-card"><div class="stat-value">${cities}</div><div class="stat-label">Cities</div><div class="stat-sub">${airports} airports</div></div>
+    </div>`;
 }
 
-const CONTINENT_MAP = {4:'Asia',8:'Europe',12:'Africa',24:'Africa',28:'North America',32:'South America',36:'Oceania',40:'Europe',31:'Asia',44:'North America',48:'Asia',50:'Asia',52:'North America',56:'Europe',84:'North America',100:'Europe',108:'Africa',112:'Europe',116:'Asia',120:'Africa',124:'North America',132:'Africa',140:'Africa',148:'Africa',152:'South America',156:'Asia',170:'South America',174:'Africa',178:'Africa',180:'Africa',188:'North America',191:'Europe',192:'North America',196:'Europe',203:'Europe',204:'Africa',208:'Europe',212:'North America',214:'North America',218:'South America',222:'North America',226:'Africa',231:'Africa',232:'Africa',233:'Europe',242:'Oceania',246:'Europe',250:'Europe',262:'Africa',266:'Africa',268:'Asia',270:'Africa',276:'Europe',288:'Africa',296:'Oceania',300:'Europe',308:'North America',320:'North America',324:'Africa',328:'South America',332:'North America',340:'North America',348:'Europe',356:'Asia',360:'Asia',364:'Asia',368:'Asia',372:'Europe',376:'Asia',380:'Europe',384:'Africa',388:'North America',392:'Asia',398:'Asia',400:'Asia',404:'Africa',408:'Asia',410:'Asia',414:'Asia',417:'Asia',418:'Asia',422:'Asia',426:'Africa',430:'Africa',434:'Africa',438:'Europe',440:'Europe',442:'Europe',450:'Africa',454:'Africa',458:'Asia',462:'Asia',466:'Africa',470:'Europe',478:'Africa',480:'Africa',484:'North America',492:'Europe',496:'Asia',498:'Europe',499:'Europe',504:'Africa',508:'Africa',512:'Asia',516:'Africa',520:'Oceania',524:'Asia',528:'Europe',548:'Oceania',554:'Oceania',558:'North America',562:'Africa',566:'Africa',578:'Europe',583:'Oceania',584:'Oceania',585:'Oceania',586:'Asia',591:'North America',598:'Oceania',600:'South America',604:'South America',608:'Asia',616:'Europe',620:'Europe',624:'Africa',626:'Asia',634:'Asia',642:'Europe',643:'Europe',646:'Africa',659:'North America',662:'North America',670:'North America',674:'Europe',678:'Africa',682:'Asia',686:'Africa',688:'Europe',690:'Africa',694:'Africa',703:'Europe',704:'Asia',705:'Europe',706:'Africa',710:'Africa',716:'Africa',724:'Europe',728:'Africa',729:'Africa',740:'South America',748:'Africa',752:'Europe',756:'Europe',760:'Asia',762:'Asia',764:'Asia',768:'Africa',776:'Oceania',780:'North America',784:'Asia',788:'Africa',792:'Asia',795:'Asia',798:'Oceania',800:'Africa',804:'Europe',818:'Africa',826:'Europe',834:'Africa',840:'North America',854:'Africa',858:'South America',860:'Asia',862:'South America',882:'Oceania',887:'Asia',894:'Africa'};
+const CONTINENT_TOTALS = {'Africa':54,'Asia':48,'Europe':44,'North America':23,'South America':12,'Oceania':14};
+const CONTINENT_MAP = {4:'Asia',8:'Europe',12:'Africa',24:'Africa',28:'North America',32:'South America',36:'Oceania',40:'Europe',20:'Europe',31:'Asia',44:'North America',48:'Asia',50:'Asia',52:'North America',56:'Europe',84:'North America',100:'Europe',108:'Africa',112:'Europe',116:'Asia',120:'Africa',124:'North America',132:'Africa',140:'Africa',148:'Africa',152:'South America',156:'Asia',170:'South America',174:'Africa',178:'Africa',180:'Africa',188:'North America',191:'Europe',192:'North America',196:'Europe',203:'Europe',204:'Africa',208:'Europe',212:'North America',214:'North America',218:'South America',222:'North America',226:'Africa',231:'Africa',232:'Africa',233:'Europe',242:'Oceania',246:'Europe',250:'Europe',262:'Africa',266:'Africa',268:'Asia',270:'Africa',276:'Europe',288:'Africa',296:'Oceania',300:'Europe',308:'North America',320:'North America',324:'Africa',328:'South America',332:'North America',336:'Europe',340:'North America',348:'Europe',356:'Asia',360:'Asia',364:'Asia',368:'Asia',372:'Europe',376:'Asia',380:'Europe',384:'Africa',388:'North America',392:'Asia',398:'Asia',400:'Asia',404:'Africa',408:'Asia',410:'Asia',414:'Asia',417:'Asia',418:'Asia',422:'Asia',426:'Africa',430:'Africa',434:'Africa',438:'Europe',440:'Europe',442:'Europe',450:'Africa',454:'Africa',458:'Asia',462:'Asia',466:'Africa',470:'Europe',478:'Africa',480:'Africa',484:'North America',492:'Europe',496:'Asia',498:'Europe',499:'Europe',504:'Africa',508:'Africa',512:'Asia',516:'Africa',520:'Oceania',524:'Asia',528:'Europe',548:'Oceania',554:'Oceania',558:'North America',562:'Africa',566:'Africa',578:'Europe',583:'Oceania',584:'Oceania',585:'Oceania',586:'Asia',591:'North America',598:'Oceania',600:'South America',604:'South America',608:'Asia',616:'Europe',620:'Europe',624:'Africa',626:'Asia',634:'Asia',642:'Europe',643:'Europe',646:'Africa',659:'North America',662:'North America',670:'North America',674:'Europe',678:'Africa',682:'Asia',686:'Africa',688:'Europe',690:'Africa',694:'Africa',702:'Asia',703:'Europe',704:'Asia',705:'Europe',706:'Africa',710:'Africa',716:'Africa',724:'Europe',728:'Africa',729:'Africa',740:'South America',748:'Africa',752:'Europe',756:'Europe',760:'Asia',762:'Asia',764:'Asia',768:'Africa',776:'Oceania',780:'North America',784:'Asia',788:'Africa',792:'Asia',795:'Asia',798:'Oceania',800:'Africa',804:'Europe',818:'Africa',826:'Europe',834:'Africa',840:'North America',854:'Africa',858:'South America',860:'Asia',862:'South America',882:'Oceania',887:'Asia',894:'Africa'};
 
 function countContinents() {
   const seen = new Set();
@@ -3576,26 +3665,97 @@ function countContinents() {
   return seen.size;
 }
 
+function renderCountriesContinents() {
+  const el = document.getElementById('countries-continents');
+  if (!el) return;
+  const rows = Object.entries(CONTINENT_TOTALS).map(([cont, total]) => {
+    const visited = DB.countriesVisited.filter(id => CONTINENT_MAP[id] === cont).length;
+    const wished  = DB.countriesWishlist.filter(id => CONTINENT_MAP[id] === cont).length;
+    const pct = Math.round((visited / total) * 100);
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="font-weight:600;">${cont}</span>
+        <span style="color:var(--text-muted);">${visited}/${total}${wished?' · ⭐'+wished:''}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="card-title" style="margin-bottom:12px;">By continent</div><div class="card" style="padding:16px 20px;">${rows}</div>`;
+}
+
 function renderCountriesList() {
   const el = document.getElementById('countries-list');
-  if (!DB.countriesVisited.length) { el.innerHTML = ''; return; }
-  const sorted = [...DB.countriesVisited]
-    .map(id => ({ id, name: COUNTRY_NAMES[id] || 'Unknown', continent: CONTINENT_MAP[id] || 'Other' }))
-    .sort((a,b) => a.name.localeCompare(b.name));
+  if (!DB.countriesVisited.length && !DB.countriesWishlist.length) { el.innerHTML = ''; return; }
+  const visited = [...DB.countriesVisited].map(id => ({id,name:COUNTRY_NAMES[id]||'Unknown',continent:CONTINENT_MAP[id]||'Other',state:'visited'}));
+  const wished  = [...DB.countriesWishlist].map(id => ({id,name:COUNTRY_NAMES[id]||'Unknown',continent:CONTINENT_MAP[id]||'Other',state:'wishlist'}));
+  const all = [...visited,...wished].sort((a,b)=>a.name.localeCompare(b.name));
   const byContinent = {};
-  sorted.forEach(c => { if (!byContinent[c.continent]) byContinent[c.continent] = []; byContinent[c.continent].push(c); });
-  el.innerHTML = `<div class="card-title" style="margin-bottom:12px;">Visited (${sorted.length})</div>` +
-    Object.entries(byContinent).sort().map(([cont, list]) =>
-      `<div style="margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">${cont}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">${list.map(c =>
-          `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--green-light);color:var(--green);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;">
-            ${c.name}
-            <span onclick="toggleCountryVisited('${c.id}')" style="cursor:pointer;opacity:.6;font-size:10px;" title="Remove">✕</span>
-          </span>`).join('')}
-        </div>
-      </div>`
-    ).join('');
+  all.forEach(c => { if (!byContinent[c.continent]) byContinent[c.continent]=[]; byContinent[c.continent].push(c); });
+  el.innerHTML = Object.entries(byContinent).sort().map(([cont, list]) =>
+    `<div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">${cont}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${list.map(c => {
+        const isV = c.state==='visited';
+        return `<span style="display:inline-flex;align-items:center;gap:5px;background:${isV?'var(--green-light)':'#fef3c7'};color:${isV?'var(--green)':'#b45309'};border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;">
+          ${isV?'':'⭐ '}${c.name}
+          <span onclick="toggleCountryOnMap('${c.id}')" style="cursor:pointer;opacity:.6;font-size:10px;" title="Remove">✕</span>
+        </span>`;
+      }).join('')}</div>
+    </div>`
+  ).join('');
+}
+
+// ---- Cities & Airports ----
+function openCityModal(id) {
+  document.getElementById('city-modal-title').textContent = id ? 'Edit Entry' : 'Add City / Airport';
+  document.getElementById('city-edit-id').value = id || '';
+  document.getElementById('city-delete-btn').style.display = id ? '' : 'none';
+  const c = id ? (DB.citiesVisited||[]).find(x=>x.id===id) : null;
+  document.getElementById('city-name').value = c ? c.name : '';
+  document.getElementById('city-type').value = c ? c.type : 'city';
+  document.getElementById('city-country').value = c ? c.country : '';
+  document.getElementById('city-date').value = c ? (c.date||'') : '';
+  document.getElementById('city-notes').value = c ? (c.notes||'') : '';
+  openModal('city-modal');
+}
+
+function saveCity() {
+  const name = document.getElementById('city-name').value.trim();
+  if (!name) { alert('Enter a name.'); return; }
+  if (!DB.citiesVisited) DB.citiesVisited = [];
+  const id = document.getElementById('city-edit-id').value || uid();
+  const entry = { id, name, type: document.getElementById('city-type').value, country: document.getElementById('city-country').value.trim(), date: document.getElementById('city-date').value, notes: document.getElementById('city-notes').value.trim() };
+  const idx = DB.citiesVisited.findIndex(x=>x.id===id);
+  if (idx>=0) DB.citiesVisited[idx]=entry; else DB.citiesVisited.push(entry);
+  save(); closeModal('city-modal'); renderCities(); renderCountriesStats();
+}
+
+function deleteCity() {
+  const id = document.getElementById('city-edit-id').value;
+  DB.citiesVisited = (DB.citiesVisited||[]).filter(x=>x.id!==id);
+  save(); closeModal('city-modal'); renderCities(); renderCountriesStats();
+}
+
+function renderCities() {
+  const el = document.getElementById('countries-cities');
+  if (!el) return;
+  const list = DB.citiesVisited || [];
+  if (!list.length) { el.innerHTML = `<div style="font-size:13px;color:var(--text-muted);padding:10px 0;">No cities or airports added yet.</div>`; return; }
+  const sorted = [...list].sort((a,b)=>a.name.localeCompare(b.name));
+  const cities = sorted.filter(c=>c.type==='city');
+  const airports = sorted.filter(c=>c.type==='airport');
+  const renderGroup = (items, label, icon) => {
+    if (!items.length) return '';
+    return `<div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">${icon} ${label} (${items.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${items.map(c =>
+        `<span onclick="openCityModal('${c.id}')" style="display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;cursor:pointer;" title="${c.country}${c.date?' · '+c.date:''}${c.notes?' · '+c.notes:''}">
+          ${c.name}${c.country?`<span style="font-size:10px;color:var(--text-muted);">${c.country}</span>`:''}
+        </span>`
+      ).join('')}</div>
+    </div>`;
+  };
+  el.innerHTML = renderGroup(cities,'Cities','🏙') + renderGroup(airports,'Airports','✈️');
 }
 
 function renderIntlColleges() {
