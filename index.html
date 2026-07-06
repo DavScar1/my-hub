@@ -1844,6 +1844,10 @@ a:hover{text-decoration:underline;}
       <div id="countries-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.75);color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;pointer-events:none;z-index:10;white-space:nowrap;"></div>
     </div>
     <div style="margin-top:6px;font-size:11px;color:var(--text-muted);text-align:right;">Click to mark visited · Click again to remove</div>
+    <div style="margin-top:16px;">
+      <div class="card-title" style="margin-bottom:10px;">Small Countries &amp; Micronations</div>
+      <div id="countries-micronations" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
     <div id="countries-list" style="margin-top:20px;"></div>
   </div>
 
@@ -3444,14 +3448,42 @@ function intlCollegeRowHtml(c, applying) {
 // ============================================================
 // COUNTRIES VISITED
 // ============================================================
-const COUNTRY_NAMES = {4:'Afghanistan',8:'Albania',12:'Algeria',24:'Angola',28:'Antigua and Barbuda',32:'Argentina',36:'Australia',40:'Austria',31:'Azerbaijan',44:'Bahamas',48:'Bahrain',50:'Bangladesh',52:'Barbados',112:'Belarus',56:'Belgium',84:'Belize',204:'Benin',64:'Bhutan',68:'Bolivia',70:'Bosnia and Herzegovina',72:'Botswana',76:'Brazil',96:'Brunei',100:'Bulgaria',854:'Burkina Faso',108:'Burundi',132:'Cape Verde',116:'Cambodia',120:'Cameroon',124:'Canada',140:'Central African Republic',148:'Chad',152:'Chile',156:'China',170:'Colombia',174:'Comoros',178:'Republic of the Congo',180:'DR Congo',188:'Costa Rica',384:'Côte d\'Ivoire',191:'Croatia',192:'Cuba',196:'Cyprus',203:'Czech Republic',208:'Denmark',262:'Djibouti',212:'Dominica',214:'Dominican Republic',218:'Ecuador',818:'Egypt',222:'El Salvador',226:'Equatorial Guinea',232:'Eritrea',233:'Estonia',748:'Eswatini',231:'Ethiopia',242:'Fiji',246:'Finland',250:'France',266:'Gabon',270:'Gambia',268:'Georgia',276:'Germany',288:'Ghana',300:'Greece',308:'Grenada',320:'Guatemala',324:'Guinea',624:'Guinea-Bissau',328:'Guyana',332:'Haiti',340:'Honduras',348:'Hungary',356:'India',360:'Indonesia',364:'Iran',368:'Iraq',372:'Ireland',376:'Israel',380:'Italy',388:'Jamaica',392:'Japan',400:'Jordan',398:'Kazakhstan',404:'Kenya',296:'Kiribati',408:'North Korea',410:'South Korea',414:'Kuwait',417:'Kyrgyzstan',418:'Laos',422:'Lebanon',426:'Lesotho',430:'Liberia',434:'Libya',438:'Liechtenstein',440:'Lithuania',442:'Luxembourg',450:'Madagascar',454:'Malawi',458:'Malaysia',462:'Maldives',466:'Mali',470:'Malta',584:'Marshall Islands',478:'Mauritania',480:'Mauritius',484:'Mexico',583:'Micronesia',498:'Moldova',492:'Monaco',496:'Mongolia',499:'Montenegro',504:'Morocco',508:'Mozambique',516:'Namibia',520:'Nauru',524:'Nepal',528:'Netherlands',554:'New Zealand',558:'Nicaragua',562:'Niger',566:'Nigeria',807:'North Macedonia',578:'Norway',512:'Oman',586:'Pakistan',585:'Palau',591:'Panama',598:'Papua New Guinea',600:'Paraguay',604:'Peru',608:'Philippines',616:'Poland',620:'Portugal',634:'Qatar',642:'Romania',643:'Russia',646:'Rwanda',659:'Saint Kitts and Nevis',662:'Saint Lucia',670:'Saint Vincent and the Grenadines',882:'Samoa',674:'San Marino',678:'São Tomé and Príncipe',682:'Saudi Arabia',686:'Senegal',688:'Serbia',690:'Seychelles',694:'Sierra Leone',703:'Slovakia',705:'Slovenia',90:'Solomon Islands',706:'Somalia',710:'South Africa',728:'South Sudan',724:'Spain',144:'Sri Lanka',729:'Sudan',740:'Suriname',752:'Sweden',756:'Switzerland',760:'Syria',762:'Tajikistan',834:'Tanzania',764:'Thailand',626:'Timor-Leste',768:'Togo',776:'Tonga',780:'Trinidad and Tobago',788:'Tunisia',792:'Turkey',795:'Turkmenistan',798:'Tuvalu',800:'Uganda',804:'Ukraine',784:'United Arab Emirates',826:'United Kingdom',840:'United States',858:'Uruguay',860:'Uzbekistan',548:'Vanuatu',862:'Venezuela',704:'Vietnam',887:'Yemen',894:'Zambia',716:'Zimbabwe'};
+const COUNTRY_NAMES = {20:'Andorra',336:'Vatican City',702:'Singapore',4:'Afghanistan',8:'Albania',12:'Algeria',24:'Angola',28:'Antigua and Barbuda',32:'Argentina',36:'Australia',40:'Austria',31:'Azerbaijan',44:'Bahamas',48:'Bahrain',50:'Bangladesh',52:'Barbados',112:'Belarus',56:'Belgium',84:'Belize',204:'Benin',64:'Bhutan',68:'Bolivia',70:'Bosnia and Herzegovina',72:'Botswana',76:'Brazil',96:'Brunei',100:'Bulgaria',854:'Burkina Faso',108:'Burundi',132:'Cape Verde',116:'Cambodia',120:'Cameroon',124:'Canada',140:'Central African Republic',148:'Chad',152:'Chile',156:'China',170:'Colombia',174:'Comoros',178:'Republic of the Congo',180:'DR Congo',188:'Costa Rica',384:'Côte d\'Ivoire',191:'Croatia',192:'Cuba',196:'Cyprus',203:'Czech Republic',208:'Denmark',262:'Djibouti',212:'Dominica',214:'Dominican Republic',218:'Ecuador',818:'Egypt',222:'El Salvador',226:'Equatorial Guinea',232:'Eritrea',233:'Estonia',748:'Eswatini',231:'Ethiopia',242:'Fiji',246:'Finland',250:'France',266:'Gabon',270:'Gambia',268:'Georgia',276:'Germany',288:'Ghana',300:'Greece',308:'Grenada',320:'Guatemala',324:'Guinea',624:'Guinea-Bissau',328:'Guyana',332:'Haiti',340:'Honduras',348:'Hungary',356:'India',360:'Indonesia',364:'Iran',368:'Iraq',372:'Ireland',376:'Israel',380:'Italy',388:'Jamaica',392:'Japan',400:'Jordan',398:'Kazakhstan',404:'Kenya',296:'Kiribati',408:'North Korea',410:'South Korea',414:'Kuwait',417:'Kyrgyzstan',418:'Laos',422:'Lebanon',426:'Lesotho',430:'Liberia',434:'Libya',438:'Liechtenstein',440:'Lithuania',442:'Luxembourg',450:'Madagascar',454:'Malawi',458:'Malaysia',462:'Maldives',466:'Mali',470:'Malta',584:'Marshall Islands',478:'Mauritania',480:'Mauritius',484:'Mexico',583:'Micronesia',498:'Moldova',492:'Monaco',496:'Mongolia',499:'Montenegro',504:'Morocco',508:'Mozambique',516:'Namibia',520:'Nauru',524:'Nepal',528:'Netherlands',554:'New Zealand',558:'Nicaragua',562:'Niger',566:'Nigeria',807:'North Macedonia',578:'Norway',512:'Oman',586:'Pakistan',585:'Palau',591:'Panama',598:'Papua New Guinea',600:'Paraguay',604:'Peru',608:'Philippines',616:'Poland',620:'Portugal',634:'Qatar',642:'Romania',643:'Russia',646:'Rwanda',659:'Saint Kitts and Nevis',662:'Saint Lucia',670:'Saint Vincent and the Grenadines',882:'Samoa',674:'San Marino',678:'São Tomé and Príncipe',682:'Saudi Arabia',686:'Senegal',688:'Serbia',690:'Seychelles',694:'Sierra Leone',703:'Slovakia',705:'Slovenia',90:'Solomon Islands',706:'Somalia',710:'South Africa',728:'South Sudan',724:'Spain',144:'Sri Lanka',729:'Sudan',740:'Suriname',752:'Sweden',756:'Switzerland',760:'Syria',762:'Tajikistan',834:'Tanzania',764:'Thailand',626:'Timor-Leste',768:'Togo',776:'Tonga',780:'Trinidad and Tobago',788:'Tunisia',792:'Turkey',795:'Turkmenistan',798:'Tuvalu',800:'Uganda',804:'Ukraine',784:'United Arab Emirates',826:'United Kingdom',840:'United States',858:'Uruguay',860:'Uzbekistan',548:'Vanuatu',862:'Venezuela',704:'Vietnam',887:'Yemen',894:'Zambia',716:'Zimbabwe'};
+
+const MICRONATIONS = [
+  {id:'336', name:'Vatican City'},
+  {id:'492', name:'Monaco'},
+  {id:'674', name:'San Marino'},
+  {id:'438', name:'Liechtenstein'},
+  {id:'20',  name:'Andorra'},
+  {id:'702', name:'Singapore'},
+  {id:'442', name:'Luxembourg'},
+  {id:'470', name:'Malta'},
+  {id:'462', name:'Maldives'},
+  {id:'520', name:'Nauru'},
+  {id:'798', name:'Tuvalu'},
+  {id:'585', name:'Palau'},
+  {id:'584', name:'Marshall Islands'},
+  {id:'583', name:'Micronesia'},
+  {id:'296', name:'Kiribati'},
+];
 
 const TOTAL_COUNTRIES = 195;
 let _worldData = null;
 
+function renderMicronations() {
+  const el = document.getElementById('countries-micronations');
+  if (!el) return;
+  el.innerHTML = MICRONATIONS.map(c => {
+    const visited = DB.countriesVisited.includes(c.id);
+    return `<span onclick="toggleCountryVisited('${c.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${visited?'var(--green)':'var(--border)'};background:${visited?'var(--green-light)':'var(--surface)'};color:${visited?'var(--green)':'var(--text-secondary)'};">${visited?'✓ ':''}${c.name}</span>`;
+  }).join('');
+}
+
 function renderCountriesPage() {
   renderCountriesStats();
   renderCountriesList();
+  renderMicronations();
   const wrap = document.getElementById('countries-map-wrap');
   if (_worldData) { drawCountriesMap(_worldData); return; }
   wrap.innerHTML = '<div id="countries-tooltip" style="display:none;position:absolute;background:rgba(0,0,0,.75);color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;pointer-events:none;z-index:10;white-space:nowrap;"></div><div style="padding:40px;text-align:center;color:var(--text-muted);font-size:13px;">Loading map…</div>';
@@ -3517,6 +3549,7 @@ function toggleCountryVisited(id) {
   save();
   renderCountriesStats();
   renderCountriesList();
+  renderMicronations();
   if (_worldData) {
     document.querySelectorAll('#countries-map-wrap path.country').forEach(el => {
       const d = d3.select(el).datum();
