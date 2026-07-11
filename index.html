@@ -791,6 +791,7 @@ a:hover{text-decoration:underline;}
     <button class="nav-item" onclick="showPage('l-wardrobe')"><span class="icon">👕</span>Wardrobe</button>
     <button class="nav-item" onclick="showPage('l-journal')"><span class="icon">📓</span>Journal</button>
     <button class="nav-item" onclick="showPage('l-countries')"><span class="icon">✈️</span>Countries Visited</button>
+    <button class="nav-item" onclick="showPage('l-packlist')"><span class="icon">🧳</span>Pack List</button>
   </div>
 
   <!-- Business nav -->
@@ -1836,6 +1837,33 @@ a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <!-- Pack List -->
+  <div class="page" id="page-l-packlist">
+    <div class="page-header">
+      <div><h2>🧳 Pack List</h2><p>Create trips and pack smarter — pull clothes from your wardrobe or add anything else.</p></div>
+      <button class="btn btn-primary" onclick="openNewTripModal()">+ New Trip</button>
+    </div>
+    <div id="packlist-trips"></div>
+    <div id="packlist-trip-view" style="display:none;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <button class="btn btn-secondary btn-sm" onclick="closePackTrip()">← All trips</button>
+        <div style="flex:1;">
+          <div id="pack-trip-title" style="font-size:18px;font-weight:700;"></div>
+          <div id="pack-trip-date" style="font-size:12px;color:var(--text-muted);"></div>
+        </div>
+        <div id="pack-trip-progress" style="font-size:13px;font-weight:600;color:var(--green);"></div>
+      </div>
+      <div id="pack-progress-bar" style="margin-bottom:20px;"><div class="progress-bar"><div class="progress-fill green" id="pack-progress-fill" style="width:0%"></div></div></div>
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="openWardrobePickerModal()">👗 Add from Wardrobe</button>
+        <button class="btn btn-secondary btn-sm" onclick="openPackItemModal()">+ Add Item</button>
+        <button class="btn btn-secondary btn-sm" onclick="resetPackTrip()">↺ Unpack All</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="deleteCurrentTrip()">Delete Trip</button>
+      </div>
+      <div id="pack-items-list"></div>
+    </div>
+  </div>
+
   <!-- Countries Visited -->
   <div class="page" id="page-l-countries">
     <div class="page-header"><h2>✈️ Countries Visited</h2><p>Build your travel map — visited countries, wishlist, and cities.</p></div>
@@ -2056,6 +2084,59 @@ a:hover{text-decoration:underline;}
 <!-- ============================================================
      MODALS
 ============================================================ -->
+
+<!-- New Trip modal -->
+<div class="modal-overlay" id="pack-trip-modal">
+  <div class="modal">
+    <h3>New Trip</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Trip name *</label><input type="text" id="pack-trip-name" placeholder="e.g. Paris July, Summer Holiday"></div>
+      <div class="form-group"><label>Date</label><input type="date" id="pack-trip-date-input"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('pack-trip-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewTrip()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pack Item modal -->
+<div class="modal-overlay" id="pack-item-modal">
+  <div class="modal">
+    <h3 id="pack-item-modal-title">Add Item</h3>
+    <input type="hidden" id="pack-item-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Item name *</label><input type="text" id="pack-item-name" placeholder="e.g. Toothbrush"></div>
+      <div class="form-group"><label>Category</label>
+        <select id="pack-item-cat">
+          <option value="Clothes">👕 Clothes</option>
+          <option value="Toiletries">🪥 Toiletries</option>
+          <option value="Tech">🔌 Tech &amp; Gadgets</option>
+          <option value="Documents">📄 Documents</option>
+          <option value="Misc">📦 Miscellaneous</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="pack-item-delete-btn" style="display:none;margin-right:auto;" onclick="deletePackItem()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('pack-item-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePackItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wardrobe Picker modal -->
+<div class="modal-overlay" id="pack-wardrobe-modal">
+  <div class="modal modal-lg">
+    <h3>Add from Wardrobe</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Tick the items you want to pack — already-added items are pre-ticked.</p>
+    <div id="pack-wardrobe-list" style="max-height:400px;overflow-y:auto;"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('pack-wardrobe-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWardrobePicks()">Add Selected</button>
+    </div>
+  </div>
+</div>
 
 <!-- City / Airport modal -->
 <div class="modal-overlay" id="city-modal">
@@ -2911,6 +2992,7 @@ function ensureDBDefaults() {
   if (!DB.todoTasks) DB.todoTasks = [];
   if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
   DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
+  if (!DB.packTrips) DB.packTrips = [];
   if (!DB.countriesVisited) DB.countriesVisited = [];
   if (!DB.countriesWishlist) DB.countriesWishlist = [];
   if (!DB.citiesVisited) DB.citiesVisited = [];
@@ -3228,6 +3310,7 @@ function renderPage(id) {
   if (id === 'l-wardrobe') renderWardrobe();
   if (id === 'l-journal') renderJournal();
   if (id === 'l-countries') renderCountriesPage();
+  if (id === 'l-packlist') renderPackList();
   // Business pages (prefixed b-)
   if (id === 'b-dashboard') renderBizDashboard();
   if (id === 'b-sales') renderBizSales();
@@ -3423,6 +3506,206 @@ function setCollegeApplying(id, applying) {
 
 function setCollegeTarget(type, value) {
   const n = parseInt(value); DB.collegeTargets[type] = isNaN(n) ? 0 : n; save(); renderColleges();
+}
+
+// ============================================================
+// PACK LIST
+// ============================================================
+let _activePackTripId = null;
+const PACK_CAT_ICONS = { Clothes:'👕', Toiletries:'🪥', Tech:'🔌', Documents:'📄', Misc:'📦' };
+
+function renderPackList() {
+  document.getElementById('packlist-trips').style.display = '';
+  document.getElementById('packlist-trip-view').style.display = 'none';
+  const trips = DB.packTrips || [];
+  const el = document.getElementById('packlist-trips');
+  if (!trips.length) {
+    el.innerHTML = `<div class="card" style="text-align:center;padding:40px 20px;"><div style="font-size:36px;margin-bottom:12px;">🧳</div><p style="color:var(--text-muted);margin-bottom:16px;">No trips yet. Create your first pack list.</p><button class="btn btn-primary" onclick="openNewTripModal()">+ New Trip</button></div>`;
+    return;
+  }
+  el.innerHTML = trips.map(t => {
+    const total = t.items.length;
+    const packed = t.items.filter(i => i.packed).length;
+    const pct = total ? Math.round(packed/total*100) : 0;
+    const dateStr = t.date ? new Date(t.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    return `<div class="card" style="margin-bottom:14px;cursor:pointer;" onclick="openPackTrip('${t.id}')">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:28px;">🧳</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;">${t.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${dateStr||'No date set'} · ${total} item${total!==1?'s':''}</div>
+          <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill green" style="width:${pct}%"></div></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:18px;font-weight:800;color:${pct===100?'var(--green)':'var(--text)'};">${pct}%</div>
+          <div style="font-size:11px;color:var(--text-muted);">${packed}/${total} packed</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openNewTripModal() {
+  document.getElementById('pack-trip-name').value = '';
+  document.getElementById('pack-trip-date-input').value = '';
+  openModal('pack-trip-modal');
+}
+
+function saveNewTrip() {
+  const name = document.getElementById('pack-trip-name').value.trim();
+  if (!name) { alert('Enter a trip name.'); return; }
+  const trip = { id: uid(), name, date: document.getElementById('pack-trip-date-input').value, items: [] };
+  if (!DB.packTrips) DB.packTrips = [];
+  DB.packTrips.push(trip);
+  save(); closeModal('pack-trip-modal');
+  openPackTrip(trip.id);
+}
+
+function openPackTrip(id) {
+  _activePackTripId = id;
+  document.getElementById('packlist-trips').style.display = 'none';
+  document.getElementById('packlist-trip-view').style.display = '';
+  renderPackTripView();
+}
+
+function closePackTrip() {
+  _activePackTripId = null;
+  document.getElementById('packlist-trips').style.display = '';
+  document.getElementById('packlist-trip-view').style.display = 'none';
+  renderPackList();
+}
+
+function getActiveTrip() {
+  return (DB.packTrips||[]).find(t => t.id === _activePackTripId);
+}
+
+function renderPackTripView() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const total = trip.items.length;
+  const packed = trip.items.filter(i => i.packed).length;
+  const pct = total ? Math.round(packed/total*100) : 0;
+  const dateStr = trip.date ? new Date(trip.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  document.getElementById('pack-trip-title').textContent = trip.name;
+  document.getElementById('pack-trip-date').textContent = dateStr || 'No date set';
+  document.getElementById('pack-trip-progress').textContent = `${packed}/${total} packed`;
+  document.getElementById('pack-progress-fill').style.width = pct + '%';
+
+  const cats = ['Clothes','Toiletries','Tech','Documents','Misc'];
+  const el = document.getElementById('pack-items-list');
+  if (!total) {
+    el.innerHTML = `<div class="card" style="text-align:center;padding:30px;color:var(--text-muted);">No items yet — add clothes from your wardrobe or add items manually.</div>`;
+    return;
+  }
+  el.innerHTML = cats.map(cat => {
+    const items = trip.items.filter(i => i.cat === cat);
+    if (!items.length) return '';
+    const catPacked = items.filter(i=>i.packed).length;
+    return `<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+        ${PACK_CAT_ICONS[cat]||'📦'} ${cat} <span style="font-weight:400;">(${catPacked}/${items.length})</span>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        ${items.map(item => `
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border-light);" class="${item.packed?'':''}">
+            <input type="checkbox" ${item.packed?'checked':''} onchange="togglePackItem('${item.id}')" style="width:17px;height:17px;accent-color:var(--green);cursor:pointer;flex-shrink:0;">
+            <span style="flex:1;font-size:13px;${item.packed?'text-decoration:line-through;color:var(--text-muted);':'font-weight:500;'}">${item.name}</span>
+            <button class="btn btn-ghost btn-xs" onclick="openPackItemModal('${item.id}')" style="opacity:.5;">✏️</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePackItem(itemId) {
+  const trip = getActiveTrip(); if (!trip) return;
+  const item = trip.items.find(i => i.id === itemId); if (!item) return;
+  item.packed = !item.packed;
+  save(); renderPackTripView();
+}
+
+function resetPackTrip() {
+  const trip = getActiveTrip(); if (!trip) return;
+  trip.items.forEach(i => i.packed = false);
+  save(); renderPackTripView();
+}
+
+function deleteCurrentTrip() {
+  if (!confirm('Delete this trip and all its items?')) return;
+  DB.packTrips = (DB.packTrips||[]).filter(t => t.id !== _activePackTripId);
+  save(); closePackTrip();
+}
+
+function openPackItemModal(id) {
+  const trip = getActiveTrip(); if (!trip) return;
+  const item = id ? trip.items.find(i=>i.id===id) : null;
+  document.getElementById('pack-item-modal-title').textContent = item ? 'Edit Item' : 'Add Item';
+  document.getElementById('pack-item-edit-id').value = id || '';
+  document.getElementById('pack-item-name').value = item ? item.name : '';
+  document.getElementById('pack-item-cat').value = item ? item.cat : 'Toiletries';
+  document.getElementById('pack-item-delete-btn').style.display = item ? '' : 'none';
+  openModal('pack-item-modal');
+}
+
+function savePackItem() {
+  const name = document.getElementById('pack-item-name').value.trim();
+  if (!name) { alert('Enter an item name.'); return; }
+  const trip = getActiveTrip(); if (!trip) return;
+  const id = document.getElementById('pack-item-edit-id').value;
+  const cat = document.getElementById('pack-item-cat').value;
+  if (id) {
+    const item = trip.items.find(i=>i.id===id);
+    if (item) { item.name = name; item.cat = cat; }
+  } else {
+    trip.items.push({ id: uid(), name, cat, packed: false });
+  }
+  save(); closeModal('pack-item-modal'); renderPackTripView();
+}
+
+function deletePackItem() {
+  const id = document.getElementById('pack-item-edit-id').value;
+  const trip = getActiveTrip(); if (!trip) return;
+  trip.items = trip.items.filter(i => i.id !== id);
+  save(); closeModal('pack-item-modal'); renderPackTripView();
+}
+
+function openWardrobePickerModal() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const wardrobe = DB.wardrobe || [];
+  if (!wardrobe.length) { alert('Your wardrobe is empty — add items in the Wardrobe section first.'); return; }
+  const alreadyAdded = new Set(trip.items.filter(i=>i.fromWardrobeId).map(i=>i.fromWardrobeId));
+  const cats = ['Top','Bottom','Shoes','Outerwear','Jumper','Accessory','Bag','Headwear'];
+  const catIcons = {Top:'👕',Bottom:'👖',Shoes:'👟',Outerwear:'🧥',Jumper:'🧶',Accessory:'⌚',Bag:'👜',Headwear:'🧢'};
+  let html = '';
+  cats.forEach(cat => {
+    const items = wardrobe.filter(w=>w.cat===cat);
+    if (!items.length) return;
+    html += `<div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">${catIcons[cat]||''} ${cat}</div>
+      ${items.map(w => `
+        <label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border-light);">
+          <input type="checkbox" value="${w.id}" ${alreadyAdded.has(w.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent);">
+          <span style="font-size:13px;">${w.name}</span>
+        </label>`).join('')}
+    </div>`;
+  });
+  document.getElementById('pack-wardrobe-list').innerHTML = html;
+  openModal('pack-wardrobe-modal');
+}
+
+function saveWardrobePicks() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const checked = [...document.querySelectorAll('#pack-wardrobe-list input[type=checkbox]')];
+  const alreadyAdded = new Map(trip.items.filter(i=>i.fromWardrobeId).map(i=>[i.fromWardrobeId, i]));
+  checked.forEach(cb => {
+    const wid = cb.value;
+    if (cb.checked && !alreadyAdded.has(wid)) {
+      const w = (DB.wardrobe||[]).find(x=>x.id===wid);
+      if (w) trip.items.push({ id: uid(), name: w.name, cat: 'Clothes', packed: false, fromWardrobeId: wid });
+    } else if (!cb.checked && alreadyAdded.has(wid)) {
+      trip.items = trip.items.filter(i => i.fromWardrobeId !== wid);
+    }
+  });
+  save(); closeModal('pack-wardrobe-modal'); renderPackTripView();
 }
 
 // ============================================================
