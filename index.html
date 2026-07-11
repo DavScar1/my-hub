@@ -3689,6 +3689,11 @@ function openWardrobePickerModal() {
     </div>`;
   });
   document.getElementById('pack-wardrobe-list').innerHTML = html;
+  // Set checked+disabled via property (innerHTML attribute alone can be unreliable)
+  alreadyAdded.forEach(wid => {
+    const cb = document.querySelector(`#pack-wardrobe-list input[value="${CSS.escape(wid)}"]`);
+    if (cb) { cb.checked = true; cb.disabled = true; }
+  });
   openModal('pack-wardrobe-modal');
 }
 
