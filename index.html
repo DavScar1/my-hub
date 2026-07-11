@@ -3695,14 +3695,11 @@ function openWardrobePickerModal() {
 function saveWardrobePicks() {
   const trip = getActiveTrip(); if (!trip) return;
   const checked = [...document.querySelectorAll('#pack-wardrobe-list input[type=checkbox]')];
-  const alreadyAdded = new Map(trip.items.filter(i=>i.fromWardrobeId).map(i=>[i.fromWardrobeId, i]));
+  const alreadyAdded = new Set(trip.items.filter(i=>i.fromWardrobeId).map(i=>i.fromWardrobeId));
   checked.forEach(cb => {
-    const wid = cb.value;
-    if (cb.checked && !alreadyAdded.has(wid)) {
-      const w = (DB.wardrobe||[]).find(x=>x.id===wid);
-      if (w) trip.items.push({ id: uid(), name: w.name, cat: 'Clothes', packed: false, fromWardrobeId: wid });
-    } else if (!cb.checked && alreadyAdded.has(wid)) {
-      trip.items = trip.items.filter(i => i.fromWardrobeId !== wid);
+    if (cb.checked && !alreadyAdded.has(cb.value)) {
+      const w = (DB.wardrobe||[]).find(x=>x.id===cb.value);
+      if (w) trip.items.push({ id: uid(), name: w.name, cat: 'Clothes', packed: false, fromWardrobeId: cb.value });
     }
   });
   save(); closeModal('pack-wardrobe-modal'); renderPackTripView();
