@@ -791,6 +791,9 @@ a:hover{text-decoration:underline;}
     </button>
     <button class="nav-item" onclick="showPage('l-wardrobe')"><span class="icon">👕</span>Wardrobe</button>
     <button class="nav-item" onclick="showPage('l-journal')"><span class="icon">📓</span>Journal</button>
+
+    <div class="nav-section">Travel</div>
+    <button class="nav-item" onclick="showPage('l-trips')"><span class="icon">🧭</span>Trips</button>
     <button class="nav-item" onclick="showPage('l-countries')"><span class="icon">✈️</span>Countries Visited</button>
     <button class="nav-item" onclick="showPage('l-packlist')"><span class="icon">🧳</span>Pack List</button>
   </div>
@@ -1845,6 +1848,32 @@ a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <!-- Trips -->
+  <div class="page" id="page-l-trips">
+    <div class="page-header">
+      <div><h2>🧭 Trips</h2><p>Log your holidays — where you went, who with, and the places along the way.</p></div>
+      <button class="btn btn-primary" onclick="openTripFormModal()">+ New Trip</button>
+    </div>
+    <div id="trips-list"></div>
+    <div id="trip-view" style="display:none;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <button class="btn btn-secondary btn-sm" onclick="closeTripView()">← All trips</button>
+        <div style="flex:1;min-width:0;">
+          <div id="trip-view-title" style="font-size:18px;font-weight:700;"></div>
+          <div id="trip-view-sub" style="font-size:12px;color:var(--text-muted);"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openTripFormModal(_activeTripId)">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentTripLog()">Delete Trip</button>
+      </div>
+      <div id="trip-view-notes"></div>
+      <div class="section-header">
+        <h3 style="margin:0;">Places</h3>
+        <button class="btn btn-secondary btn-sm" onclick="openPlaceModal()">+ Add Place</button>
+      </div>
+      <div id="trip-places-list"></div>
+    </div>
+  </div>
+
   <!-- Pack List -->
   <div class="page" id="page-l-packlist">
     <div class="page-header">
@@ -2129,6 +2158,45 @@ a:hover{text-decoration:underline;}
       <button class="btn btn-danger btn-sm" id="pack-item-delete-btn" style="display:none;margin-right:auto;" onclick="deletePackItem()">Delete</button>
       <button class="btn btn-secondary" onclick="closeModal('pack-item-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="savePackItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trip modal -->
+<div class="modal-overlay" id="trip-modal">
+  <div class="modal">
+    <h3 id="trip-modal-title">New Trip</h3>
+    <input type="hidden" id="trip-edit-id">
+    <div class="form-group"><label>Trip Title *</label><input type="text" id="trip-title" placeholder="e.g. Italy Summer 2024"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Start Date</label><input type="date" id="trip-start-date"></div>
+      <div class="form-group"><label>End Date</label><input type="date" id="trip-end-date"></div>
+    </div>
+    <div class="form-group"><label>Who You Went With</label><input type="text" id="trip-companions" placeholder="Mom, Dad, Sarah…"></div>
+    <div class="form-group"><label>Notes</label><textarea id="trip-notes" placeholder="Highlights, memories…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="trip-delete-btn" style="display:none;margin-right:auto;" onclick="deleteTripFromModal()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('trip-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTrip()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trip place modal -->
+<div class="modal-overlay" id="trip-place-modal">
+  <div class="modal">
+    <h3 id="trip-place-modal-title">Add Place</h3>
+    <input type="hidden" id="trip-place-edit-id">
+    <div class="form-group"><label>Place *</label><input type="text" id="trip-place-name" placeholder="e.g. Naples"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Arrive</label><input type="date" id="trip-place-arrive"></div>
+      <div class="form-group"><label>Depart</label><input type="date" id="trip-place-depart"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="trip-place-notes" placeholder="Where you stayed, what you did…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="trip-place-delete-btn" style="display:none;margin-right:auto;" onclick="deletePlace()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('trip-place-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlace()">Save</button>
     </div>
   </div>
 </div>
@@ -3021,6 +3089,7 @@ function ensureDBDefaults() {
   if (!DB.collegeTargets) DB.collegeTargets = { Reach:10, Match:6, Safety:4 };
   DB.colleges.forEach(c => { if (c.applying === undefined) c.applying = true; });
   if (!DB.packTrips) DB.packTrips = [];
+  if (!DB.trips) DB.trips = [];
   if (!DB.countriesVisited) DB.countriesVisited = [];
   if (!DB.countriesWishlist) DB.countriesWishlist = [];
   if (!DB.citiesVisited) DB.citiesVisited = [];
@@ -3340,6 +3409,7 @@ function renderPage(id) {
   if (id === 'l-journal') renderJournal();
   if (id === 'l-countries') renderCountriesPage();
   if (id === 'l-packlist') renderPackList();
+  if (id === 'l-trips') renderTrips();
   // Business pages (prefixed b-)
   if (id === 'b-dashboard') renderBizDashboard();
   if (id === 'b-sales') renderBizSales();
@@ -3737,6 +3807,193 @@ function saveWardrobePicks() {
     }
   });
   save(); closeModal('pack-wardrobe-modal'); renderPackTripView();
+}
+
+// ============================================================
+// TRIPS
+// ============================================================
+let _activeTripId = null;
+
+function tripDateRange(t) {
+  if (!t.startDate && !t.endDate) return 'No dates set';
+  const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if (t.startDate && t.endDate && t.startDate!==t.endDate) return `${fmt(t.startDate)} – ${fmt(t.endDate)}`;
+  return fmt(t.startDate || t.endDate);
+}
+
+function placeDateRange(p) {
+  const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if (p.arriveDate && p.departDate && p.arriveDate!==p.departDate) return `${fmt(p.arriveDate)} – ${fmt(p.departDate)}`;
+  return fmt(p.arriveDate || p.departDate);
+}
+
+function renderTrips() {
+  document.getElementById('trips-list').style.display = '';
+  document.getElementById('trip-view').style.display = 'none';
+  const trips = DB.trips || [];
+  const el = document.getElementById('trips-list');
+  if (!trips.length) {
+    el.innerHTML = `<div class="card" style="text-align:center;padding:40px 20px;"><div style="font-size:36px;margin-bottom:12px;">🧭</div><p style="color:var(--text-muted);margin-bottom:16px;">No trips logged yet.</p><button class="btn btn-primary" onclick="openTripFormModal()">+ New Trip</button></div>`;
+    return;
+  }
+  const sorted = [...trips].sort((a,b)=>(b.startDate||'').localeCompare(a.startDate||''));
+  el.innerHTML = sorted.map(t => {
+    const places = t.places || [];
+    const route = places.map(p=>p.name).join(' → ');
+    return `<div class="card" style="margin-bottom:14px;cursor:pointer;" onclick="openTripView('${t.id}')">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:28px;">🧭</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;">${t.title}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${tripDateRange(t)}${t.companions?' · With '+t.companions:''}</div>
+          ${route?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${route}</div>`:''}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);flex-shrink:0;">${places.length} place${places.length!==1?'s':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openTripFormModal(id) {
+  const trip = id ? (DB.trips||[]).find(t=>t.id===id) : null;
+  document.getElementById('trip-modal-title').textContent = trip ? 'Edit Trip' : 'New Trip';
+  document.getElementById('trip-edit-id').value = id || '';
+  document.getElementById('trip-title').value = trip ? trip.title : '';
+  document.getElementById('trip-start-date').value = trip ? (trip.startDate||'') : '';
+  document.getElementById('trip-end-date').value = trip ? (trip.endDate||'') : '';
+  document.getElementById('trip-companions').value = trip ? (trip.companions||'') : '';
+  document.getElementById('trip-notes').value = trip ? (trip.notes||'') : '';
+  document.getElementById('trip-delete-btn').style.display = trip ? '' : 'none';
+  openModal('trip-modal', id);
+}
+
+function saveTrip() {
+  const title = document.getElementById('trip-title').value.trim();
+  if (!title) { alert('Enter a trip title.'); return; }
+  if (!DB.trips) DB.trips = [];
+  const id = document.getElementById('trip-edit-id').value || uid();
+  const existing = DB.trips.findIndex(t=>t.id===id);
+  const trip = {
+    id, title,
+    startDate: document.getElementById('trip-start-date').value,
+    endDate: document.getElementById('trip-end-date').value,
+    companions: document.getElementById('trip-companions').value,
+    notes: document.getElementById('trip-notes').value,
+    places: existing>=0 ? DB.trips[existing].places : []
+  };
+  if (existing>=0) DB.trips[existing]=trip; else DB.trips.push(trip);
+  save(); closeModal('trip-modal');
+  if (_activeTripId === id) renderTripView(); else renderTrips();
+}
+
+function deleteTripFromModal() {
+  const id = document.getElementById('trip-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this trip and all its places?')) return;
+  DB.trips = (DB.trips||[]).filter(t=>t.id!==id);
+  save(); closeModal('trip-modal');
+  if (_activeTripId === id) closeTripView(); else renderTrips();
+}
+
+function openTripView(id) {
+  _activeTripId = id;
+  document.getElementById('trips-list').style.display = 'none';
+  document.getElementById('trip-view').style.display = '';
+  renderTripView();
+}
+
+function closeTripView() {
+  _activeTripId = null;
+  document.getElementById('trips-list').style.display = '';
+  document.getElementById('trip-view').style.display = 'none';
+  renderTrips();
+}
+
+function getActiveTripLog() {
+  return (DB.trips||[]).find(t=>t.id===_activeTripId);
+}
+
+function renderTripView() {
+  const trip = getActiveTripLog(); if (!trip) return;
+  document.getElementById('trip-view-title').textContent = trip.title;
+  document.getElementById('trip-view-sub').textContent = `${tripDateRange(trip)}${trip.companions?' · With '+trip.companions:''}`;
+  document.getElementById('trip-view-notes').innerHTML = trip.notes ? `<div class="card" style="margin-bottom:16px;font-size:13px;color:var(--text-secondary);white-space:pre-wrap;">${trip.notes}</div>` : '';
+  const places = trip.places || [];
+  const el = document.getElementById('trip-places-list');
+  if (!places.length) {
+    el.innerHTML = `<div class="card" style="text-align:center;padding:30px;color:var(--text-muted);">No places added yet — add the first stop of the trip.</div>`;
+    return;
+  }
+  el.innerHTML = places.map((p, i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:18px;font-weight:800;color:var(--text-muted);width:22px;text-align:center;flex-shrink:0;">${i+1}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;">${p.name}</div>
+          ${(p.arriveDate||p.departDate)?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${placeDateRange(p)}</div>`:''}
+          ${p.notes?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${p.notes}</div>`:''}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="movePlace(${i},-1)" ${i===0?'disabled':''}>↑</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="movePlace(${i},1)" ${i===places.length-1?'disabled':''}>↓</button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="openPlaceModal('${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deletePlace('${p.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openPlaceModal(id) {
+  const trip = getActiveTripLog(); if (!trip) return;
+  const place = id ? (trip.places||[]).find(p=>p.id===id) : null;
+  document.getElementById('trip-place-modal-title').textContent = place ? 'Edit Place' : 'Add Place';
+  document.getElementById('trip-place-edit-id').value = id || '';
+  document.getElementById('trip-place-name').value = place ? place.name : '';
+  document.getElementById('trip-place-arrive').value = place ? (place.arriveDate||'') : '';
+  document.getElementById('trip-place-depart').value = place ? (place.departDate||'') : '';
+  document.getElementById('trip-place-notes').value = place ? (place.notes||'') : '';
+  document.getElementById('trip-place-delete-btn').style.display = place ? '' : 'none';
+  openModal('trip-place-modal', id);
+}
+
+function savePlace() {
+  const trip = getActiveTripLog(); if (!trip) return;
+  const name = document.getElementById('trip-place-name').value.trim();
+  if (!name) { alert('Enter a place name.'); return; }
+  if (!trip.places) trip.places = [];
+  const id = document.getElementById('trip-place-edit-id').value || uid();
+  const existing = trip.places.findIndex(p=>p.id===id);
+  const place = {
+    id, name,
+    arriveDate: document.getElementById('trip-place-arrive').value,
+    departDate: document.getElementById('trip-place-depart').value,
+    notes: document.getElementById('trip-place-notes').value
+  };
+  if (existing>=0) trip.places[existing]=place; else trip.places.push(place);
+  save(); closeModal('trip-place-modal'); renderTripView(); renderTrips();
+}
+
+function deletePlace(id) {
+  const trip = getActiveTripLog(); if (!trip) return;
+  const targetId = id || document.getElementById('trip-place-edit-id').value;
+  if (!targetId) return;
+  if (!confirm('Remove this place from the trip?')) return;
+  trip.places = (trip.places||[]).filter(p=>p.id!==targetId);
+  save(); closeModal('trip-place-modal'); renderTripView(); renderTrips();
+}
+
+function movePlace(idx, dir) {
+  const trip = getActiveTripLog(); if (!trip) return;
+  const j = idx + dir;
+  if (j<0 || j>=trip.places.length) return;
+  [trip.places[idx], trip.places[j]] = [trip.places[j], trip.places[idx]];
+  save(); renderTripView();
+}
+
+function deleteCurrentTripLog() {
+  if (!confirm('Delete this trip and all its places?')) return;
+  DB.trips = (DB.trips||[]).filter(t=>t.id!==_activeTripId);
+  save(); closeTripView();
 }
 
 // ============================================================
