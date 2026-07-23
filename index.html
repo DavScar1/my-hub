@@ -759,6 +759,7 @@ a:hover{text-decoration:underline;}
     <div class="nav-section">Application</div>
     <button class="nav-item" onclick="showPage('c-commonapp')"><span class="icon">📋</span>Common App</button>
     <button class="nav-item" onclick="showPage('c-activities')"><span class="icon">🏆</span>Extracurriculars</button>
+    <button class="nav-item" onclick="showPage('c-honours')"><span class="icon">🏅</span>Honours</button>
     <button class="nav-item" onclick="showPage('c-essays')"><span class="icon">📝</span>Essays</button>
     <button class="nav-item" onclick="showPage('c-recs')"><span class="icon">✉️</span>Letters of Rec</button>
 
@@ -1232,6 +1233,13 @@ a:hover{text-decoration:underline;}
       <button class="btn btn-primary" onclick="openModal('ec-modal')">+ Add Activity</button>
     </div>
     <div id="activities-list"><div class="empty-state card"><div class="ei">🏆</div><p>Add your extracurricular activities, clubs, sports, jobs, and other pursuits.</p></div></div>
+  </div>
+
+  <!-- Honours -->
+  <div class="page" id="page-c-honours">
+    <div class="page-header"><h2>Honours & Awards</h2><p>Track academic honours, awards, and distinctions to list on your applications.</p></div>
+    <div class="section-header"><h3></h3><button class="btn btn-primary" onclick="openModal('honour-modal')">+ Add Honour</button></div>
+    <div id="honours-list"><div class="empty-state card"><div class="ei">🏅</div><p>Add academic honours, awards, and distinctions.</p></div></div>
   </div>
 
   <!-- EC Plans -->
@@ -2340,6 +2348,25 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Honour modal -->
+<div class="modal-overlay" id="honour-modal">
+  <div class="modal">
+    <h3 id="honour-modal-title">Add Honour</h3>
+    <input type="hidden" id="honour-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Title *</label><input type="text" id="honour-title" placeholder="National Merit Scholar…"></div>
+      <div class="form-group"><label>Level</label><select id="honour-level"><option>School</option><option>Regional</option><option>State</option><option>National</option><option>International</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Issuing Organization</label><input type="text" id="honour-org" placeholder="College Board, School, etc."></div>
+      <div class="form-group"><label>Date Received</label><input type="date" id="honour-date"></div>
+    </div>
+    <div class="form-group"><label>Grade Level(s)</label><input type="text" id="honour-grade" placeholder="9, 10, 11, 12"></div>
+    <div class="form-group"><label>Description</label><textarea id="honour-desc" placeholder="Brief description for your application…"></textarea></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('honour-modal')">Cancel</button><button class="btn btn-primary" onclick="saveHonour()">Save</button></div>
+  </div>
+</div>
+
 <!-- Essay modal -->
 <div class="modal-overlay" id="essay-modal">
   <div class="modal">
@@ -2943,7 +2970,7 @@ function dateStr(d) {
 // ============================================================
 const DB = {
   // College
-  colleges: [], subjects: null, sat: [], activities: [], essays: [],
+  colleges: [], subjects: null, sat: [], activities: [], honours: [], essays: [],
   recs: [], deadlines: [], checklist: {}, satGoal: {}, collegeNotes: '', planner: [],
   // Life
   routines: { morning:[], evening:[], gym:[], weekly:[] },
@@ -2986,6 +3013,7 @@ function ensureDBDefaults() {
   if (!DB.bizInventory) DB.bizInventory = [];
   if (!DB.bizOrders) DB.bizOrders = [];
   if (!DB.bizCalMonth) DB.bizCalMonth = today().slice(0,7);
+  if (!DB.honours) DB.honours = [];
   if (!DB.ecMetrics) DB.ecMetrics = [];
   if (!DB.ecLog) DB.ecLog = {};
   if (!DB.todoLists) DB.todoLists = [{ id:'default', name:'Tasks', color:'#4a7856' }];
@@ -3291,6 +3319,7 @@ function renderPage(id) {
   if (id === 'c-sat') renderSAT();
   if (id === 'c-sat-hub') renderSATHub();
   if (id === 'c-activities') renderActivities();
+  if (id === 'c-honours') renderHonours();
   if (id === 'c-essays') renderEssays();
   if (id === 'c-planner') renderPlanner();
   if (id === 'c-recs') renderRecs();
@@ -5713,6 +5742,33 @@ function renderRecs() {
   if(DB.recs.length===0){container.innerHTML=`<div class="empty-state card"><div class="empty-icon">✉️</div><p>Add your recommenders and track where each letter is needed.</p></div>`;return;}
   const icon={'Letter Submitted':'✅','Confirmed':'🟢','Asked':'🟡','Planning to Ask':'⚪'};
   container.innerHTML=DB.recs.map(r=>`<div class="card" style="margin-bottom:12px;"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;"><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">${icon[r.status]||'⚪'}</span><strong style="font-size:15px;">${r.name}</strong><span class="badge badge-gray">${r.role}</span></div>${r.subject?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;margin-left:30px;">${r.subject}</div>`:''} ${r.schools?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px;margin-left:30px;">For: ${r.schools}</div>`:''} ${r.askedDate?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;margin-left:30px;">Asked: ${new Date(r.askedDate+'T12:00:00').toLocaleDateString()}</div>`:''} ${r.notes?`<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);padding:8px 10px;background:var(--bg);border-radius:6px;margin-left:30px;">${r.notes}</div>`:''}</div><div style="display:flex;gap:6px;flex-shrink:0;">${statusBadge(r.status)}<button class="btn btn-secondary btn-sm btn-icon" onclick="editRec('${r.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteRec('${r.id}')">🗑</button></div></div></div>`).join('');
+}
+
+// ============================================================
+// HONOURS
+// ============================================================
+function saveHonour() {
+  const title=document.getElementById('honour-title').value.trim();if(!title){alert('Please enter a title.');return;}
+  const id=document.getElementById('honour-edit-id').value||uid();const existing=DB.honours.findIndex(h=>h.id===id);
+  const honour={id,title,level:document.getElementById('honour-level').value,org:document.getElementById('honour-org').value,date:document.getElementById('honour-date').value,grade:document.getElementById('honour-grade').value,desc:document.getElementById('honour-desc').value};
+  if(existing>=0)DB.honours[existing]=honour;else DB.honours.push(honour);
+  save();closeModal('honour-modal');renderHonours();
+}
+function editHonour(id) {
+  const h=DB.honours.find(h=>h.id===id);if(!h)return;
+  document.getElementById('honour-modal-title').textContent='Edit Honour';document.getElementById('honour-edit-id').value=h.id;
+  document.getElementById('honour-title').value=h.title;document.getElementById('honour-level').value=h.level;
+  document.getElementById('honour-org').value=h.org||'';document.getElementById('honour-date').value=h.date||'';
+  document.getElementById('honour-grade').value=h.grade||'';document.getElementById('honour-desc').value=h.desc||'';
+  openModal('honour-modal',id);
+}
+function deleteHonour(id) { if(!confirm('Delete this honour?'))return; DB.honours=DB.honours.filter(h=>h.id!==id);save();renderHonours(); }
+function renderHonours() {
+  const container=document.getElementById('honours-list');
+  if(DB.honours.length===0){container.innerHTML=`<div class="empty-state card"><div class="empty-icon">🏅</div><p>Add academic honours, awards, and distinctions.</p></div>`;return;}
+  const levelColor={'International':'purple','National':'red','State':'yellow','Regional':'blue','School':'gray'};
+  const sorted=[...DB.honours].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  container.innerHTML=sorted.map(h=>`<div class="card" style="margin-bottom:12px;"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;"><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">🏅</span><strong style="font-size:15px;">${h.title}</strong><span class="badge badge-${levelColor[h.level]||'gray'}">${h.level}</span></div>${h.org?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;margin-left:26px;">${h.org}</div>`:''} ${h.grade?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px;margin-left:26px;">Grade: ${h.grade}</div>`:''} ${h.date?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;margin-left:26px;">${new Date(h.date+'T12:00:00').toLocaleDateString()}</div>`:''} ${h.desc?`<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);padding:8px 10px;background:var(--bg);border-radius:6px;margin-left:26px;">${h.desc}</div>`:''}</div><div style="display:flex;gap:6px;flex-shrink:0;"><button class="btn btn-secondary btn-sm btn-icon" onclick="editHonour('${h.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteHonour('${h.id}')">🗑</button></div></div></div>`).join('');
 }
 
 // ============================================================
