@@ -1893,6 +1893,8 @@ a:hover{text-decoration:underline;}
       <div id="pack-progress-bar" style="margin-bottom:20px;"><div class="progress-bar"><div class="progress-fill green" id="pack-progress-fill" style="width:0%"></div></div></div>
       <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
         <button class="btn btn-secondary btn-sm" onclick="openWardrobePickerModal()">👗 Add from Wardrobe</button>
+        <button class="btn btn-secondary btn-sm" onclick="openPastItemsModal()">📦 Add from Past Trips</button>
+        <button class="btn btn-secondary btn-sm" onclick="openCopyTripModal()">📋 Copy Whole Trip</button>
         <button class="btn btn-secondary btn-sm" onclick="openPackItemModal()">+ Add Item</button>
         <button class="btn btn-secondary btn-sm" onclick="resetPackTrip()">↺ Unpack All</button>
         <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="deleteCurrentTrip()">Delete Trip</button>
@@ -2210,6 +2212,32 @@ a:hover{text-decoration:underline;}
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('pack-wardrobe-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveWardrobePicks()">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add from Past Trips modal -->
+<div class="modal-overlay" id="pack-past-items-modal">
+  <div class="modal modal-lg">
+    <h3>Add from Past Trips</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Tick items you've packed on previous trips to add them here — already-added items are pre-ticked.</p>
+    <div id="pack-past-items-list" style="max-height:400px;overflow-y:auto;"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('pack-past-items-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePastItemPicks()">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- Copy Whole Trip modal -->
+<div class="modal-overlay" id="copy-trip-modal">
+  <div class="modal">
+    <h3>Copy Items From a Past Trip</h3>
+    <div class="form-group"><label>Trip</label><select id="copy-trip-select"></select></div>
+    <p style="font-size:12px;color:var(--text-muted);">Copies every item from that trip into this one (unpacked). Items already in this trip won't be duplicated.</p>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('copy-trip-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="copyItemsFromTrip()">Copy Items</button>
     </div>
   </div>
 </div>
@@ -3807,6 +3835,86 @@ function saveWardrobePicks() {
     }
   });
   save(); closeModal('pack-wardrobe-modal'); renderPackTripView();
+}
+
+function openPastItemsModal() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const otherTrips = (DB.packTrips||[]).filter(t=>t.id!==trip.id);
+  const seen = new Map();
+  otherTrips.forEach(t => {
+    (t.items||[]).forEach(i => {
+      const key = i.name.trim().toLowerCase();
+      if (key && !seen.has(key)) seen.set(key, { name: i.name, cat: i.cat || 'Misc' });
+    });
+  });
+  if (!seen.size) { alert('No items found on other trips yet.'); return; }
+  const alreadyAddedNames = new Set(trip.items.map(i=>i.name.trim().toLowerCase()));
+  const cats = ['Clothes','Toiletries','Tech','Documents','Misc'];
+  let html = '';
+  cats.forEach(cat => {
+    const items = [...seen.values()].filter(i=>i.cat===cat);
+    if (!items.length) return;
+    html += `<div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">${PACK_CAT_ICONS[cat]||'📦'} ${cat}</div>
+      ${items.map(i => `
+        <label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border-light);">
+          <input type="checkbox" value="${encodeURIComponent(i.name)}" data-cat="${i.cat}" style="width:16px;height:16px;accent-color:var(--accent);">
+          <span style="font-size:13px;">${i.name}</span>
+        </label>`).join('')}
+    </div>`;
+  });
+  document.getElementById('pack-past-items-list').innerHTML = html;
+  // Set checked+disabled via property (innerHTML attribute alone can be unreliable)
+  document.querySelectorAll('#pack-past-items-list input[type=checkbox]').forEach(cb => {
+    const name = decodeURIComponent(cb.value).trim().toLowerCase();
+    if (alreadyAddedNames.has(name)) { cb.checked = true; cb.disabled = true; }
+  });
+  openModal('pack-past-items-modal');
+}
+
+function savePastItemPicks() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const alreadyAddedNames = new Set(trip.items.map(i=>i.name.trim().toLowerCase()));
+  const checked = [...document.querySelectorAll('#pack-past-items-list input[type=checkbox]')];
+  checked.forEach(cb => {
+    if (cb.checked && !cb.disabled) {
+      const name = decodeURIComponent(cb.value);
+      const key = name.trim().toLowerCase();
+      if (!alreadyAddedNames.has(key)) {
+        trip.items.push({ id: uid(), name, cat: cb.dataset.cat || 'Misc', packed: false });
+        alreadyAddedNames.add(key);
+      }
+    }
+  });
+  save(); closeModal('pack-past-items-modal'); renderPackTripView();
+}
+
+function openCopyTripModal() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const otherTrips = (DB.packTrips||[]).filter(t=>t.id!==trip.id && (t.items||[]).length);
+  if (!otherTrips.length) { alert('No other trips with items to copy from yet.'); return; }
+  const sel = document.getElementById('copy-trip-select');
+  sel.innerHTML = otherTrips.map(t => `<option value="${t.id}">${t.name} (${t.items.length} item${t.items.length!==1?'s':''})</option>`).join('');
+  openModal('copy-trip-modal');
+}
+
+function copyItemsFromTrip() {
+  const trip = getActiveTrip(); if (!trip) return;
+  const sourceId = document.getElementById('copy-trip-select').value;
+  const source = (DB.packTrips||[]).find(t=>t.id===sourceId);
+  if (!source) return;
+  const alreadyAddedNames = new Set(trip.items.map(i=>i.name.trim().toLowerCase()));
+  let added = 0;
+  (source.items||[]).forEach(i => {
+    const key = i.name.trim().toLowerCase();
+    if (key && !alreadyAddedNames.has(key)) {
+      trip.items.push({ id: uid(), name: i.name, cat: i.cat || 'Misc', packed: false });
+      alreadyAddedNames.add(key);
+      added++;
+    }
+  });
+  save(); closeModal('copy-trip-modal'); renderPackTripView();
+  if (!added) alert('All items from that trip are already in this one.');
 }
 
 // ============================================================
