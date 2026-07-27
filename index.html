@@ -1012,13 +1012,23 @@ a:hover{text-decoration:underline;}
     <div class="card" style="margin-bottom:20px;">
       <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
         <div><label style="display:block;margin-bottom:4px;">Test Date</label><input type="date" id="sat-plan-test-date" style="width:160px;" oninput="saveSATPlanField('testDate', this.value)"></div>
-        <div><label style="display:block;margin-bottom:4px;">Plan Start Date</label><input type="date" id="sat-plan-start-date" style="width:160px;" oninput="saveSATPlanField('startDate', this.value)"></div>
         <div id="sat-plan-countdown" style="font-size:13px;font-weight:700;color:var(--c-accent);padding-bottom:9px;"></div>
       </div>
-      <div id="sat-plan-generate-row" style="margin-top:14px;"></div>
     </div>
 
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Weekly Plan</h4><button class="btn btn-secondary btn-sm" onclick="addSATWeek()">+ Add Week</button></div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+      <div id="sat-plan-tabs" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addSATPlanTab()">+ New Plan</button>
+    </div>
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+        <div><label style="display:block;margin-bottom:4px;">Start Date</label><input type="date" id="sat-plan-start-date" style="width:160px;" oninput="saveSATPlanTabField('startDate', this.value)"></div>
+        <button class="btn btn-secondary btn-sm" onclick="renameSATPlanTab()">✏️ Rename Plan</button>
+        <button class="btn btn-danger btn-sm" id="sat-plan-tab-delete-btn" onclick="deleteSATPlanTab()">🗑 Delete Plan</button>
+      </div>
+      <div id="sat-plan-generate-row" style="margin-top:14px;"></div>
+    </div>
     <div id="sat-plan-weeks" style="margin-bottom:28px;"></div>
 
     <div class="section-header" style="margin-bottom:8px;"><h4 style="margin:0;font-size:14px;color:var(--text-secondary);">Notes</h4><button class="btn btn-secondary btn-sm" onclick="addSATNote()">+ New Note</button></div>
@@ -3130,10 +3140,18 @@ function ensureDBDefaults() {
     commonEssayStatus:'not_started', commonEssayPrompt:'', commonEssayNotes:''
   };
   if (!DB.caSchools) DB.caSchools = [];
-  if (!DB.satPlan) DB.satPlan = { testDate:'', startDate:'', weeks:[], notesPages:[] };
-  if (DB.satPlan.weeks === undefined) DB.satPlan.weeks = [];
+  if (!DB.satPlan) DB.satPlan = { testDate:'', notesPages:[], plans:[] };
   if (DB.satPlan.notesPages === undefined) DB.satPlan.notesPages = [];
-  if (DB.satPlan.startDate === undefined) DB.satPlan.startDate = '';
+  if (DB.satPlan.testDate === undefined) DB.satPlan.testDate = '';
+  if (!DB.satPlan.plans) {
+    // Migrate legacy single-plan fields (startDate/weeks) into the first tab
+    DB.satPlan.plans = [{ id: uid(), name: 'Plan 1', startDate: DB.satPlan.startDate || '', weeks: DB.satPlan.weeks || [] }];
+    delete DB.satPlan.startDate;
+    delete DB.satPlan.weeks;
+  }
+  if (!DB.satPlan.activePlanId || !DB.satPlan.plans.find(p => p.id === DB.satPlan.activePlanId)) {
+    DB.satPlan.activePlanId = DB.satPlan.plans[0].id;
+  }
   if (!DB.satHub) DB.satHub = { ratings:{}, diagnostic:null, studyLog:[], qbLog:[] };
   if (DB.satHub.ratings === undefined) DB.satHub.ratings = {};
   if (DB.satHub.diagnostic === undefined) DB.satHub.diagnostic = null;
@@ -4752,6 +4770,44 @@ function saveSATPlanField(field, value) {
   save();
   if (field === 'testDate') renderSATPlanCountdown();
 }
+function getActiveSATPlan() {
+  if (!DB.satPlan.plans.length) return null;
+  let p = DB.satPlan.plans.find(p => p.id === DB.satPlan.activePlanId);
+  if (!p) { p = DB.satPlan.plans[0]; DB.satPlan.activePlanId = p.id; }
+  return p;
+}
+function addSATPlanTab() {
+  const name = prompt('Name this plan (e.g. "Relaxed Pace", "Crunch Plan"):', `Plan ${DB.satPlan.plans.length+1}`);
+  if (name === null) return;
+  const plan = { id: uid(), name: name.trim() || `Plan ${DB.satPlan.plans.length+1}`, startDate:'', weeks:[] };
+  DB.satPlan.plans.push(plan);
+  DB.satPlan.activePlanId = plan.id;
+  save(); renderSATPlan();
+}
+function switchSATPlanTab(id) {
+  DB.satPlan.activePlanId = id;
+  save(); renderSATPlan();
+}
+function renameSATPlanTab() {
+  const p = getActiveSATPlan(); if (!p) return;
+  const name = prompt('Rename this plan:', p.name);
+  if (name === null) return;
+  p.name = name.trim() || p.name;
+  save(); renderSATPlan();
+}
+function deleteSATPlanTab() {
+  if (DB.satPlan.plans.length <= 1) { alert("You need at least one plan — can't delete the last one."); return; }
+  const p = getActiveSATPlan(); if (!p) return;
+  if (!confirm(`Delete "${p.name}" and everything in it?`)) return;
+  DB.satPlan.plans = DB.satPlan.plans.filter(x => x.id !== p.id);
+  DB.satPlan.activePlanId = DB.satPlan.plans[0].id;
+  save(); renderSATPlan();
+}
+function saveSATPlanTabField(field, value) {
+  const p = getActiveSATPlan(); if (!p) return;
+  p[field] = value;
+  save();
+}
 function renderSATPlanCountdown() {
   const el = document.getElementById('sat-plan-countdown');
   if (!el) return;
@@ -4781,24 +4837,28 @@ function _satWeekDates(startDate, weekIndex) {
   return days;
 }
 function generateSATWeeks(count) {
-  if (!DB.satPlan.startDate) { alert('Please set a Plan Start Date first.'); return; }
+  const p = getActiveSATPlan(); if (!p) return;
+  if (!p.startDate) { alert('Please set a Start Date first.'); return; }
   for (let w = 0; w < count; w++) {
-    const dates = _satWeekDates(DB.satPlan.startDate, DB.satPlan.weeks.length);
-    DB.satPlan.weeks.push({ id: uid(), days: dates.map(d => ({ date: d, text: '' })) });
+    const dates = _satWeekDates(p.startDate, p.weeks.length);
+    p.weeks.push({ id: uid(), days: dates.map(d => ({ date: d, text: '' })) });
   }
   save(); renderSATPlan();
 }
 function addSATWeek() {
-  if (!DB.satPlan.startDate) { alert('Please set a Plan Start Date first.'); return; }
+  const p = getActiveSATPlan(); if (!p) return;
+  if (!p.startDate) { alert('Please set a Start Date first.'); return; }
   generateSATWeeks(1);
 }
 function deleteSATWeek(weekId) {
+  const p = getActiveSATPlan(); if (!p) return;
   if (!confirm('Delete this week and everything written in it?')) return;
-  DB.satPlan.weeks = DB.satPlan.weeks.filter(w => w.id !== weekId);
+  p.weeks = p.weeks.filter(w => w.id !== weekId);
   save(); renderSATPlan();
 }
 function saveSATDayText(weekId, dayIndex, value) {
-  const w = DB.satPlan.weeks.find(w => w.id === weekId); if (!w) return;
+  const p = getActiveSATPlan(); if (!p) return;
+  const w = p.weeks.find(w => w.id === weekId); if (!w) return;
   w.days[dayIndex].text = value;
   save();
 }
@@ -4832,14 +4892,25 @@ function renderSATPlan() {
   if (!DB.satPlan) return;
   const dateEl = document.getElementById('sat-plan-test-date');
   if (dateEl) dateEl.value = DB.satPlan.testDate || '';
-  const startEl = document.getElementById('sat-plan-start-date');
-  if (startEl) startEl.value = DB.satPlan.startDate || '';
   renderSATPlanCountdown();
+
+  const p = getActiveSATPlan();
+
+  // Plan tabs
+  const tabsEl = document.getElementById('sat-plan-tabs');
+  if (tabsEl) {
+    tabsEl.innerHTML = DB.satPlan.plans.map(pl => `<button class="btn btn-sm ${p && pl.id===p.id?'btn-primary':'btn-secondary'}" onclick="switchSATPlanTab('${pl.id}')">${pl.name}</button>`).join('');
+  }
+
+  const startEl = document.getElementById('sat-plan-start-date');
+  if (startEl) startEl.value = p ? (p.startDate || '') : '';
+  const delBtn = document.getElementById('sat-plan-tab-delete-btn');
+  if (delBtn) delBtn.style.display = DB.satPlan.plans.length > 1 ? '' : 'none';
 
   // First-time generate row
   const genEl = document.getElementById('sat-plan-generate-row');
   if (genEl) {
-    genEl.innerHTML = !DB.satPlan.weeks.length
+    genEl.innerHTML = (p && !p.weeks.length)
       ? `<button class="btn btn-primary" onclick="generateSATWeeks(7)">Generate 7-Week Plan</button>`
       : '';
   }
@@ -4847,11 +4918,11 @@ function renderSATPlan() {
   // Weeks
   const weeksEl = document.getElementById('sat-plan-weeks');
   if (weeksEl) {
-    if (!DB.satPlan.weeks.length) {
+    if (!p || !p.weeks.length) {
       weeksEl.innerHTML = `<div class="empty-state card" style="padding:24px;"><p>No weeks yet — set a start date above and generate a 7-week plan, or add weeks one at a time.</p></div>`;
     } else {
       const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      weeksEl.innerHTML = DB.satPlan.weeks.map((w, wi) => {
+      weeksEl.innerHTML = p.weeks.map((w, wi) => {
         const rangeLbl = w.days.length
           ? new Date(w.days[0]+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'}) + ' – ' + new Date(w.days[6]+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})
           : '';
