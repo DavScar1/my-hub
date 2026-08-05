@@ -1497,6 +1497,35 @@ a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <!-- Add/Edit Supplemental Essay Prompt Modal -->
+  <div class="modal-overlay" id="ca-essay-modal">
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title" id="ca-essay-modal-title">Add Essay Prompt</div>
+        <button class="modal-close" onclick="closeModal('ca-essay-modal')">×</button>
+      </div>
+      <input type="hidden" id="ca-essay-school-id">
+      <input type="hidden" id="ca-essay-edit-id">
+      <div class="form-group">
+        <label>Prompt Title</label>
+        <input type="text" id="ca-essay-title" placeholder="e.g. Why This College">
+      </div>
+      <div class="form-group">
+        <label>Word Limit</label>
+        <input type="number" id="ca-essay-wordlimit" placeholder="e.g. 250">
+      </div>
+      <div class="form-group">
+        <label>Prompt Text</label>
+        <textarea id="ca-essay-prompt" rows="4" placeholder="Paste the essay prompt here…"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="saveCaEssay()">Save Prompt</button>
+        <button class="btn btn-secondary" onclick="closeModal('ca-essay-modal')">Cancel</button>
+        <button class="btn btn-danger" id="ca-essay-delete-btn" style="display:none;" onclick="deleteCaEssay()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ======================================================
        LIFE PAGES
   ====================================================== -->
@@ -9850,17 +9879,21 @@ function renderCommonApp() {
           </div>
         </div>
         <div class="ca-school-body">
-          ${school.essays.length > 0 ? `
-            <div class="ca-school-section">Supplement Essays (${school.essays.filter(e=>e.status==='done').length}/${school.essays.length} done)</div>
-            ${school.essays.map(e => `<div class="ca-essay-row">
+          <div class="ca-school-section" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span>Supplement Essays (${school.essays.filter(e=>e.status==='done').length}/${school.essays.length} done)</span>
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaEssayModal('${school.id}')">+ Add Prompt</button>
+          </div>
+          ${school.essays.length === 0 ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0 8px;">No supplemental prompts added yet.</div>` : ''}
+          ${school.essays.map(e => `<div class="ca-essay-row">
               <div class="ca-essay-title">
                 ${e.status==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
                 ${e.title}
                 ${e.wordLimit?`<span style="font-size:10px;color:var(--text-muted);font-weight:400;">${e.wordLimit}w</span>`:''}
+                <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="event.stopPropagation();openCaEssayModal('${school.id}','${e.id}')">✏️</button>
               </div>
               ${e.prompt?`<div class="ca-essay-prompt">"${e.prompt}"</div>`:''}
               ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
-            </div>`).join('')}` : ''}
+            </div>`).join('')}
 
           <div class="ca-school-section">Requirements Checklist (${school.requirements.filter(r=>r.done).length}/${school.requirements.length} done)</div>
           ${school.requirements.map(r => `<div class="ca-req-row">
@@ -9970,6 +10003,49 @@ function deleteCaSchool() {
   if (!editId || !confirm('Remove this school?')) return;
   DB.caSchools = DB.caSchools.filter(s => s.id !== editId);
   save(); closeModal('ca-school-modal'); renderCommonApp();
+}
+
+function openCaEssayModal(schoolId, essayId) {
+  const school = DB.caSchools.find(s => s.id === schoolId);
+  if (!school) return;
+  const essay = essayId ? school.essays.find(e => e.id === essayId) : null;
+  document.getElementById('ca-essay-school-id').value = schoolId;
+  document.getElementById('ca-essay-edit-id').value = essayId || '';
+  document.getElementById('ca-essay-modal-title').textContent = essayId ? 'Edit Essay Prompt' : 'Add Essay Prompt';
+  document.getElementById('ca-essay-delete-btn').style.display = essayId ? '' : 'none';
+  document.getElementById('ca-essay-title').value = essay ? essay.title : '';
+  document.getElementById('ca-essay-wordlimit').value = essay ? (essay.wordLimit || '') : '';
+  document.getElementById('ca-essay-prompt').value = essay ? (essay.prompt || '') : '';
+  openModal('ca-essay-modal', essayId || null);
+}
+
+function saveCaEssay() {
+  const schoolId = document.getElementById('ca-essay-school-id').value;
+  const school = DB.caSchools.find(s => s.id === schoolId);
+  if (!school) return;
+  const title = document.getElementById('ca-essay-title').value.trim();
+  if (!title) { alert('Please enter a prompt title.'); return; }
+  const wordLimit = parseInt(document.getElementById('ca-essay-wordlimit').value) || 0;
+  const promptText = document.getElementById('ca-essay-prompt').value.trim();
+  const editId = document.getElementById('ca-essay-edit-id').value;
+  if (editId) {
+    const e = school.essays.find(x => x.id === editId);
+    if (!e) return;
+    e.title = title; e.wordLimit = wordLimit; e.prompt = promptText;
+  } else {
+    school.essays.push({ id: uid(), title, wordLimit, prompt: promptText, status: 'not_started' });
+  }
+  save(); closeModal('ca-essay-modal'); renderCommonApp();
+}
+
+function deleteCaEssay() {
+  const schoolId = document.getElementById('ca-essay-school-id').value;
+  const editId = document.getElementById('ca-essay-edit-id').value;
+  if (!editId || !confirm('Delete this essay prompt?')) return;
+  const school = DB.caSchools.find(s => s.id === schoolId);
+  if (!school) return;
+  school.essays = school.essays.filter(e => e.id !== editId);
+  save(); closeModal('ca-essay-modal'); renderCommonApp();
 }
 
 // ============================================================
