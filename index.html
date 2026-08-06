@@ -10009,6 +10009,7 @@ function openCaEssayModal(schoolId, essayId) {
   const school = DB.caSchools.find(s => s.id === schoolId);
   if (!school) return;
   const essay = essayId ? school.essays.find(e => e.id === essayId) : null;
+  openModal('ca-essay-modal', essayId || null);
   document.getElementById('ca-essay-school-id').value = schoolId;
   document.getElementById('ca-essay-edit-id').value = essayId || '';
   document.getElementById('ca-essay-modal-title').textContent = essayId ? 'Edit Essay Prompt' : 'Add Essay Prompt';
@@ -10016,7 +10017,6 @@ function openCaEssayModal(schoolId, essayId) {
   document.getElementById('ca-essay-title').value = essay ? essay.title : '';
   document.getElementById('ca-essay-wordlimit').value = essay ? (essay.wordLimit || '') : '';
   document.getElementById('ca-essay-prompt').value = essay ? (essay.prompt || '') : '';
-  openModal('ca-essay-modal', essayId || null);
 }
 
 function saveCaEssay() {
