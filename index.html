@@ -3172,7 +3172,7 @@ function ensureDBDefaults() {
   if (!DB.satPlan) DB.satPlan = { testDate:'', notesPages:[], plans:[] };
   if (DB.satPlan.notesPages === undefined) DB.satPlan.notesPages = [];
   if (DB.satPlan.testDate === undefined) DB.satPlan.testDate = '';
-  if (!DB.satPlan.plans) {
+  if (!DB.satPlan.plans || !DB.satPlan.plans.length) {
     // Migrate legacy single-plan fields (startDate/weeks) into the first tab
     DB.satPlan.plans = [{ id: uid(), name: 'Plan 1', startDate: DB.satPlan.startDate || '', weeks: DB.satPlan.weeks || [] }];
     delete DB.satPlan.startDate;
