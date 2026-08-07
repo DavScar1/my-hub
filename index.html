@@ -9668,6 +9668,11 @@ function _caSchoolCompletion(school) {
 let _caTab = 'profile';
 function setCaTab(tab) { _caTab = tab; renderCommonApp(); }
 
+let _caSchoolOpen = {};
+function toggleCaSchoolCard(id) { _caSchoolOpen[id] = !_caSchoolOpen[id]; renderCommonApp(); }
+function expandAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = true); renderCommonApp(); }
+function collapseAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = false); renderCommonApp(); }
+
 function renderCommonApp() {
   const p = DB.caProfile;
 
@@ -9854,20 +9859,30 @@ function renderCommonApp() {
       <div class="ei">🏫</div><p>No schools added yet.<br><span style="font-size:12px;color:var(--text-muted);">Add Stanford and your other target schools to track their specific essays and requirements.</span></p>
     </div>`;
   } else {
-    schoolsEl.innerHTML = DB.caSchools.map(school => {
+    const anyOpen = DB.caSchools.some(s => _caSchoolOpen[s.id]);
+    schoolsEl.innerHTML = `<div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;">
+        <button class="btn-ghost" style="font-size:12px;" onclick="${anyOpen?'collapseAllCaSchools()':'expandAllCaSchools()'}">${anyOpen?'Collapse all':'Expand all'}</button>
+      </div>` + DB.caSchools.map(school => {
       const pct = _caSchoolCompletion(school);
       const pillCls = 'ca-pill-'+school.dtype.toLowerCase().replace(/\d/g,'');
       const deadlineLbl = school.deadline ? new Date(school.deadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : '—';
       const daysLeft = school.deadline ? Math.ceil((new Date(school.deadline+'T12:00:00')-new Date())/86400000) : null;
       const urgency  = daysLeft !== null ? (daysLeft < 30 ? 'var(--red)' : daysLeft < 90 ? 'var(--amber)' : 'var(--text-muted)') : 'var(--text-muted)';
+      const isOpen = !!_caSchoolOpen[school.id];
+      const essaysDone = school.essays.filter(e=>e.status==='done').length;
+      const reqsDone = school.requirements.filter(r=>r.done).length;
       return `<div class="ca-school-card">
-        <div class="ca-school-head">
+        <div class="ca-school-head" style="cursor:pointer;" onclick="toggleCaSchoolCard('${school.id}')">
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:800;font-size:14px;">${school.name}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <span style="font-size:11px;color:var(--text-muted);transition:transform .15s;display:inline-block;transform:rotate(${isOpen?90:0}deg);">▶</span>
+              <span style="font-weight:800;font-size:14px;">${school.name}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;margin-left:18px;">
               <span class="ca-pill ${pillCls}">${school.dtype}</span>
               &nbsp;${deadlineLbl}
               ${daysLeft!==null?`<span style="color:${urgency};font-weight:700;margin-left:6px;">${daysLeft>0?daysLeft+'d left':'Passed'}</span>`:''}
+              ${!isOpen?`<span style="margin-left:6px;">· ${essaysDone}/${school.essays.length} essays · ${reqsDone}/${school.requirements.length} reqs</span>`:''}
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
@@ -9875,12 +9890,12 @@ function renderCommonApp() {
               <div style="font-size:14px;font-weight:800;color:${pct===100?'var(--green)':pct>0?'var(--c-accent)':'var(--text-muted)'};">${pct}%</div>
               <div class="ca-school-progress"><div class="ca-school-progress-fill" style="width:${pct}%"></div></div>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="openCaSchoolModal('${school.id}')">Edit</button>
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaSchoolModal('${school.id}')">Edit</button>
           </div>
         </div>
-        <div class="ca-school-body">
+        <div class="ca-school-body" style="display:${isOpen?'block':'none'};">
           <div class="ca-school-section" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span>Supplement Essays (${school.essays.filter(e=>e.status==='done').length}/${school.essays.length} done)</span>
+            <span>Supplement Essays (${essaysDone}/${school.essays.length} done)</span>
             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaEssayModal('${school.id}')">+ Add Prompt</button>
           </div>
           ${school.essays.length === 0 ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0 8px;">No supplemental prompts added yet.</div>` : ''}
@@ -9895,7 +9910,7 @@ function renderCommonApp() {
               ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
             </div>`).join('')}
 
-          <div class="ca-school-section">Requirements Checklist (${school.requirements.filter(r=>r.done).length}/${school.requirements.length} done)</div>
+          <div class="ca-school-section">Requirements Checklist (${reqsDone}/${school.requirements.length} done)</div>
           ${school.requirements.map(r => `<div class="ca-req-row">
             <input type="checkbox" ${r.done?'checked':''} onchange="toggleCaReq('${school.id}','${r.id}')">
             <span style="font-size:12px;${r.done?'text-decoration:line-through;color:var(--text-muted);':''}">${r.name}</span>
@@ -9993,7 +10008,9 @@ function saveCaSchool() {
       {id:uid(),name:'Application Fee',done:false},
       {id:uid(),name:'Official Transcript',done:false},
     ];
-    DB.caSchools.push({ id: uid(), name, deadline, dtype, satCode, fee, notes, essays, requirements });
+    const newId = uid();
+    DB.caSchools.push({ id: newId, name, deadline, dtype, satCode, fee, notes, essays, requirements });
+    _caSchoolOpen[newId] = true;
   }
   save(); closeModal('ca-school-modal'); renderCommonApp();
 }
