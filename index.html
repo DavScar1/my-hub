@@ -684,6 +684,10 @@ a:hover{text-decoration:underline;}
 .tl-year-dot{position:absolute;left:-32px;width:20px;height:20px;border-radius:50%;background:var(--text);border:3px solid var(--bg);}
 .tl-year-label{font-size:19px;font-weight:800;letter-spacing:-.3px;}
 
+.tl-month{position:relative;display:flex;align-items:center;margin:18px 0 12px;}
+.tl-month-dot{position:absolute;left:-30px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:2.5px solid var(--text-muted);}
+.tl-month-label{font-size:12.5px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;}
+
 .tl-today{position:relative;display:flex;align-items:center;gap:10px;margin:22px 0;}
 .tl-today-dot{position:absolute;left:-27px;width:12px;height:12px;border-radius:50%;background:var(--c-accent);box-shadow:0 0 0 4px var(--c-accent-light);}
 .tl-today-label{font-size:10.5px;font-weight:800;color:var(--c-accent);text-transform:uppercase;letter-spacing:.06em;background:var(--c-accent-light);padding:3px 10px;border-radius:999px;flex-shrink:0;}
@@ -7288,18 +7292,27 @@ function renderTimeline() {
 
   let html = `<div class="tl-wrap"><div class="tl-line"></div>`;
   let lastYear = null;
+  let lastMonth = null;
   let todayPlaced = false;
 
   sorted.forEach(ev => {
     const y = ev.date.slice(0, 4);
+    const ym = ev.date.slice(0, 7);
     if (!todayPlaced && ev.date >= todayStr) {
       html += `<div class="tl-today" id="tl-today-marker"><div class="tl-today-dot"></div><span class="tl-today-label">Today · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><div class="tl-today-rule"></div></div>`;
       todayPlaced = true;
       lastYear = null;
+      lastMonth = null;
     }
     if (y !== lastYear) {
       html += `<div class="tl-year"><div class="tl-year-dot"></div><div class="tl-year-label">${y}</div></div>`;
       lastYear = y;
+      lastMonth = null;
+    }
+    if (ym !== lastMonth) {
+      const monthLabel = new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long' });
+      html += `<div class="tl-month"><div class="tl-month-dot"></div><div class="tl-month-label">${monthLabel}</div></div>`;
+      lastMonth = ym;
     }
     const cat = TIMELINE_CATEGORIES[ev.category] || TIMELINE_CATEGORIES.milestone;
     html += `<div class="tl-event">
