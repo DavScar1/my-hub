@@ -664,6 +664,52 @@ a:hover{text-decoration:underline;}
 }
 
 /* ============================================================
+   TIMELINE
+============================================================ */
+.tl-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;}
+.tl-filter-chip{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;
+  font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--text-secondary);transition:all .15s;font-family:inherit;
+}
+.tl-filter-chip:hover{border-color:var(--text-muted);}
+.tl-filter-chip.active{border-color:transparent;color:#fff;}
+.tl-chip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+.tl-wrap{position:relative;padding-left:32px;}
+.tl-line{position:absolute;left:9px;top:2px;bottom:2px;width:2px;background:var(--border);}
+
+.tl-year{position:relative;display:flex;align-items:center;margin:30px 0 16px;}
+.tl-year:first-child{margin-top:2px;}
+.tl-year-dot{position:absolute;left:-32px;width:20px;height:20px;border-radius:50%;background:var(--text);border:3px solid var(--bg);}
+.tl-year-label{font-size:19px;font-weight:800;letter-spacing:-.3px;}
+
+.tl-today{position:relative;display:flex;align-items:center;gap:10px;margin:22px 0;}
+.tl-today-dot{position:absolute;left:-27px;width:12px;height:12px;border-radius:50%;background:var(--c-accent);box-shadow:0 0 0 4px var(--c-accent-light);}
+.tl-today-label{font-size:10.5px;font-weight:800;color:var(--c-accent);text-transform:uppercase;letter-spacing:.06em;background:var(--c-accent-light);padding:3px 10px;border-radius:999px;flex-shrink:0;}
+.tl-today-rule{flex:1;height:0;border-top:1.5px dashed var(--c-accent);opacity:.4;}
+
+.tl-event{position:relative;padding-bottom:20px;}
+.tl-event:last-child{padding-bottom:0;}
+.tl-dot{position:absolute;left:-26.5px;top:17px;width:11px;height:11px;border-radius:50%;border:2.5px solid var(--surface);box-shadow:0 0 0 1.5px var(--border);}
+.tl-card{
+  background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);
+  padding:13px 16px;box-shadow:var(--shadow);transition:box-shadow .15s;
+}
+.tl-card:hover{box-shadow:var(--shadow-md);}
+.tl-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.tl-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.01em;}
+.tl-title{font-size:15px;font-weight:800;margin-top:7px;line-height:1.3;}
+.tl-date{font-size:11.5px;color:var(--text-muted);font-weight:600;margin-top:3px;}
+.tl-desc{font-size:13px;color:var(--text-secondary);margin-top:9px;line-height:1.6;white-space:pre-wrap;}
+.tl-actions{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity .15s;}
+.tl-card:hover .tl-actions{opacity:1;}
+
+@media(max-width:600px){
+  .tl-actions{opacity:1;}
+}
+
+/* ============================================================
    MOBILE SIDEBAR (hamburger drawer)
 ============================================================ */
 .sidebar-toggle{
@@ -776,6 +822,7 @@ a:hover{text-decoration:underline;}
     <button class="nav-item" onclick="showPage('l-today')"><span class="icon">🏠</span>Today</button>
     <button class="nav-item" onclick="showPage('l-todo')"><span class="icon">✅</span>To Do</button>
     <button class="nav-item" onclick="showPage('l-goals')"><span class="icon">🎯</span>Goals</button>
+    <button class="nav-item" onclick="showPage('l-timeline')"><span class="icon">🕐</span>Timeline</button>
 
     <div class="nav-section">Routines</div>
     <button class="nav-item" onclick="showPage('l-morning')"><span class="icon">🌅</span>Morning</button>
@@ -1589,6 +1636,19 @@ a:hover{text-decoration:underline;}
       </div>
     </div>
     <div id="goals-list"></div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="page" id="page-l-timeline">
+    <div class="page-header">
+      <div><h2>🕐 Timeline</h2><p>Your milestones and events, laid out chronologically.</p></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="jumpToTimelineToday()">📍 Jump to Today</button>
+        <button class="btn btn-primary" onclick="openTimelineEventModal()">+ Add Event</button>
+      </div>
+    </div>
+    <div class="tl-filters" id="tl-filters"></div>
+    <div id="tl-container"></div>
   </div>
 
   <!-- Morning -->
@@ -2881,6 +2941,36 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Timeline event modal -->
+<div class="modal-overlay" id="timeline-event-modal">
+  <div class="modal">
+    <h3 id="tl-modal-title">Add Event</h3>
+    <input type="hidden" id="tl-edit-id">
+    <div class="form-group"><label>Title *</label><input type="text" id="tl-title" placeholder="e.g. Started my internship"></div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="tl-category">
+        <option value="milestone">🎉 Milestone</option>
+        <option value="achievement">🏆 Achievement</option>
+        <option value="travel">✈️ Travel</option>
+        <option value="education">🎓 Education</option>
+        <option value="career">💼 Career</option>
+        <option value="personal">❤️ Personal</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Date *</label><input type="date" id="tl-date"></div>
+      <div class="form-group"><label>End Date <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="date" id="tl-end-date"></div>
+    </div>
+    <div class="form-group"><label>Description</label><textarea id="tl-desc" placeholder="What happened? Any details worth remembering…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="tl-delete-btn" style="display:none;margin-right:auto;" onclick="deleteTimelineEvent()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('timeline-event-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTimelineEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Todo list modal -->
 <div class="modal-overlay" id="todo-list-modal">
   <div class="modal">
@@ -3139,6 +3229,7 @@ function ensureDBDefaults() {
   if (!DB.weeklyReviewDrafts) DB.weeklyReviewDrafts = {};
   if (!DB.goalCategories) DB.goalCategories = [];
   if (!DB.goals) DB.goals = [];
+  if (!DB.timelineEvents) DB.timelineEvents = [];
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -3474,6 +3565,7 @@ function renderPage(id) {
   if (id === 'l-today') renderToday();
   if (id === 'l-todo') renderTodo();
   if (id === 'l-goals') renderGoals();
+  if (id === 'l-timeline') renderTimeline();
   if (id === 'l-morning') renderRoutinePage('morning');
   if (id === 'l-evening') renderRoutinePage('evening');
   if (id === 'l-gym') renderGymPage();
@@ -7080,6 +7172,161 @@ function deleteGoalCategory() {
   if (!confirm('Delete this category? Its goals will move to Uncategorized.')) return;
   DB.goalCategories = DB.goalCategories.filter(c => c.id !== editId);
   save(); closeModal('goal-category-modal'); renderGoals();
+}
+
+// ============================================================
+// TIMELINE
+// ============================================================
+const TIMELINE_CATEGORIES = {
+  milestone:   { label:'Milestone',   icon:'🎉', color:'var(--l-accent)', light:'var(--l-accent-light)' },
+  achievement: { label:'Achievement', icon:'🏆', color:'var(--amber)',    light:'var(--amber-light)' },
+  travel:      { label:'Travel',      icon:'✈️', color:'var(--blue)',     light:'var(--blue-light)' },
+  education:   { label:'Education',   icon:'🎓', color:'var(--purple)',   light:'var(--purple-light)' },
+  career:      { label:'Career',      icon:'💼', color:'var(--green)',    light:'var(--green-light)' },
+  personal:    { label:'Personal',    icon:'❤️', color:'var(--red)',      light:'var(--red-light)' },
+};
+let _tlActiveFilters = null;
+
+function toggleTimelineFilter(cat) {
+  const allCats = Object.keys(TIMELINE_CATEGORIES);
+  if (!_tlActiveFilters) _tlActiveFilters = new Set(allCats);
+  if (cat === 'all') {
+    _tlActiveFilters = new Set(allCats);
+  } else {
+    if (_tlActiveFilters.has(cat)) _tlActiveFilters.delete(cat);
+    else _tlActiveFilters.add(cat);
+    if (_tlActiveFilters.size === 0) _tlActiveFilters = new Set(allCats);
+  }
+  renderTimeline();
+}
+
+function openTimelineEventModal(id) {
+  const ev = id ? DB.timelineEvents.find(e => e.id === id) : null;
+  openModal('timeline-event-modal', id || null);
+  document.getElementById('tl-edit-id').value = id || '';
+  document.getElementById('tl-modal-title').textContent = id ? 'Edit Event' : 'Add Event';
+  document.getElementById('tl-title').value = ev ? ev.title : '';
+  document.getElementById('tl-category').value = ev ? ev.category : 'milestone';
+  document.getElementById('tl-date').value = ev ? ev.date : '';
+  document.getElementById('tl-end-date').value = ev ? (ev.endDate || '') : '';
+  document.getElementById('tl-desc').value = ev ? (ev.desc || '') : '';
+  document.getElementById('tl-delete-btn').style.display = id ? '' : 'none';
+}
+
+function saveTimelineEvent() {
+  const title = document.getElementById('tl-title').value.trim();
+  if (!title) { alert('Please enter a title.'); return; }
+  const date = document.getElementById('tl-date').value;
+  if (!date) { alert('Please pick a date.'); return; }
+  if (!DB.timelineEvents) DB.timelineEvents = [];
+  const id = document.getElementById('tl-edit-id').value || uid();
+  const existing = DB.timelineEvents.findIndex(e => e.id === id);
+  const event = {
+    id, title,
+    category: document.getElementById('tl-category').value,
+    date,
+    endDate: document.getElementById('tl-end-date').value,
+    desc: document.getElementById('tl-desc').value.trim()
+  };
+  if (existing >= 0) DB.timelineEvents[existing] = event; else DB.timelineEvents.push(event);
+  save(); closeModal('timeline-event-modal'); renderTimeline();
+}
+
+function deleteTimelineEvent(id) {
+  const targetId = id || document.getElementById('tl-edit-id').value;
+  if (!targetId || !confirm('Delete this event?')) return;
+  DB.timelineEvents = DB.timelineEvents.filter(e => e.id !== targetId);
+  save(); closeModal('timeline-event-modal'); renderTimeline();
+}
+
+function jumpToTimelineToday() {
+  const el = document.getElementById('tl-today-marker');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function _tlFmtDate(d) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function _tlFmtRange(ev) {
+  if (ev.endDate && ev.endDate !== ev.date) {
+    const a = new Date(ev.date + 'T12:00:00'), b = new Date(ev.endDate + 'T12:00:00');
+    const sameYear = a.getFullYear() === b.getFullYear();
+    const aLbl = sameYear
+      ? a.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : a.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${aLbl} – ${_tlFmtDate(ev.endDate)}`;
+  }
+  return _tlFmtDate(ev.date);
+}
+
+function renderTimeline() {
+  const allCats = Object.keys(TIMELINE_CATEGORIES);
+  if (!_tlActiveFilters) _tlActiveFilters = new Set(allCats);
+
+  // Filter chips
+  const filtersEl = document.getElementById('tl-filters');
+  const allActive = _tlActiveFilters.size === allCats.length;
+  let chipsHtml = `<button class="tl-filter-chip${allActive?' active':''}" style="${allActive?'background:var(--text);':''}" onclick="toggleTimelineFilter('all')">All</button>`;
+  chipsHtml += allCats.map(cat => {
+    const c = TIMELINE_CATEGORIES[cat];
+    const active = _tlActiveFilters.has(cat);
+    return `<button class="tl-filter-chip${active?' active':''}" style="${active?`background:${c.color};`:''}" onclick="toggleTimelineFilter('${cat}')"><span class="tl-chip-dot" style="background:${active?'#fff':c.color};"></span>${c.icon} ${c.label}</button>`;
+  }).join('');
+  filtersEl.innerHTML = chipsHtml;
+
+  const container = document.getElementById('tl-container');
+  const allEvents = DB.timelineEvents || [];
+  const events = allEvents.filter(e => _tlActiveFilters.has(e.category));
+
+  if (!events.length) {
+    container.innerHTML = `<div class="empty-state card" style="text-align:center;padding:40px 20px;"><div class="ei">🕐</div><p>${allEvents.length ? 'No events match the selected filters.' : 'No events yet — add your first milestone to start your timeline.'}</p></div>`;
+    return;
+  }
+
+  const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
+  const todayStr = today();
+
+  let html = `<div class="tl-wrap"><div class="tl-line"></div>`;
+  let lastYear = null;
+  let todayPlaced = false;
+
+  sorted.forEach(ev => {
+    const y = ev.date.slice(0, 4);
+    if (!todayPlaced && ev.date >= todayStr) {
+      html += `<div class="tl-today" id="tl-today-marker"><div class="tl-today-dot"></div><span class="tl-today-label">Today · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><div class="tl-today-rule"></div></div>`;
+      todayPlaced = true;
+      lastYear = null;
+    }
+    if (y !== lastYear) {
+      html += `<div class="tl-year"><div class="tl-year-dot"></div><div class="tl-year-label">${y}</div></div>`;
+      lastYear = y;
+    }
+    const cat = TIMELINE_CATEGORIES[ev.category] || TIMELINE_CATEGORIES.milestone;
+    html += `<div class="tl-event">
+      <div class="tl-dot" style="background:${cat.color};"></div>
+      <div class="tl-card">
+        <div class="tl-card-top">
+          <div style="min-width:0;">
+            <span class="tl-badge" style="background:${cat.light};color:${cat.color};">${cat.icon} ${cat.label}</span>
+            <div class="tl-title">${ev.title}</div>
+            <div class="tl-date">${_tlFmtRange(ev)}</div>
+          </div>
+          <div class="tl-actions">
+            <button class="btn-ghost" style="font-size:12px;" onclick="openTimelineEventModal('${ev.id}')">✏️</button>
+            <button class="btn-ghost" style="font-size:12px;" onclick="deleteTimelineEvent('${ev.id}')">🗑</button>
+          </div>
+        </div>
+        ${ev.desc ? `<div class="tl-desc">${ev.desc}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  if (!todayPlaced) {
+    html += `<div class="tl-today" id="tl-today-marker"><div class="tl-today-dot"></div><span class="tl-today-label">Today · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><div class="tl-today-rule"></div></div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
 }
 
 // ============================================================
