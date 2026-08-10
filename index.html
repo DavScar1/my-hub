@@ -714,6 +714,22 @@ a:hover{text-decoration:underline;}
 }
 
 /* ============================================================
+   INSIGHTS
+============================================================ */
+.ins-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.ins-row:last-child{margin-bottom:0;}
+.ins-row-label{width:118px;flex-shrink:0;font-size:12px;font-weight:600;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ins-row-bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.ins-row-fill{height:100%;border-radius:4px;}
+.ins-row-value{width:46px;flex-shrink:0;text-align:right;font-size:11.5px;font-weight:700;color:var(--text-muted);}
+.ins-deadline-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);}
+.ins-deadline-row:last-child{border-bottom:none;}
+.ins-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;margin:0 6px 6px 0;}
+.ins-empty{font-size:12px;color:var(--text-muted);padding:4px 0;}
+.ins-nav-link{margin-top:12px;display:inline-block;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;}
+.ins-nav-link:hover{text-decoration:underline;}
+
+/* ============================================================
    MOBILE SIDEBAR (hamburger drawer)
 ============================================================ */
 .sidebar-toggle{
@@ -795,6 +811,11 @@ a:hover{text-decoration:underline;}
   </div>
 
   <div class="sidebar-sub" id="sb-sub">Class of 2027</div>
+
+  <!-- Cross-mode nav (always visible) -->
+  <div class="sidebar-nav" style="border-bottom:1px solid var(--border-light);padding-bottom:6px;margin-bottom:6px;">
+    <button class="nav-item" onclick="showPage('insights')"><span class="icon">📊</span>Insights</button>
+  </div>
 
   <!-- College nav -->
   <div class="sidebar-nav" id="nav-college">
@@ -882,6 +903,68 @@ a:hover{text-decoration:underline;}
      MAIN — pages injected here by subsequent steps
 ============================================================ -->
 <main class="main" id="main-content">
+  <!-- ======================================================
+       INSIGHTS (cross-mode)
+  ====================================================== -->
+  <div class="page" id="page-insights">
+    <div class="page-header">
+      <div><h2>📊 Insights</h2><p>Your complete picture — college, life, travel, and business, all in one place.</p></div>
+    </div>
+    <div class="grid-4" id="ins-snapshot" style="margin-bottom:24px;"></div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:14px;">🎓 College Application Progress</div>
+      <div id="ins-sat-chart" style="margin-bottom:18px;"></div>
+      <div class="grid-2" style="margin-bottom:18px;">
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Applications by Status</div>
+          <div id="ins-app-status"></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Essay Completion</div>
+          <div id="ins-essay-progress"></div>
+        </div>
+      </div>
+      <div class="card-title" style="margin-bottom:8px;">Upcoming Deadlines</div>
+      <div id="ins-deadlines"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:14px;">🌿 Life &amp; Productivity</div>
+      <div class="grid-2" style="margin-bottom:18px;">
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Habit Streaks</div>
+          <div id="ins-habits"></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Study Time — Last 30 Days</div>
+          <div id="ins-time"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Goals</div>
+          <div id="ins-goals"></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Timeline This Year</div>
+          <div id="ins-timeline-cats"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">✈️ Travel</div>
+        <div id="ins-travel"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">💼 Business</div>
+        <div id="ins-business"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ======================================================
        COLLEGE PAGES
   ====================================================== -->
@@ -3551,6 +3634,7 @@ function mmStatus(msg){const el=document.getElementById('mm-status');if(el)el.te
 // NAVIGATION (merged)
 // ============================================================
 function renderPage(id) {
+  if (id === 'insights') renderInsights();
   // College pages (prefixed c-)
   if (id === 'c-dashboard') renderDashboard();
   if (id === 'c-colleges') { renderColleges(); updateEssayCollegeFilter(); }
@@ -10323,6 +10407,181 @@ function deleteCaEssay() {
   if (!school) return;
   school.essays = school.essays.filter(e => e.id !== editId);
   save(); closeModal('ca-essay-modal'); renderCommonApp();
+}
+
+// ============================================================
+// INSIGHTS (cross-mode dashboard)
+// ============================================================
+function _insColorPair(key) {
+  const map = {
+    green: ['var(--green)', 'var(--green-light)'],
+    blue: ['var(--blue)', 'var(--blue-light)'],
+    purple: ['var(--purple)', 'var(--purple-light)'],
+    amber: ['var(--amber)', 'var(--amber-light)'],
+    red: ['var(--red)', 'var(--red-light)'],
+    gray: ['var(--text-muted)', 'var(--border-light)'],
+  };
+  return map[key] || map.gray;
+}
+function _insFmtDuration(seconds) {
+  if (!seconds) return '0h';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  if (h === 0) return `${m}m`;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+function _insSatChart() {
+  const sorted = [...(DB.sat || [])].sort((a, b) => a.date.localeCompare(b.date));
+  if (sorted.length < 2) return `<div class="ins-empty">Log at least 2 SAT attempts to see your score trend. <span class="ins-nav-link" onclick="setMode('college');showPage('c-sat')">Open SAT Scores →</span></div>`;
+  const w = 640, h = 140, padX = 10, padY = 20;
+  const values = sorted.map(s => s.total);
+  let min = Math.min(...values), max = Math.max(...values);
+  if (min === max) { min -= 10; max += 10; }
+  const xStep = (w - 2 * padX) / (sorted.length - 1);
+  const points = sorted.map((s, i) => {
+    const x = padX + i * xStep;
+    const y = h - padY - ((s.total - min) / (max - min)) * (h - 2 * padY);
+    return [x, y];
+  });
+  const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const areaD = `${pathD} L${points[points.length-1][0].toFixed(1)},${h-padY} L${points[0][0].toFixed(1)},${h-padY} Z`;
+  const dots = points.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="var(--c-accent)"><title>${new Date(sorted[i].date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}: ${sorted[i].total}</title></circle>`).join('');
+  const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:130px;display:block;">
+    <path d="${areaD}" fill="var(--c-accent)" opacity="0.08"></path>
+    <path d="${pathD}" fill="none" stroke="var(--c-accent)" stroke-width="2.5"></path>
+    ${dots}
+    <text x="${padX}" y="${h-4}" font-size="10" fill="var(--text-muted)">${fmtDate(sorted[0].date)}</text>
+    <text x="${w-padX}" y="${h-4}" font-size="10" fill="var(--text-muted)" text-anchor="end">${fmtDate(sorted[sorted.length-1].date)}</text>
+    <text x="${padX}" y="12" font-size="10" fill="var(--text-muted)">${max}</text>
+    <text x="${padX}" y="${h-padY-4}" font-size="10" fill="var(--text-muted)">${min}</text>
+  </svg>`;
+}
+
+function renderInsights() {
+  const todayStr = today();
+
+  // ---- College ----
+  const bestSat = getBestSAT();
+  const essaysDone = DB.essays.filter(e => e.status === 'Complete').length
+    + (DB.caSchools || []).reduce((a, s) => a + (s.essays || []).filter(e => e.status === 'done').length, 0);
+  const essaysTotal = DB.essays.length + (DB.caSchools || []).reduce((a, s) => a + (s.essays || []).length, 0);
+  const essayPct = essaysTotal ? Math.round(essaysDone / essaysTotal * 100) : 0;
+  const collegesApplying = DB.colleges.filter(c => c.applying !== false).length;
+
+  const statusKeyMap = { 'Submitted':'green','Accepted':'green','In Progress':'blue','Interview':'purple','Waitlisted':'purple','Deferred':'amber','Planning to Apply':'amber','Rejected':'red','Researching':'gray' };
+  const collegeStatusCounts = {};
+  DB.colleges.forEach(c => { collegeStatusCounts[c.status] = (collegeStatusCounts[c.status] || 0) + 1; });
+  const appStatusHtml = Object.keys(collegeStatusCounts).length
+    ? Object.entries(collegeStatusCounts).map(([status, count]) => {
+        const [color, light] = _insColorPair(statusKeyMap[status] || 'gray');
+        return `<span class="ins-chip" style="background:${light};color:${color};">${status} · ${count}</span>`;
+      }).join('')
+    : `<div class="ins-empty">No colleges added yet. <span class="ins-nav-link" onclick="setMode('college');showPage('c-colleges')">Add one →</span></div>`;
+
+  const essayHtml = essaysTotal
+    ? `<div style="font-size:22px;font-weight:800;margin-bottom:6px;">${essaysDone}/${essaysTotal}</div><div class="progress-bar"><div class="progress-fill" style="width:${essayPct}%;background:var(--c-accent);"></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:6px;">${essayPct}% complete</div>`
+    : `<div class="ins-empty">No essays tracked yet. <span class="ins-nav-link" onclick="setMode('college');showPage('c-essays')">Add one →</span></div>`;
+
+  const deadlineItems = [];
+  (DB.deadlines || []).forEach(d => { if (d.date) deadlineItems.push({ title: d.title, date: d.date, source: 'Deadline' }); });
+  DB.colleges.forEach(c => { if (c.deadline && c.applying !== false) deadlineItems.push({ title: c.name, date: c.deadline, source: 'College' }); });
+  (DB.caSchools || []).forEach(s => { if (s.deadline) deadlineItems.push({ title: s.name, date: s.deadline, source: 'Common App' }); });
+  const upcoming = deadlineItems.filter(d => d.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
+  const deadlinesHtml = upcoming.length
+    ? upcoming.map(d => {
+        const days = Math.ceil((new Date(d.date + 'T12:00:00') - new Date()) / 86400000);
+        const urgency = days < 14 ? 'var(--red)' : days < 45 ? 'var(--amber)' : 'var(--text-muted)';
+        return `<div class="ins-deadline-row"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">${d.title}</div><div style="font-size:11px;color:var(--text-muted);">${d.source}</div></div><div style="font-size:12px;font-weight:700;color:${urgency};">${days}d</div></div>`;
+      }).join('')
+    : `<div class="ins-empty">No upcoming deadlines.</div>`;
+
+  document.getElementById('ins-sat-chart').innerHTML = _insSatChart();
+  document.getElementById('ins-app-status').innerHTML = appStatusHtml;
+  document.getElementById('ins-essay-progress').innerHTML = essayHtml;
+  document.getElementById('ins-deadlines').innerHTML = deadlinesHtml;
+
+  // ---- Life & Productivity ----
+  const habitStreaks = (DB.habits || []).map(h => ({ ...h, streak: calcHabitStreak(h.id) })).sort((a, b) => b.streak - a.streak).slice(0, 5);
+  const longestStreak = habitStreaks.length ? habitStreaks[0].streak : 0;
+  const maxStreak = Math.max(1, ...habitStreaks.map(h => h.streak));
+  const habitsHtml = habitStreaks.length
+    ? habitStreaks.map(h => `<div class="ins-row"><div class="ins-row-label">${h.icon || '✅'} ${h.name}</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${h.streak/maxStreak*100}%;background:var(--l-accent);"></div></div><div class="ins-row-value">${h.streak}d</div></div>`).join('')
+    : `<div class="ins-empty">No habits tracked yet. <span class="ins-nav-link" onclick="setMode('life');showPage('l-habits')">Add one →</span></div>`;
+
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekAgoStr = dateStr(weekAgo);
+  const studySecondsWeek = (DB.timeSessions || []).filter(s => s.date >= weekAgoStr).reduce((a, s) => a + s.duration, 0);
+
+  const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
+  const monthAgoStr = dateStr(monthAgo);
+  const timeByActivity = {};
+  (DB.timeSessions || []).forEach(s => { if (s.date >= monthAgoStr) timeByActivity[s.activityName] = (timeByActivity[s.activityName] || 0) + s.duration; });
+  const timeEntries = Object.entries(timeByActivity).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maxTime = Math.max(1, ...timeEntries.map(e => e[1]));
+  const timeHtml = timeEntries.length
+    ? timeEntries.map(([name, secs]) => `<div class="ins-row"><div class="ins-row-label">${name}</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${secs/maxTime*100}%;background:var(--c-accent);"></div></div><div class="ins-row-value">${_insFmtDuration(secs)}</div></div>`).join('')
+    : `<div class="ins-empty">No study sessions logged in the last 30 days.</div>`;
+
+  const goalsCompleted = (DB.goals || []).filter(g => g.completed).length;
+  const goalsTotal = (DB.goals || []).length;
+  const goalsPct = goalsTotal ? Math.round(goalsCompleted / goalsTotal * 100) : 0;
+  const upcomingGoals = (DB.goals || []).filter(g => !g.completed && g.targetDate && g.targetDate >= todayStr).sort((a, b) => a.targetDate.localeCompare(b.targetDate)).slice(0, 3);
+  const goalsHtml = goalsTotal
+    ? `<div style="font-size:22px;font-weight:800;margin-bottom:6px;">${goalsCompleted}/${goalsTotal}</div><div class="progress-bar" style="margin-bottom:10px;"><div class="progress-fill" style="width:${goalsPct}%;background:var(--l-accent);"></div></div>`
+      + (upcomingGoals.length ? upcomingGoals.map(g => `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">🎯 ${g.title} — ${new Date(g.targetDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>`).join('') : '')
+    : `<div class="ins-empty">No goals set yet. <span class="ins-nav-link" onclick="setMode('life');showPage('l-goals')">Add one →</span></div>`;
+
+  const thisYear = new Date().getFullYear().toString();
+  const yearEvents = (DB.timelineEvents || []).filter(e => e.date.startsWith(thisYear));
+  const catCounts = {};
+  yearEvents.forEach(e => { catCounts[e.category] = (catCounts[e.category] || 0) + 1; });
+  const timelineCatHtml = yearEvents.length
+    ? Object.entries(catCounts).map(([cat, count]) => {
+        const c = TIMELINE_CATEGORIES[cat] || TIMELINE_CATEGORIES.milestone;
+        return `<span class="ins-chip" style="background:${c.light};color:${c.color};">${c.icon} ${c.label} · ${count}</span>`;
+      }).join('')
+    : `<div class="ins-empty">No events logged this year yet. <span class="ins-nav-link" onclick="setMode('life');showPage('l-timeline')">Add one →</span></div>`;
+
+  document.getElementById('ins-habits').innerHTML = habitsHtml;
+  document.getElementById('ins-time').innerHTML = timeHtml;
+  document.getElementById('ins-goals').innerHTML = goalsHtml;
+  document.getElementById('ins-timeline-cats').innerHTML = timelineCatHtml;
+
+  // ---- Travel ----
+  const countriesN = (DB.countriesVisited || []).length;
+  const countriesPct = ((countriesN / TOTAL_COUNTRIES) * 100).toFixed(1);
+  const tripsN = (DB.trips || []).length;
+  const placesN = (DB.trips || []).reduce((a, t) => a + (t.places || []).length, 0);
+  document.getElementById('ins-travel').innerHTML = `
+    <div class="ins-row"><div class="ins-row-label">Countries visited</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${countriesPct}%;background:var(--blue);"></div></div><div class="ins-row-value">${countriesN}</div></div>
+    <div style="font-size:11px;color:var(--text-muted);margin:-3px 0 12px 128px;">${countriesPct}% of the world</div>
+    <div style="font-size:13px;color:var(--text-secondary);">🧭 ${tripsN} trip${tripsN!==1?'s':''} logged · ${placesN} place${placesN!==1?'s':''} visited</div>
+    <span class="ins-nav-link" onclick="setMode('life');showPage('l-countries')">Open Countries Visited →</span>`;
+
+  // ---- Business ----
+  const bizTotals = (DB.bizSales || []).reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; return acc; }, { revenue: 0, cost: 0 });
+  const bizProfit = bizTotals.revenue - bizTotals.cost;
+  const itemTotals = {};
+  (DB.bizSales || []).forEach(s => { itemTotals[s.item] = (itemTotals[s.item] || 0) + s.price; });
+  const topItem = Object.entries(itemTotals).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('ins-business').innerHTML = (DB.bizSales || []).length
+    ? `<div class="ins-row"><div class="ins-row-label">Revenue</div><div style="flex:1;font-size:18px;font-weight:800;">${_bizFmt(bizTotals.revenue)}</div></div>
+       <div class="ins-row"><div class="ins-row-label">Profit</div><div style="flex:1;font-size:18px;font-weight:800;color:${bizProfit>=0?'var(--green)':'var(--red)'};">${_bizFmt(bizProfit)}</div></div>
+       ${topItem ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;">🏆 Best seller: ${topItem[0]} (${_bizFmt(topItem[1])})</div>` : ''}
+       <span class="ins-nav-link" onclick="setMode('business');showPage('b-analytics')">Open Business Analytics →</span>`
+    : `<div class="ins-empty">No sales logged yet. <span class="ins-nav-link" onclick="setMode('business');showPage('b-sales')">Log a sale →</span></div>`;
+
+  // ---- Snapshot grid ----
+  document.getElementById('ins-snapshot').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">🎓</div><div class="stat-value">${DB.colleges.length}</div><div class="stat-label">Colleges</div><div class="stat-sub">${collegesApplying} applying</div></div>
+    <div class="stat-card"><div class="stat-icon">✏️</div><div class="stat-value">${bestSat ? bestSat.total : '—'}</div><div class="stat-label">Best SAT</div><div class="stat-sub">${DB.sat.length ? DB.sat.length+' attempt'+(DB.sat.length!==1?'s':'') : 'No scores yet'}</div></div>
+    <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value">${essaysDone}/${essaysTotal}</div><div class="stat-label">Essays Done</div><div class="stat-sub">${essayPct}% complete</div></div>
+    <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value">${longestStreak}</div><div class="stat-label">Best Habit Streak</div><div class="stat-sub">days running</div></div>
+    <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${_insFmtDuration(studySecondsWeek)}</div><div class="stat-label">Study Time</div><div class="stat-sub">last 7 days</div></div>
+    <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${goalsCompleted}/${goalsTotal}</div><div class="stat-label">Goals</div><div class="stat-sub">completed</div></div>
+    <div class="stat-card"><div class="stat-icon">✈️</div><div class="stat-value">${countriesN}</div><div class="stat-label">Countries</div><div class="stat-sub">visited</div></div>
+    <div class="stat-card"><div class="stat-icon">💼</div><div class="stat-value">${_bizFmt(bizProfit)}</div><div class="stat-label">Business Profit</div><div class="stat-sub">all time</div></div>`;
 }
 
 // ============================================================
