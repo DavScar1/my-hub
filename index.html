@@ -694,6 +694,10 @@ a:hover{text-decoration:underline;}
 .tl-today-label{font-size:10.5px;font-weight:800;color:var(--c-accent);text-transform:uppercase;letter-spacing:.06em;background:var(--c-accent-light);padding:3px 10px;border-radius:999px;flex-shrink:0;}
 .tl-today-rule{flex:1;height:0;border-top:1.5px dashed var(--c-accent);opacity:.4;}
 
+.tl-gap{position:relative;display:flex;align-items:center;margin:0 0 16px;min-height:14px;}
+.tl-gap::before{content:'';position:absolute;left:-25px;top:50%;width:9px;height:1.5px;background:var(--border);}
+.tl-gap-label{font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:.01em;}
+
 .tl-event{position:relative;padding-bottom:20px;}
 .tl-event:last-child{padding-bottom:0;}
 .tl-dot{position:absolute;left:-26.5px;top:17px;width:11px;height:11px;border-radius:50%;border:2.5px solid var(--surface);box-shadow:0 0 0 1.5px var(--border);}
@@ -707,6 +711,8 @@ a:hover{text-decoration:underline;}
 .tl-title{font-size:15px;font-weight:800;margin-top:7px;line-height:1.3;}
 .tl-date{font-size:11.5px;color:var(--text-muted);font-weight:600;margin-top:3px;}
 .tl-desc{font-size:13px;color:var(--text-secondary);margin-top:9px;line-height:1.6;white-space:pre-wrap;}
+.tl-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.tl-relative{display:inline-flex;align-items:center;font-size:10px;font-weight:800;background:var(--bg);padding:3px 9px;border-radius:999px;white-space:nowrap;letter-spacing:.01em;}
 .tl-actions{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity .15s;}
 .tl-card:hover .tl-actions{opacity:1;}
 
@@ -7448,6 +7454,26 @@ function jumpToTimelineToday() {
 function _tlFmtDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
+function _tlDaysBetween(d1, d2) {
+  return Math.round((new Date(d2 + 'T12:00:00') - new Date(d1 + 'T12:00:00')) / 86400000);
+}
+function _tlGapLabel(prevDate, date) {
+  const n = _tlDaysBetween(prevDate, date);
+  if (n === 0) return 'Same day';
+  const abs = Math.abs(n);
+  const unit = `day${abs === 1 ? '' : 's'}`;
+  return n > 0 ? `${abs} ${unit} later` : `${abs} ${unit} earlier`;
+}
+function _tlRelativeLabel(evDate) {
+  const diff = _tlDaysBetween(today(), evDate);
+  if (diff === 0) return { text: 'Today', color: 'var(--c-accent)' };
+  if (diff > 0) {
+    const color = diff <= 7 ? 'var(--red)' : diff <= 30 ? 'var(--amber)' : 'var(--text-muted)';
+    return { text: `in ${diff} day${diff === 1 ? '' : 's'}`, color };
+  }
+  const abs = Math.abs(diff);
+  return { text: `${abs} day${abs === 1 ? '' : 's'} ago`, color: 'var(--text-muted)' };
+}
 function _tlFmtRange(ev) {
   if (ev.endDate && ev.endDate !== ev.date) {
     const a = new Date(ev.date + 'T12:00:00'), b = new Date(ev.endDate + 'T12:00:00');
@@ -7491,10 +7517,14 @@ function renderTimeline() {
   let lastYear = null;
   let lastMonth = null;
   let todayPlaced = false;
+  let prevDate = null;
 
   sorted.forEach(ev => {
     const y = ev.date.slice(0, 4);
     const ym = ev.date.slice(0, 7);
+    if (prevDate) {
+      html += `<div class="tl-gap"><span class="tl-gap-label">${_tlGapLabel(prevDate, ev.date)}</span></div>`;
+    }
     if (!todayPlaced && ev.date >= todayStr) {
       html += `<div class="tl-today" id="tl-today-marker"><div class="tl-today-dot"></div><span class="tl-today-label">Today · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><div class="tl-today-rule"></div></div>`;
       todayPlaced = true;
@@ -7512,6 +7542,7 @@ function renderTimeline() {
       lastMonth = ym;
     }
     const cat = TIMELINE_CATEGORIES[ev.category] || TIMELINE_CATEGORIES.milestone;
+    const rel = _tlRelativeLabel(ev.date);
     html += `<div class="tl-event">
       <div class="tl-dot" style="background:${cat.color};"></div>
       <div class="tl-card">
@@ -7521,14 +7552,18 @@ function renderTimeline() {
             <div class="tl-title">${ev.title}</div>
             <div class="tl-date">${_tlFmtRange(ev)}</div>
           </div>
-          <div class="tl-actions">
-            <button class="btn-ghost" style="font-size:12px;" onclick="openTimelineEventModal('${ev.id}')">✏️</button>
-            <button class="btn-ghost" style="font-size:12px;" onclick="deleteTimelineEvent('${ev.id}')">🗑</button>
+          <div class="tl-side">
+            <span class="tl-relative" style="color:${rel.color};">${rel.text}</span>
+            <div class="tl-actions">
+              <button class="btn-ghost" style="font-size:12px;" onclick="openTimelineEventModal('${ev.id}')">✏️</button>
+              <button class="btn-ghost" style="font-size:12px;" onclick="deleteTimelineEvent('${ev.id}')">🗑</button>
+            </div>
           </div>
         </div>
         ${ev.desc ? `<div class="tl-desc">${ev.desc}</div>` : ''}
       </div>
     </div>`;
+    prevDate = ev.date;
   });
 
   if (!todayPlaced) {
