@@ -721,6 +721,37 @@ a:hover{text-decoration:underline;}
 }
 
 /* ============================================================
+   HOMEWORK & TESTS
+============================================================ */
+.hw-spotlight-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:22px;}
+.hw-spotlight-card{flex:0 0 152px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:box-shadow .15s;}
+.hw-spotlight-card:hover{box-shadow:var(--shadow-md);}
+.hw-spotlight-days{font-size:23px;font-weight:800;line-height:1;}
+.hw-spotlight-subject{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-top:9px;}
+.hw-spotlight-title{font-size:13px;font-weight:700;margin-top:3px;line-height:1.3;}
+.hw-spotlight-date{font-size:11px;color:var(--text-muted);margin-top:5px;}
+
+.hw-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.hw-cal-dow{font-size:11px;font-weight:700;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding-bottom:6px;}
+.hw-cal-day{min-height:96px;border:1px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;transition:border-color .15s;background:var(--surface);display:flex;flex-direction:column;gap:4px;}
+.hw-cal-day:hover{border-color:var(--c-accent);}
+.hw-cal-day.empty{background:none;border:none;cursor:default;min-height:0;}
+.hw-cal-day.today{border-color:var(--c-accent);border-width:2px;box-shadow:0 0 0 1px var(--c-accent) inset;}
+.hw-cal-daynum{font-size:13px;font-weight:700;color:var(--text-muted);}
+.hw-cal-day.today .hw-cal-daynum{color:var(--c-accent);}
+.hw-cal-events{display:flex;flex-direction:column;gap:3px;overflow:hidden;}
+.hw-cal-item{font-size:10.5px;border-radius:6px;padding:3px 6px;overflow:hidden;font-weight:600;line-height:1.3;white-space:nowrap;text-overflow:ellipsis;}
+.hw-cal-more{font-size:10px;color:var(--text-muted);font-weight:600;padding:2px 6px;cursor:pointer;}
+.hw-cal-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);margin-bottom:14px;align-items:center;}
+.hw-cal-legend-item{display:flex;align-items:center;gap:5px;}
+.hw-cal-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+
+.hw-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--text-secondary);white-space:nowrap;}
+.hw-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-light);}
+.hw-row:last-child{border-bottom:none;}
+.hw-filter-select{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
+
+/* ============================================================
    IDEAS
 ============================================================ */
 .idea-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-secondary);transition:all .15s;font-family:inherit;}
@@ -844,6 +875,7 @@ a:hover{text-decoration:underline;}
 
     <div class="nav-section">Academics</div>
     <button class="nav-item" onclick="showPage('c-leavingcert')"><span class="icon">📚</span>Leaving Cert</button>
+    <button class="nav-item" onclick="showPage('c-homework')"><span class="icon">📓</span>Homework &amp; Tests</button>
     <button class="nav-item" onclick="showPage('c-sat')"><span class="icon">✏️</span>SAT Scores</button>
 
     <div class="nav-section">Application</div>
@@ -1111,6 +1143,46 @@ a:hover{text-decoration:underline;}
       </div>
     </div>
     <div id="subjects-container"></div>
+  </div>
+
+  <!-- Homework & Tests -->
+  <div class="page" id="page-c-homework">
+    <div class="page-header">
+      <div><h2>📓 Homework &amp; Tests</h2><p>Everything due, everything upcoming, in one place.</p></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="openHomeworkModal()">+ Homework</button>
+        <button class="btn btn-primary" onclick="openHwTestModal()">+ Test</button>
+      </div>
+    </div>
+
+    <div id="hw-spotlight-wrap" style="margin-bottom:4px;"></div>
+
+    <div class="card" style="margin-bottom:18px;">
+      <div class="section-header">
+        <button class="btn btn-secondary btn-sm" onclick="changeHwCalMonth(-1)">← Prev</button>
+        <div class="card-title" style="margin:0;" id="hw-cal-month-label"></div>
+        <button class="btn btn-secondary btn-sm" onclick="changeHwCalMonth(1)">Next →</button>
+      </div>
+      <div class="hw-cal-legend">
+        <div class="hw-cal-legend-item"><span class="hw-cal-legend-dot" style="background:#eef2ff;border:1px solid #4338ca;"></span>📘 Homework</div>
+        <div class="hw-cal-legend-item"><span class="hw-cal-legend-dot" style="background:#fef2f2;border:1px solid #b91c1c;"></span>📝 Test</div>
+      </div>
+      <div class="hw-cal-grid" id="hw-cal-grid"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-header" style="margin-bottom:10px;">
+          <div class="card-title" style="margin:0;">Homework</div>
+          <select class="hw-filter-select" id="hw-subject-filter" onchange="renderHomeworkTests()"><option value="">All Subjects</option></select>
+        </div>
+        <div id="hw-homework-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">All Tests</div>
+        <div id="hw-tests-list"></div>
+      </div>
+    </div>
   </div>
 
   <!-- SAT -->
@@ -2573,6 +2645,60 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Subject suggestions for Homework & Tests -->
+<datalist id="hw-subject-suggestions">
+  <option value="Mathematics">
+  <option value="English">
+  <option value="Italian">
+  <option value="French">
+  <option value="Economics">
+  <option value="Accounting">
+  <option value="Computer Science">
+</datalist>
+
+<!-- Homework modal -->
+<div class="modal-overlay" id="hw-homework-modal">
+  <div class="modal">
+    <h3 id="hw-homework-modal-title">Add Homework</h3>
+    <input type="hidden" id="hw-homework-edit-id">
+    <div class="form-group"><label>Title *</label><input type="text" id="hw-homework-title" placeholder="e.g. Chapter 4 problem set"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Subject</label><input type="text" id="hw-homework-subject" list="hw-subject-suggestions" placeholder="e.g. Mathematics"></div>
+      <div class="form-group"><label>Due Date *</label><input type="date" id="hw-homework-due"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="hw-homework-notes" placeholder="Details, page numbers, what to bring…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="hw-homework-delete-btn" style="display:none;margin-right:auto;" onclick="deleteHomework()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('hw-homework-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHomework()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Test modal -->
+<div class="modal-overlay" id="hw-test-modal">
+  <div class="modal">
+    <h3 id="hw-test-modal-title">Add Test</h3>
+    <input type="hidden" id="hw-test-edit-id">
+    <div class="form-group"><label>Title *</label><input type="text" id="hw-test-title" placeholder="e.g. Unit 3 Test, Mock Exam"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Subject</label><input type="text" id="hw-test-subject" list="hw-subject-suggestions" placeholder="e.g. Chemistry"></div>
+      <div class="form-group"><label>Date *</label><input type="date" id="hw-test-date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Type</label><select id="hw-test-type"><option>Quiz</option><option>Test</option><option>Mock Exam</option><option>Final Exam</option><option>Other</option></select></div>
+      <div class="form-group"><label>Prep Status</label><select id="hw-test-prep"><option value="not_started">Not Started</option><option value="studying">Studying</option><option value="ready">Ready</option></select></div>
+    </div>
+    <div class="form-group"><label>Score <span style="font-weight:400;color:var(--text-muted);">(fill in after)</span></label><input type="text" id="hw-test-score" placeholder="e.g. 85% or A"></div>
+    <div class="form-group"><label>Notes</label><textarea id="hw-test-notes" placeholder="Topics covered, study plan…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="hw-test-delete-btn" style="display:none;margin-right:auto;" onclick="deleteHwTest()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('hw-test-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHwTest()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- SAT modal -->
 <div class="modal-overlay" id="sat-modal">
   <div class="modal">
@@ -3396,6 +3522,9 @@ function ensureDBDefaults() {
   if (!DB.goals) DB.goals = [];
   if (!DB.timelineEvents) DB.timelineEvents = [];
   if (!DB.ideas) DB.ideas = [];
+  if (!DB.homework) DB.homework = [];
+  if (!DB.tests) DB.tests = [];
+  if (!DB.hwCalMonth) DB.hwCalMonth = today().slice(0, 7);
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -3718,6 +3847,7 @@ function renderPage(id) {
   if (id === 'c-dashboard') renderDashboard();
   if (id === 'c-colleges') { renderColleges(); updateEssayCollegeFilter(); }
   if (id === 'c-leavingcert') renderGrades();
+  if (id === 'c-homework') renderHomeworkTests();
   if (id === 'c-sat') renderSAT();
   if (id === 'c-sat-hub') renderSATHub();
   if (id === 'c-activities') renderActivities();
@@ -5063,6 +5193,232 @@ function renderGrades() {
       ${tests.length>0?`<div style="flex:2;min-width:300px;"><table style="font-size:12px;"><thead><tr><th style="padding:4px 8px;">Test</th><th style="padding:4px 8px;">Score</th><th style="padding:4px 8px;">Grade</th><th style="padding:4px 8px;">Date</th><th></th></tr></thead><tbody>${tests.map(t=>{const g=t.grade||lcGradeFromScore(t.score,level);return`<tr><td style="padding:6px 8px;"><strong>${t.name}</strong>${t.notes?`<div style="color:var(--text-muted);font-size:11px;">${t.notes}</div>`:''}</td><td style="padding:6px 8px;">${t.score!==undefined?t.score+'%':'—'}</td><td style="padding:6px 8px;"><span class="badge badge-${getGradeBadgeColor(g)}">${g}</span></td><td style="padding:6px 8px;color:var(--text-muted);">${t.date?new Date(t.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—'}</td><td><div class="row-actions" style="opacity:1;"><button class="btn btn-secondary btn-sm btn-icon" onclick="openTestModal('${s.key}','${t.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteTest('${s.key}','${t.id}')">🗑</button></div></td></tr>`;}).join('')}</tbody></table></div>`:`<div style="flex:2;min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;padding:12px;">No tests added yet.</div>`}
     </div></div>`;
   }).join('');
+}
+
+// ============================================================
+// HOMEWORK & TESTS
+// ============================================================
+function _hwSubjectColor(subject) {
+  const palette = ['#2563eb', '#16a34a', '#7c3aed', '#b5620d', '#dc2626', '#4a7856', '#0891b2', '#db2777'];
+  const s = (subject || 'General').trim() || 'General';
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  return palette[hash % palette.length];
+}
+function _hwDaysUntil(d) {
+  return Math.round((new Date(d + 'T12:00:00') - new Date(today() + 'T12:00:00')) / 86400000);
+}
+function _hwUrgencyColor(days) {
+  if (days <= 3) return 'var(--red)';
+  if (days <= 10) return 'var(--amber)';
+  return 'var(--text-muted)';
+}
+
+function changeHwCalMonth(dir) {
+  const [y, m] = DB.hwCalMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + dir, 1);
+  DB.hwCalMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  save(); renderHomeworkTests();
+}
+
+function openHomeworkModal(id, dateDefault) {
+  const hw = id ? DB.homework.find(x => x.id === id) : null;
+  openModal('hw-homework-modal', id || null);
+  document.getElementById('hw-homework-modal-title').textContent = id ? 'Edit Homework' : 'Add Homework';
+  document.getElementById('hw-homework-edit-id').value = id || '';
+  document.getElementById('hw-homework-title').value = hw ? hw.title : '';
+  document.getElementById('hw-homework-subject').value = hw ? (hw.subject || '') : '';
+  document.getElementById('hw-homework-due').value = hw ? hw.dueDate : (dateDefault || today());
+  document.getElementById('hw-homework-notes').value = hw ? (hw.notes || '') : '';
+  document.getElementById('hw-homework-delete-btn').style.display = id ? '' : 'none';
+}
+
+function saveHomework() {
+  const title = document.getElementById('hw-homework-title').value.trim();
+  if (!title) { alert('Please enter a title.'); return; }
+  const dueDate = document.getElementById('hw-homework-due').value;
+  if (!dueDate) { alert('Please pick a due date.'); return; }
+  if (!DB.homework) DB.homework = [];
+  const id = document.getElementById('hw-homework-edit-id').value || uid();
+  const existing = DB.homework.findIndex(h => h.id === id);
+  const hw = {
+    id, title,
+    subject: document.getElementById('hw-homework-subject').value.trim(),
+    dueDate,
+    notes: document.getElementById('hw-homework-notes').value.trim(),
+    done: existing >= 0 ? DB.homework[existing].done : false,
+  };
+  if (existing >= 0) DB.homework[existing] = hw; else DB.homework.push(hw);
+  save(); closeModal('hw-homework-modal'); renderHomeworkTests();
+}
+
+function deleteHomework() {
+  const id = document.getElementById('hw-homework-edit-id').value;
+  if (!id || !confirm('Delete this homework item?')) return;
+  DB.homework = DB.homework.filter(h => h.id !== id);
+  save(); closeModal('hw-homework-modal'); renderHomeworkTests();
+}
+
+function toggleHomeworkDone(id) {
+  const hw = (DB.homework || []).find(h => h.id === id); if (!hw) return;
+  hw.done = !hw.done;
+  save(); renderHomeworkTests();
+}
+
+function openHwTestModal(id, dateDefault) {
+  const t = id ? DB.tests.find(x => x.id === id) : null;
+  openModal('hw-test-modal', id || null);
+  document.getElementById('hw-test-modal-title').textContent = id ? 'Edit Test' : 'Add Test';
+  document.getElementById('hw-test-edit-id').value = id || '';
+  document.getElementById('hw-test-title').value = t ? t.title : '';
+  document.getElementById('hw-test-subject').value = t ? (t.subject || '') : '';
+  document.getElementById('hw-test-date').value = t ? t.date : (dateDefault || today());
+  document.getElementById('hw-test-type').value = t ? t.type : 'Test';
+  document.getElementById('hw-test-prep').value = t ? t.prep : 'not_started';
+  document.getElementById('hw-test-score').value = t ? (t.score || '') : '';
+  document.getElementById('hw-test-notes').value = t ? (t.notes || '') : '';
+  document.getElementById('hw-test-delete-btn').style.display = id ? '' : 'none';
+}
+
+function saveHwTest() {
+  const title = document.getElementById('hw-test-title').value.trim();
+  if (!title) { alert('Please enter a title.'); return; }
+  const date = document.getElementById('hw-test-date').value;
+  if (!date) { alert('Please pick a date.'); return; }
+  if (!DB.tests) DB.tests = [];
+  const id = document.getElementById('hw-test-edit-id').value || uid();
+  const existing = DB.tests.findIndex(x => x.id === id);
+  const t = {
+    id, title,
+    subject: document.getElementById('hw-test-subject').value.trim(),
+    date,
+    type: document.getElementById('hw-test-type').value,
+    prep: document.getElementById('hw-test-prep').value,
+    score: document.getElementById('hw-test-score').value.trim(),
+    notes: document.getElementById('hw-test-notes').value.trim(),
+  };
+  if (existing >= 0) DB.tests[existing] = t; else DB.tests.push(t);
+  save(); closeModal('hw-test-modal'); renderHomeworkTests();
+}
+
+function deleteHwTest() {
+  const id = document.getElementById('hw-test-edit-id').value;
+  if (!id || !confirm('Delete this test?')) return;
+  DB.tests = DB.tests.filter(x => x.id !== id);
+  save(); closeModal('hw-test-modal'); renderHomeworkTests();
+}
+
+function renderHomeworkTests() {
+  if (!DB.homework) DB.homework = [];
+  if (!DB.tests) DB.tests = [];
+  const todayStr = today();
+
+  // ---- Spotlight: next upcoming tests ----
+  const upcomingTests = DB.tests.filter(t => t.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
+  const spotEl = document.getElementById('hw-spotlight-wrap');
+  if (!upcomingTests.length) {
+    spotEl.innerHTML = `<div class="empty-state card" style="text-align:center;padding:24px;margin-bottom:22px;"><p>No upcoming tests logged.</p></div>`;
+  } else {
+    spotEl.innerHTML = `<div class="hw-spotlight-row">` + upcomingTests.map(t => {
+      const days = _hwDaysUntil(t.date);
+      const color = days === 0 ? 'var(--c-accent)' : _hwUrgencyColor(days);
+      const dateLbl = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `<div class="hw-spotlight-card" style="border-color:${color};" onclick="openHwTestModal('${t.id}')">
+        <div class="hw-spotlight-days" style="color:${color};">${days===0?'Today':days+'d'}</div>
+        <div class="hw-spotlight-subject"><span style="width:7px;height:7px;border-radius:50%;background:${_hwSubjectColor(t.subject)};display:inline-block;"></span>${t.subject||'General'}</div>
+        <div class="hw-spotlight-title">${t.title}</div>
+        <div class="hw-spotlight-date">${dateLbl} · ${t.type}</div>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+
+  // ---- Calendar ----
+  const [y, m] = DB.hwCalMonth.split('-').map(Number);
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('hw-cal-month-label').textContent = `${monthNames[m-1]} ${y}`;
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const leadingBlank = (firstDow + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let calHtml = dow.map(d => `<div class="hw-cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < leadingBlank; i++) calHtml += `<div class="hw-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const items = [];
+    DB.homework.filter(h => h.dueDate === ds).forEach(h => items.push({ cls: h.done ? 'opacity:.5;text-decoration:line-through;' : '', bg: '#eef2ff', fg: '#4338ca', onclick: `openHomeworkModal('${h.id}')`, label: `📘 ${h.title}` }));
+    DB.tests.filter(t => t.date === ds).forEach(t => items.push({ cls: '', bg: '#fef2f2', fg: '#b91c1c', onclick: `openHwTestModal('${t.id}')`, label: `📝 ${t.title}` }));
+    const cap = 3;
+    const visible = items.slice(0, cap);
+    const extra = items.length - visible.length;
+    calHtml += `<div class="hw-cal-day ${ds===todayStr?'today':''}" onclick="openHomeworkModal(null,'${ds}')">
+      <div class="hw-cal-daynum">${d}</div>
+      <div class="hw-cal-events">
+        ${visible.map(i => `<div class="hw-cal-item" style="background:${i.bg};color:${i.fg};${i.cls}" onclick="event.stopPropagation();${i.onclick}">${i.label}</div>`).join('')}
+        ${extra > 0 ? `<div class="hw-cal-more" onclick="event.stopPropagation();openHomeworkModal(null,'${ds}')">+${extra} more</div>` : ''}
+      </div>
+    </div>`;
+  }
+  document.getElementById('hw-cal-grid').innerHTML = calHtml;
+
+  // ---- Subject filter options ----
+  const filterEl = document.getElementById('hw-subject-filter');
+  const currentFilter = filterEl.value;
+  const allSubjects = [...new Set([...DB.homework.map(h => h.subject), ...DB.tests.map(t => t.subject)].filter(Boolean))].sort();
+  filterEl.innerHTML = `<option value="">All Subjects</option>` + allSubjects.map(s => `<option value="${s}">${s}</option>`).join('');
+  filterEl.value = allSubjects.includes(currentFilter) ? currentFilter : '';
+
+  // ---- Homework list ----
+  const subjFilter = filterEl.value;
+  const hwListEl = document.getElementById('hw-homework-list');
+  let hwList = DB.homework.filter(h => !subjFilter || h.subject === subjFilter);
+  hwList = [...hwList].sort((a, b) => {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    return a.dueDate.localeCompare(b.dueDate);
+  });
+  if (!hwList.length) {
+    hwListEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No homework logged yet.</p></div>`;
+  } else {
+    hwListEl.innerHTML = hwList.map(h => {
+      const dateLbl = new Date(h.dueDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const overdue = !h.done && h.dueDate < todayStr;
+      return `<div class="hw-row">
+        <input type="checkbox" ${h.done?'checked':''} onchange="toggleHomeworkDone('${h.id}')" style="width:16px;height:16px;flex-shrink:0;accent-color:var(--c-accent);cursor:pointer;">
+        <div style="flex:1;min-width:0;cursor:pointer;" onclick="openHomeworkModal('${h.id}')">
+          <div style="font-size:13px;font-weight:600;${h.done?'text-decoration:line-through;color:var(--text-muted);':''}">${h.title}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap;">
+            ${h.subject?`<span class="hw-badge"><span style="width:6px;height:6px;border-radius:50%;background:${_hwSubjectColor(h.subject)};display:inline-block;"></span>${h.subject}</span>`:''}
+            <span style="font-size:11px;color:${overdue?'var(--red)':'var(--text-muted)'};font-weight:${overdue?700:400};">${dateLbl}${overdue?' · Overdue':''}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ---- Tests list ----
+  const testsListEl = document.getElementById('hw-tests-list');
+  const sortedTests = [...DB.tests].sort((a, b) => a.date.localeCompare(b.date));
+  if (!sortedTests.length) {
+    testsListEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No tests logged yet.</p></div>`;
+  } else {
+    const prepLabels = { not_started: 'Not Started', studying: 'Studying', ready: 'Ready' };
+    const prepColors = { not_started: 'var(--text-muted)', studying: 'var(--amber)', ready: 'var(--green)' };
+    testsListEl.innerHTML = sortedTests.map(t => {
+      const dateLbl = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const isPast = t.date < todayStr;
+      return `<div class="hw-row" style="cursor:pointer;" onclick="openHwTestModal('${t.id}')">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;">${t.title}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap;">
+            ${t.subject?`<span class="hw-badge"><span style="width:6px;height:6px;border-radius:50%;background:${_hwSubjectColor(t.subject)};display:inline-block;"></span>${t.subject}</span>`:''}
+            <span style="font-size:11px;color:var(--text-muted);">${dateLbl} · ${t.type}</span>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          ${t.score ? `<div style="font-size:13px;font-weight:800;color:var(--c-accent);">${t.score}</div>` : isPast ? '' : `<span class="hw-badge" style="color:${prepColors[t.prep]||'var(--text-muted)'};">${prepLabels[t.prep]||'Not Started'}</span>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 // ============================================================
