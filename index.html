@@ -752,6 +752,25 @@ a:hover{text-decoration:underline;}
 .hw-filter-select{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
 
 /* ============================================================
+   SCENARIOS
+============================================================ */
+.sc-plan-card{margin-bottom:26px;}
+.sc-plan-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:14px;}
+.sc-scenarios-row{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;}
+.sc-card{flex:0 0 270px;background:var(--surface);border:2px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;opacity:.72;transition:opacity .15s,border-color .15s,box-shadow .15s;}
+.sc-card.is-active{opacity:1;border-color:var(--green);box-shadow:var(--shadow-md);background:var(--green-light);}
+.sc-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;}
+.sc-card-name{font-size:14px;font-weight:800;line-height:1.3;}
+.sc-active-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.sc-card-desc{font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;white-space:pre-wrap;}
+.sc-task-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border-light);}
+.sc-task-row:last-child{border-bottom:none;}
+.sc-task-text{flex:1;font-size:12px;min-width:0;overflow-wrap:break-word;}
+.sc-quickadd{display:flex;gap:4px;margin-top:10px;}
+.sc-quickadd input[type=text]{flex:1;min-width:0;}
+.sc-add-card{flex:0 0 200px;display:flex;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:var(--radius-lg);cursor:pointer;color:var(--text-muted);min-height:160px;}
+
+/* ============================================================
    IDEAS
 ============================================================ */
 .idea-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-secondary);transition:all .15s;font-family:inherit;}
@@ -865,7 +884,7 @@ a:hover{text-decoration:underline;}
   <!-- Cross-mode nav (always visible) -->
   <div class="sidebar-nav-pinned" style="border-bottom:1px solid var(--border-light);">
     <button class="nav-item" onclick="showPage('insights')"><span class="icon">📊</span>Insights</button>
-    <button class="nav-item" onclick="showPage('monthview')"><span class="icon">🗓️</span>Month View</button>
+    <button class="nav-item" onclick="showPage('scenarios')"><span class="icon">🔀</span>Scenarios</button>
   </div>
 
   <!-- College nav -->
@@ -1019,21 +1038,14 @@ a:hover{text-decoration:underline;}
   </div>
 
   <!-- ======================================================
-       MONTH VIEW (cross-mode)
+       SCENARIOS (cross-mode)
   ====================================================== -->
-  <div class="page" id="page-monthview">
+  <div class="page" id="page-scenarios">
     <div class="page-header">
-      <div><h2>🗓️ Month View</h2><p>Everything happening this month, pulled live from across the app — homework, tests, deadlines, and events.</p></div>
+      <div><h2>🔀 Scenarios</h2><p>Different possible versions of a month's plan — mark which one is actually happening as things unfold.</p></div>
+      <button class="btn btn-primary" onclick="openMonthPlanModal()">+ New Month Plan</button>
     </div>
-    <div class="card">
-      <div class="section-header">
-        <button class="btn btn-secondary btn-sm" onclick="changeMvCalMonth(-1)">← Prev</button>
-        <div class="card-title" style="margin:0;" id="mv-cal-month-label"></div>
-        <button class="btn btn-secondary btn-sm" onclick="changeMvCalMonth(1)">Next →</button>
-      </div>
-      <div class="hw-cal-legend" id="mv-cal-legend"></div>
-      <div class="hw-cal-grid" id="mv-cal-grid"></div>
-    </div>
+    <div id="scenarios-list"></div>
   </div>
 
   <!-- ======================================================
@@ -2603,12 +2615,36 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- Month View day detail modal -->
-<div class="modal-overlay" id="mv-day-modal">
+<!-- Month plan modal -->
+<div class="modal-overlay" id="month-plan-modal">
   <div class="modal">
-    <h3 id="mv-day-modal-title">Day</h3>
-    <div id="mv-day-modal-list" style="max-height:400px;overflow-y:auto;"></div>
-    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('mv-day-modal')">Close</button></div>
+    <h3 id="month-plan-modal-title">New Month Plan</h3>
+    <input type="hidden" id="month-plan-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Month *</label><input type="month" id="month-plan-month"></div>
+      <div class="form-group"><label>Title <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="month-plan-title" placeholder="e.g. September Plan"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="month-plan-delete-btn" style="display:none;margin-right:auto;" onclick="deleteMonthPlan()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('month-plan-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMonthPlan()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scenario modal -->
+<div class="modal-overlay" id="scenario-modal">
+  <div class="modal">
+    <h3 id="scenario-modal-title">Add Scenario</h3>
+    <input type="hidden" id="scenario-plan-id">
+    <input type="hidden" id="scenario-edit-id">
+    <div class="form-group"><label>Name *</label><input type="text" id="scenario-name" placeholder="e.g. Plan A: Early Acceptance"></div>
+    <div class="form-group"><label>Description</label><textarea id="scenario-desc" placeholder="What happens in this scenario, why it might play out this way…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="scenario-delete-btn" style="display:none;margin-right:auto;" onclick="deleteScenario()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('scenario-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveScenario()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -3554,7 +3590,7 @@ function ensureDBDefaults() {
   if (!DB.homework) DB.homework = [];
   if (!DB.tests) DB.tests = [];
   if (!DB.hwCalMonth) DB.hwCalMonth = today().slice(0, 7);
-  if (!DB.mvCalMonth) DB.mvCalMonth = today().slice(0, 7);
+  if (!DB.monthScenarios) DB.monthScenarios = [];
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -3873,7 +3909,7 @@ function mmStatus(msg){const el=document.getElementById('mm-status');if(el)el.te
 // ============================================================
 function renderPage(id) {
   if (id === 'insights') renderInsights();
-  if (id === 'monthview') renderMonthView();
+  if (id === 'scenarios') renderScenarios();
   // College pages (prefixed c-)
   if (id === 'c-dashboard') renderDashboard();
   if (id === 'c-colleges') { renderColleges(); updateEssayCollegeFilter(); }
@@ -11333,99 +11369,153 @@ function renderInsights() {
 }
 
 // ============================================================
-// MONTH VIEW (cross-mode aggregating calendar)
+// SCENARIOS (manual, self-contained — no data pulled from elsewhere)
 // ============================================================
-const MV_APP_STYLE = { icon: '🎓', label: 'Application Deadline', bg: '#fdf2e8', fg: '#b5620d' };
-const MV_TYPE_STYLES = {
-  homework:          { icon: '📘', label: 'Homework',  bg: '#eef2ff', fg: '#4338ca' },
-  test:              { icon: '📝', label: 'Test',      bg: '#fef2f2', fg: '#b91c1c' },
-  deadline:          { icon: '⏰', label: 'Deadline',  bg: '#f5f3ff', fg: '#6d28d9' },
-  collegedeadline:   MV_APP_STYLE,
-  commonappdeadline: MV_APP_STYLE,
-  timeline:          { icon: '🕐', label: 'Event',     bg: '#eef5f1', fg: '#3a6044' },
-};
-const MV_LEGEND = [MV_TYPE_STYLES.homework, MV_TYPE_STYLES.test, MV_TYPE_STYLES.deadline, MV_APP_STYLE, MV_TYPE_STYLES.timeline];
-
-function changeMvCalMonth(dir) {
-  const [y, m] = DB.mvCalMonth.split('-').map(Number);
-  const d = new Date(y, m - 1 + dir, 1);
-  DB.mvCalMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  save(); renderMonthView();
-}
-
-function _mvItemsForDay(ds) {
-  const items = [];
-  (DB.homework || []).filter(h => h.dueDate === ds).forEach(h => items.push({ type: 'homework', id: h.id, title: h.title, sub: h.subject || '' }));
-  (DB.tests || []).filter(t => t.date === ds).forEach(t => items.push({ type: 'test', id: t.id, title: t.title, sub: t.subject || '' }));
-  (DB.deadlines || []).filter(d => d.date === ds).forEach(d => items.push({ type: 'deadline', id: d.id, title: d.title, sub: d.category || '' }));
-  (DB.colleges || []).filter(c => c.deadline === ds && c.applying !== false).forEach(c => items.push({ type: 'collegedeadline', id: c.id, title: c.name, sub: 'College deadline' }));
-  (DB.caSchools || []).filter(s => s.deadline === ds).forEach(s => items.push({ type: 'commonappdeadline', id: s.id, title: s.name, sub: 'Common App deadline' }));
-  (DB.timelineEvents || []).filter(e => e.date === ds || (e.endDate && e.date <= ds && ds <= e.endDate)).forEach(e => items.push({ type: 'timeline', id: e.id, title: e.title, sub: '' }));
-  return items;
-}
-
-function mvOpenItem(type, id) {
-  closeModal('mv-day-modal');
-  if (type === 'homework') { setMode('college'); showPage('c-homework'); openHomeworkModal(id); }
-  else if (type === 'test') { setMode('college'); showPage('c-homework'); openHwTestModal(id); }
-  else if (type === 'deadline') { setMode('college'); showPage('c-deadlines'); }
-  else if (type === 'collegedeadline') { setMode('college'); showPage('c-colleges'); editCollege(id); }
-  else if (type === 'commonappdeadline') { setMode('college'); showPage('c-commonapp'); openCaSchoolModal(id); }
-  else if (type === 'timeline') { setMode('life'); showPage('l-timeline'); openTimelineEventModal(id); }
-}
-
-function openMvDayModal(ds) {
-  const items = _mvItemsForDay(ds);
-  document.getElementById('mv-day-modal-title').textContent = new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  const listEl = document.getElementById('mv-day-modal-list');
-  listEl.innerHTML = items.length
-    ? items.map(i => {
-        const st = MV_TYPE_STYLES[i.type];
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-light);">
-          <span class="hw-badge" style="background:${st.bg};color:${st.fg};">${st.icon} ${st.label}</span>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:600;">${i.title}</div>
-            ${i.sub?`<div style="font-size:11px;color:var(--text-muted);">${i.sub}</div>`:''}
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="mvOpenItem('${i.type}','${i.id}')">Open →</button>
-        </div>`;
-      }).join('')
-    : `<div class="ins-empty">Nothing on this day.</div>`;
-  openModal('mv-day-modal');
-}
-
-function renderMonthView() {
-  if (!DB.mvCalMonth) DB.mvCalMonth = today().slice(0, 7);
-  const [y, m] = DB.mvCalMonth.split('-').map(Number);
+function _scMonthLabel(ym) {
+  const [y, m] = ym.split('-').map(Number);
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('mv-cal-month-label').textContent = `${monthNames[m-1]} ${y}`;
+  return `${monthNames[m-1]} ${y}`;
+}
 
-  document.getElementById('mv-cal-legend').innerHTML = MV_LEGEND.map(st =>
-    `<div class="hw-cal-legend-item"><span class="hw-cal-legend-dot" style="background:${st.bg};border:1px solid ${st.fg};"></span>${st.icon} ${st.label}</div>`
-  ).join('');
+function openMonthPlanModal(id) {
+  const p = id ? DB.monthScenarios.find(x => x.id === id) : null;
+  openModal('month-plan-modal', id || null);
+  document.getElementById('month-plan-modal-title').textContent = id ? 'Edit Month Plan' : 'New Month Plan';
+  document.getElementById('month-plan-edit-id').value = id || '';
+  document.getElementById('month-plan-month').value = p ? p.month : today().slice(0, 7);
+  document.getElementById('month-plan-title').value = p ? (p.title || '') : '';
+  document.getElementById('month-plan-delete-btn').style.display = id ? '' : 'none';
+}
+function saveMonthPlan() {
+  const month = document.getElementById('month-plan-month').value;
+  if (!month) { alert('Please pick a month.'); return; }
+  if (!DB.monthScenarios) DB.monthScenarios = [];
+  const id = document.getElementById('month-plan-edit-id').value || uid();
+  const existing = DB.monthScenarios.find(p => p.id === id);
+  const plan = { id, month, title: document.getElementById('month-plan-title').value.trim(), scenarios: existing ? existing.scenarios : [] };
+  const i = DB.monthScenarios.findIndex(p => p.id === id);
+  if (i >= 0) DB.monthScenarios[i] = plan; else DB.monthScenarios.push(plan);
+  save(); closeModal('month-plan-modal'); renderScenarios();
+}
+function deleteMonthPlan() {
+  const id = document.getElementById('month-plan-edit-id').value;
+  if (!id || !confirm('Delete this month plan and all its scenarios?')) return;
+  DB.monthScenarios = DB.monthScenarios.filter(p => p.id !== id);
+  save(); closeModal('month-plan-modal'); renderScenarios();
+}
 
-  const firstDow = new Date(y, m - 1, 1).getDay();
-  const leadingBlank = (firstDow + 6) % 7;
-  const daysInMonth = new Date(y, m, 0).getDate();
-  const todayStr = today();
-  const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  let html = dow.map(d => `<div class="hw-cal-dow">${d}</div>`).join('');
-  for (let i = 0; i < leadingBlank; i++) html += `<div class="hw-cal-day empty"></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const items = _mvItemsForDay(ds);
-    const cap = 3;
-    const visible = items.slice(0, cap);
-    const extra = items.length - visible.length;
-    html += `<div class="hw-cal-day ${ds===todayStr?'today':''}" onclick="openMvDayModal('${ds}')">
-      <div class="hw-cal-daynum">${d}</div>
-      <div class="hw-cal-events">
-        ${visible.map(i => { const st = MV_TYPE_STYLES[i.type]; return `<div class="hw-cal-item" style="background:${st.bg};color:${st.fg};">${st.icon} ${i.title}</div>`; }).join('')}
-        ${extra > 0 ? `<div class="hw-cal-more">+${extra} more</div>` : ''}
-      </div>
-    </div>`;
+function openScenarioModal(planId, scenarioId) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const s = scenarioId ? (p.scenarios || []).find(x => x.id === scenarioId) : null;
+  openModal('scenario-modal', scenarioId || null);
+  document.getElementById('scenario-modal-title').textContent = scenarioId ? 'Edit Scenario' : 'Add Scenario';
+  document.getElementById('scenario-plan-id').value = planId;
+  document.getElementById('scenario-edit-id').value = scenarioId || '';
+  document.getElementById('scenario-name').value = s ? s.name : '';
+  document.getElementById('scenario-desc').value = s ? (s.description || '') : '';
+  document.getElementById('scenario-delete-btn').style.display = scenarioId ? '' : 'none';
+}
+function saveScenario() {
+  const planId = document.getElementById('scenario-plan-id').value;
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const name = document.getElementById('scenario-name').value.trim();
+  if (!name) { alert('Please enter a scenario name.'); return; }
+  if (!p.scenarios) p.scenarios = [];
+  const editId = document.getElementById('scenario-edit-id').value;
+  const description = document.getElementById('scenario-desc').value.trim();
+  if (editId) {
+    const s = p.scenarios.find(x => x.id === editId); if (!s) return;
+    s.name = name; s.description = description;
+  } else {
+    p.scenarios.push({ id: uid(), name, description, active: p.scenarios.length === 0, tasks: [] });
   }
-  document.getElementById('mv-cal-grid').innerHTML = html;
+  save(); closeModal('scenario-modal'); renderScenarios();
+}
+function deleteScenario() {
+  const planId = document.getElementById('scenario-plan-id').value;
+  const editId = document.getElementById('scenario-edit-id').value;
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  if (!editId || !confirm('Delete this scenario?')) return;
+  p.scenarios = (p.scenarios || []).filter(x => x.id !== editId);
+  save(); closeModal('scenario-modal'); renderScenarios();
+}
+function setActiveScenario(planId, scenarioId) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  (p.scenarios || []).forEach(s => { s.active = s.id === scenarioId; });
+  save(); renderScenarios();
+}
+function quickAddScenarioTask(planId, scenarioId) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const s = (p.scenarios || []).find(x => x.id === scenarioId); if (!s) return;
+  const input = document.getElementById('sc-task-input-' + scenarioId);
+  const text = input.value.trim();
+  if (!text) return;
+  if (!s.tasks) s.tasks = [];
+  s.tasks.push({ id: uid(), text, done: false });
+  save(); renderScenarios();
+  setTimeout(() => { const el = document.getElementById('sc-task-input-' + scenarioId); if (el) el.focus(); }, 0);
+}
+function toggleScenarioTask(planId, scenarioId, taskId) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const s = (p.scenarios || []).find(x => x.id === scenarioId); if (!s) return;
+  const t = (s.tasks || []).find(x => x.id === taskId); if (!t) return;
+  t.done = !t.done;
+  save(); renderScenarios();
+}
+function deleteScenarioTask(planId, scenarioId, taskId) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const s = (p.scenarios || []).find(x => x.id === scenarioId); if (!s) return;
+  s.tasks = (s.tasks || []).filter(x => x.id !== taskId);
+  save(); renderScenarios();
+}
+
+function scenarioCardHtml(p, s) {
+  const tasks = s.tasks || [];
+  return `<div class="sc-card${s.active?' is-active':''}">
+    <div class="sc-card-head">
+      <div class="sc-card-name">${s.name}</div>
+      <button class="btn-ghost" style="font-size:12px;" onclick="openScenarioModal('${p.id}','${s.id}')">✏️</button>
+    </div>
+    ${s.active ? `<div class="sc-active-badge">✓ Active Path</div>` : `<button class="btn btn-secondary btn-sm" style="margin-bottom:8px;" onclick="setActiveScenario('${p.id}','${s.id}')">Mark as Active</button>`}
+    ${s.description ? `<div class="sc-card-desc">${s.description}</div>` : ''}
+    <div class="sc-tasks">
+      ${tasks.length ? tasks.map(t => `<div class="sc-task-row">
+          <input type="checkbox" ${t.done?'checked':''} onchange="toggleScenarioTask('${p.id}','${s.id}','${t.id}')" style="width:14px;height:14px;flex-shrink:0;accent-color:var(--green);cursor:pointer;">
+          <span class="sc-task-text" style="${t.done?'text-decoration:line-through;color:var(--text-muted);':''}">${t.text}</span>
+          <button class="btn-ghost" style="font-size:10px;padding:0 2px;" onclick="deleteScenarioTask('${p.id}','${s.id}','${t.id}')">✕</button>
+        </div>`).join('') : `<div style="font-size:11px;color:var(--text-muted);padding:6px 0;">No tasks yet.</div>`}
+    </div>
+    <div class="sc-quickadd">
+      <input type="text" id="sc-task-input-${s.id}" placeholder="+ Task" onkeydown="if(event.key==='Enter')quickAddScenarioTask('${p.id}','${s.id}')">
+      <button class="btn btn-secondary btn-sm" onclick="quickAddScenarioTask('${p.id}','${s.id}')">+</button>
+    </div>
+  </div>`;
+}
+
+function monthPlanCardHtml(p) {
+  const scenarios = p.scenarios || [];
+  const cardsHtml = scenarios.map(s => scenarioCardHtml(p, s)).join('');
+  const addTile = `<div class="sc-add-card" onclick="openScenarioModal('${p.id}')"><div style="text-align:center;"><div style="font-size:22px;">+</div><div style="font-size:12px;font-weight:700;">Add Scenario</div></div></div>`;
+  return `<div class="card sc-plan-card">
+    <div class="sc-plan-head">
+      <div>
+        <div style="font-size:14px;font-weight:800;">${_scMonthLabel(p.month)}</div>
+        ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
+      </div>
+      <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm btn-icon" onclick="openMonthPlanModal('${p.id}')">✏️</button></div>
+    </div>
+    <div class="sc-scenarios-row">${cardsHtml}${addTile}</div>
+  </div>`;
+}
+
+function renderScenarios() {
+  const list = document.getElementById('scenarios-list');
+  if (!DB.monthScenarios || !DB.monthScenarios.length) {
+    list.innerHTML = `<div class="empty-state card"><div class="ei">🔀</div><p>No month plans yet — create one and add a few possible scenarios for how it could go.</p></div>`;
+    return;
+  }
+  const sorted = [...DB.monthScenarios].sort((a, b) => a.month.localeCompare(b.month));
+  list.innerHTML = sorted.map(p => monthPlanCardHtml(p)).join('');
 }
 
 // ============================================================
