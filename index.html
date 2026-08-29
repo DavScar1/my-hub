@@ -721,6 +721,18 @@ a:hover{text-decoration:underline;}
 }
 
 /* ============================================================
+   IDEAS
+============================================================ */
+.idea-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-secondary);transition:all .15s;font-family:inherit;}
+.idea-chip:hover{border-color:var(--text-muted);}
+.idea-chip.active{border-color:transparent;color:#fff;}
+.idea-card{cursor:pointer;transition:box-shadow .15s;}
+.idea-card:hover{box-shadow:var(--shadow-md);}
+.idea-star{font-size:17px;cursor:pointer;flex-shrink:0;line-height:1.1;}
+.idea-status-btn{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-family:inherit;white-space:nowrap;}
+.idea-status-btn.active{border-color:transparent;color:#fff;}
+
+/* ============================================================
    INSIGHTS
 ============================================================ */
 .ins-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
@@ -855,6 +867,7 @@ a:hover{text-decoration:underline;}
     <button class="nav-item" onclick="showPage('l-todo')"><span class="icon">✅</span>To Do</button>
     <button class="nav-item" onclick="showPage('l-goals')"><span class="icon">🎯</span>Goals</button>
     <button class="nav-item" onclick="showPage('l-timeline')"><span class="icon">🕐</span>Timeline</button>
+    <button class="nav-item" onclick="showPage('l-ideas')"><span class="icon">💡</span>Ideas</button>
 
     <div class="nav-section">Routines</div>
     <button class="nav-item" onclick="showPage('l-morning')"><span class="icon">🌅</span>Morning</button>
@@ -1743,6 +1756,24 @@ a:hover{text-decoration:underline;}
     </div>
     <div class="tl-filters" id="tl-filters"></div>
     <div id="tl-container"></div>
+  </div>
+
+  <!-- Ideas -->
+  <div class="page" id="page-l-ideas">
+    <div class="page-header">
+      <div><h2>💡 Ideas</h2><p>Brainstorm freely — capture it now, organize it later.</p></div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="idea-quick-input" placeholder="What's your idea? Press Enter to save…" style="flex:1;" onkeydown="if(event.key==='Enter')quickAddIdea()">
+        <button class="btn btn-primary" onclick="quickAddIdea()">+ Add</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+      <input type="text" id="idea-search" placeholder="🔎 Search ideas or tags…" style="max-width:220px;" oninput="renderIdeas()">
+      <div id="idea-status-filters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div id="ideas-list"></div>
   </div>
 
   <!-- Morning -->
@@ -3083,6 +3114,28 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Idea modal -->
+<div class="modal-overlay" id="idea-modal">
+  <div class="modal">
+    <h3 id="idea-modal-title">Edit Idea</h3>
+    <input type="hidden" id="idea-edit-id">
+    <div class="form-group"><label>Title *</label><input type="text" id="idea-title" placeholder="e.g. App that tracks…"></div>
+    <div class="form-group"><label>Note</label><textarea id="idea-note" placeholder="Flesh it out — details, next steps, why it matters…"></textarea></div>
+    <div class="form-group"><label>Tags <span style="font-weight:400;color:var(--text-muted);">(comma separated)</span></label><input type="text" id="idea-tags" placeholder="e.g. app, business, someday"></div>
+    <div class="form-group"><label>Status</label><select id="idea-status">
+      <option value="new">💡 New</option>
+      <option value="exploring">🔍 Exploring</option>
+      <option value="doing">🚀 Doing</option>
+      <option value="archived">📦 Archived</option>
+    </select></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="idea-delete-btn" style="display:none;margin-right:auto;" onclick="deleteIdea()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('idea-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIdeaModal()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Todo list modal -->
 <div class="modal-overlay" id="todo-list-modal">
   <div class="modal">
@@ -3342,6 +3395,7 @@ function ensureDBDefaults() {
   if (!DB.goalCategories) DB.goalCategories = [];
   if (!DB.goals) DB.goals = [];
   if (!DB.timelineEvents) DB.timelineEvents = [];
+  if (!DB.ideas) DB.ideas = [];
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -3679,6 +3733,7 @@ function renderPage(id) {
   if (id === 'l-todo') renderTodo();
   if (id === 'l-goals') renderGoals();
   if (id === 'l-timeline') renderTimeline();
+  if (id === 'l-ideas') renderIdeas();
   if (id === 'l-morning') renderRoutinePage('morning');
   if (id === 'l-evening') renderRoutinePage('evening');
   if (id === 'l-gym') renderGymPage();
@@ -7572,6 +7627,139 @@ function renderTimeline() {
 
   html += `</div>`;
   container.innerHTML = html;
+}
+
+// ============================================================
+// IDEAS
+// ============================================================
+const IDEA_STATUSES = {
+  new:       { label: 'New',       icon: '💡', color: 'var(--blue)',       light: 'var(--blue-light)' },
+  exploring: { label: 'Exploring', icon: '🔍', color: 'var(--purple)',     light: 'var(--purple-light)' },
+  doing:     { label: 'Doing',     icon: '🚀', color: 'var(--amber)',      light: 'var(--amber-light)' },
+  archived:  { label: 'Archived',  icon: '📦', color: 'var(--text-muted)', light: 'var(--border-light)' },
+};
+let _ideaStatusFilter = 'all';
+
+function quickAddIdea() {
+  const input = document.getElementById('idea-quick-input');
+  const title = input.value.trim();
+  if (!title) return;
+  if (!DB.ideas) DB.ideas = [];
+  DB.ideas.push({ id: uid(), title, note: '', status: 'new', tags: [], starred: false, createdAt: Date.now() });
+  input.value = '';
+  save(); renderIdeas();
+  input.focus();
+}
+
+function setIdeaStatusFilter(status) {
+  _ideaStatusFilter = status;
+  renderIdeas();
+}
+
+function toggleIdeaStar(id) {
+  const idea = (DB.ideas || []).find(i => i.id === id); if (!idea) return;
+  idea.starred = !idea.starred;
+  save(); renderIdeas();
+}
+
+function setIdeaStatus(id, status) {
+  const idea = (DB.ideas || []).find(i => i.id === id); if (!idea) return;
+  idea.status = status;
+  save(); renderIdeas();
+}
+
+function quickDeleteIdea(id) {
+  if (!confirm('Delete this idea?')) return;
+  DB.ideas = (DB.ideas || []).filter(i => i.id !== id);
+  save(); renderIdeas();
+}
+
+function openIdeaModal(id) {
+  const idea = (DB.ideas || []).find(i => i.id === id); if (!idea) return;
+  document.getElementById('idea-edit-id').value = id;
+  document.getElementById('idea-title').value = idea.title;
+  document.getElementById('idea-note').value = idea.note || '';
+  document.getElementById('idea-tags').value = (idea.tags || []).join(', ');
+  document.getElementById('idea-status').value = idea.status;
+  document.getElementById('idea-delete-btn').style.display = '';
+  openModal('idea-modal', id);
+}
+
+function saveIdeaModal() {
+  const editId = document.getElementById('idea-edit-id').value;
+  const idea = (DB.ideas || []).find(i => i.id === editId); if (!idea) return;
+  const title = document.getElementById('idea-title').value.trim();
+  if (!title) { alert('Please enter a title.'); return; }
+  idea.title = title;
+  idea.note = document.getElementById('idea-note').value.trim();
+  idea.tags = document.getElementById('idea-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  idea.status = document.getElementById('idea-status').value;
+  save(); closeModal('idea-modal'); renderIdeas();
+}
+
+function deleteIdea() {
+  const editId = document.getElementById('idea-edit-id').value;
+  if (!editId || !confirm('Delete this idea?')) return;
+  DB.ideas = (DB.ideas || []).filter(i => i.id !== editId);
+  save(); closeModal('idea-modal'); renderIdeas();
+}
+
+function _ideaStatusPills(idea) {
+  return Object.keys(IDEA_STATUSES).map(s => {
+    const st = IDEA_STATUSES[s];
+    const active = idea.status === s;
+    return `<button class="idea-status-btn${active?' active':''}" style="${active?`background:${st.color};`:''}" onclick="event.stopPropagation();setIdeaStatus('${idea.id}','${s}')">${st.icon} ${st.label}</button>`;
+  }).join('');
+}
+
+function renderIdeas() {
+  const allIdeas = DB.ideas || [];
+
+  // Status filter chips
+  const statusFiltersEl = document.getElementById('idea-status-filters');
+  const statuses = ['all', ...Object.keys(IDEA_STATUSES)];
+  statusFiltersEl.innerHTML = statuses.map(s => {
+    const active = _ideaStatusFilter === s;
+    if (s === 'all') return `<button class="idea-chip${active?' active':''}" style="${active?'background:var(--text);':''}" onclick="setIdeaStatusFilter('all')">All</button>`;
+    const st = IDEA_STATUSES[s];
+    return `<button class="idea-chip${active?' active':''}" style="${active?`background:${st.color};`:''}" onclick="setIdeaStatusFilter('${s}')">${st.icon} ${st.label}</button>`;
+  }).join('');
+
+  const search = (document.getElementById('idea-search').value || '').trim().toLowerCase();
+  let filtered = allIdeas.filter(i => _ideaStatusFilter === 'all' || i.status === _ideaStatusFilter);
+  if (search) {
+    filtered = filtered.filter(i => i.title.toLowerCase().includes(search) || (i.tags || []).some(t => t.toLowerCase().includes(search)));
+  }
+
+  const listEl = document.getElementById('ideas-list');
+  if (!allIdeas.length) {
+    listEl.innerHTML = `<div class="empty-state card" style="text-align:center;padding:40px 20px;"><div class="ei">💡</div><p>No ideas yet — type one above and hit Enter.</p></div>`;
+    return;
+  }
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty-state card" style="text-align:center;padding:30px 20px;"><p>No ideas match your search/filter.</p></div>`;
+    return;
+  }
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (!!b.starred !== !!a.starred) return (b.starred ? 1 : 0) - (a.starred ? 1 : 0);
+    return b.createdAt - a.createdAt;
+  });
+
+  listEl.innerHTML = sorted.map(idea => `<div class="card idea-card" style="margin-bottom:10px;" onclick="openIdeaModal('${idea.id}')">
+    <div style="display:flex;align-items:flex-start;gap:10px;">
+      <span class="idea-star" onclick="event.stopPropagation();toggleIdeaStar('${idea.id}')">${idea.starred ? '⭐' : '☆'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:14px;">${idea.title}</div>
+        ${idea.note ? `<div style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">${idea.note.length>140?idea.note.slice(0,140)+'…':idea.note}</div>` : ''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;align-items:center;">
+          ${_ideaStatusPills(idea)}
+          ${(idea.tags||[]).map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+      </div>
+      <button class="btn-ghost" style="font-size:12px;flex-shrink:0;" onclick="event.stopPropagation();quickDeleteIdea('${idea.id}')">🗑</button>
+    </div>
+  </div>`).join('');
 }
 
 // ============================================================
