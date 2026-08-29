@@ -348,7 +348,7 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 ============================================================ */
 .biz-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .biz-cal-dow{font-size:11px;font-weight:700;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding-bottom:6px;}
-.biz-cal-day{min-height:118px;border:1px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surface);display:flex;flex-direction:column;gap:4px;}
+.biz-cal-day{min-width:0;min-height:118px;border:1px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surface);display:flex;flex-direction:column;gap:4px;}
 .biz-cal-day:hover{border-color:var(--b-accent);}
 .biz-cal-day.empty{background:none;border:none;cursor:default;min-height:0;}
 .biz-cal-day.today{border-color:var(--b-accent);border-width:2px;box-shadow:0 0 0 1px var(--b-accent) inset;}
@@ -733,7 +733,7 @@ a:hover{text-decoration:underline;}
 
 .hw-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .hw-cal-dow{font-size:11px;font-weight:700;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding-bottom:6px;}
-.hw-cal-day{min-height:96px;border:1px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;transition:border-color .15s;background:var(--surface);display:flex;flex-direction:column;gap:4px;}
+.hw-cal-day{min-width:0;min-height:96px;border:1px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;transition:border-color .15s;background:var(--surface);display:flex;flex-direction:column;gap:4px;}
 .hw-cal-day:hover{border-color:var(--c-accent);}
 .hw-cal-day.empty{background:none;border:none;cursor:default;min-height:0;}
 .hw-cal-day.today{border-color:var(--c-accent);border-width:2px;box-shadow:0 0 0 1px var(--c-accent) inset;}
@@ -865,6 +865,7 @@ a:hover{text-decoration:underline;}
   <!-- Cross-mode nav (always visible) -->
   <div class="sidebar-nav-pinned" style="border-bottom:1px solid var(--border-light);">
     <button class="nav-item" onclick="showPage('insights')"><span class="icon">📊</span>Insights</button>
+    <button class="nav-item" onclick="showPage('monthview')"><span class="icon">🗓️</span>Month View</button>
   </div>
 
   <!-- College nav -->
@@ -1014,6 +1015,24 @@ a:hover{text-decoration:underline;}
         <div class="card-title" style="margin-bottom:10px;">💼 Business</div>
         <div id="ins-business"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       MONTH VIEW (cross-mode)
+  ====================================================== -->
+  <div class="page" id="page-monthview">
+    <div class="page-header">
+      <div><h2>🗓️ Month View</h2><p>Everything happening this month, pulled live from across the app — homework, tests, deadlines, and events.</p></div>
+    </div>
+    <div class="card">
+      <div class="section-header">
+        <button class="btn btn-secondary btn-sm" onclick="changeMvCalMonth(-1)">← Prev</button>
+        <div class="card-title" style="margin:0;" id="mv-cal-month-label"></div>
+        <button class="btn btn-secondary btn-sm" onclick="changeMvCalMonth(1)">Next →</button>
+      </div>
+      <div class="hw-cal-legend" id="mv-cal-legend"></div>
+      <div class="hw-cal-grid" id="mv-cal-grid"></div>
     </div>
   </div>
 
@@ -2583,6 +2602,15 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Month View day detail modal -->
+<div class="modal-overlay" id="mv-day-modal">
+  <div class="modal">
+    <h3 id="mv-day-modal-title">Day</h3>
+    <div id="mv-day-modal-list" style="max-height:400px;overflow-y:auto;"></div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('mv-day-modal')">Close</button></div>
+  </div>
+</div>
+
 <!-- College modal -->
 <div class="modal-overlay" id="college-modal">
   <div class="modal">
@@ -3525,6 +3553,7 @@ function ensureDBDefaults() {
   if (!DB.homework) DB.homework = [];
   if (!DB.tests) DB.tests = [];
   if (!DB.hwCalMonth) DB.hwCalMonth = today().slice(0, 7);
+  if (!DB.mvCalMonth) DB.mvCalMonth = today().slice(0, 7);
   if (!DB.activityGroups) DB.activityGroups = [];
   if (!DB.nutritionMetrics) DB.nutritionMetrics = [];
   if (!DB.nutritionLog) DB.nutritionLog = {};
@@ -3843,6 +3872,7 @@ function mmStatus(msg){const el=document.getElementById('mm-status');if(el)el.te
 // ============================================================
 function renderPage(id) {
   if (id === 'insights') renderInsights();
+  if (id === 'monthview') renderMonthView();
   // College pages (prefixed c-)
   if (id === 'c-dashboard') renderDashboard();
   if (id === 'c-colleges') { renderColleges(); updateEssayCollegeFilter(); }
@@ -11274,6 +11304,102 @@ function renderInsights() {
     <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${goalsCompleted}/${goalsTotal}</div><div class="stat-label">Goals</div><div class="stat-sub">completed</div></div>
     <div class="stat-card"><div class="stat-icon">✈️</div><div class="stat-value">${countriesN}</div><div class="stat-label">Countries</div><div class="stat-sub">visited</div></div>
     <div class="stat-card"><div class="stat-icon">💼</div><div class="stat-value">${_bizFmt(bizProfit)}</div><div class="stat-label">Business Profit</div><div class="stat-sub">all time</div></div>`;
+}
+
+// ============================================================
+// MONTH VIEW (cross-mode aggregating calendar)
+// ============================================================
+const MV_APP_STYLE = { icon: '🎓', label: 'Application Deadline', bg: '#fdf2e8', fg: '#b5620d' };
+const MV_TYPE_STYLES = {
+  homework:          { icon: '📘', label: 'Homework',  bg: '#eef2ff', fg: '#4338ca' },
+  test:              { icon: '📝', label: 'Test',      bg: '#fef2f2', fg: '#b91c1c' },
+  deadline:          { icon: '⏰', label: 'Deadline',  bg: '#f5f3ff', fg: '#6d28d9' },
+  collegedeadline:   MV_APP_STYLE,
+  commonappdeadline: MV_APP_STYLE,
+  timeline:          { icon: '🕐', label: 'Event',     bg: '#eef5f1', fg: '#3a6044' },
+};
+const MV_LEGEND = [MV_TYPE_STYLES.homework, MV_TYPE_STYLES.test, MV_TYPE_STYLES.deadline, MV_APP_STYLE, MV_TYPE_STYLES.timeline];
+
+function changeMvCalMonth(dir) {
+  const [y, m] = DB.mvCalMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + dir, 1);
+  DB.mvCalMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  save(); renderMonthView();
+}
+
+function _mvItemsForDay(ds) {
+  const items = [];
+  (DB.homework || []).filter(h => h.dueDate === ds).forEach(h => items.push({ type: 'homework', id: h.id, title: h.title, sub: h.subject || '' }));
+  (DB.tests || []).filter(t => t.date === ds).forEach(t => items.push({ type: 'test', id: t.id, title: t.title, sub: t.subject || '' }));
+  (DB.deadlines || []).filter(d => d.date === ds).forEach(d => items.push({ type: 'deadline', id: d.id, title: d.title, sub: d.category || '' }));
+  (DB.colleges || []).filter(c => c.deadline === ds && c.applying !== false).forEach(c => items.push({ type: 'collegedeadline', id: c.id, title: c.name, sub: 'College deadline' }));
+  (DB.caSchools || []).filter(s => s.deadline === ds).forEach(s => items.push({ type: 'commonappdeadline', id: s.id, title: s.name, sub: 'Common App deadline' }));
+  (DB.timelineEvents || []).filter(e => e.date === ds || (e.endDate && e.date <= ds && ds <= e.endDate)).forEach(e => items.push({ type: 'timeline', id: e.id, title: e.title, sub: '' }));
+  return items;
+}
+
+function mvOpenItem(type, id) {
+  closeModal('mv-day-modal');
+  if (type === 'homework') { setMode('college'); showPage('c-homework'); openHomeworkModal(id); }
+  else if (type === 'test') { setMode('college'); showPage('c-homework'); openHwTestModal(id); }
+  else if (type === 'deadline') { setMode('college'); showPage('c-deadlines'); }
+  else if (type === 'collegedeadline') { setMode('college'); showPage('c-colleges'); editCollege(id); }
+  else if (type === 'commonappdeadline') { setMode('college'); showPage('c-commonapp'); openCaSchoolModal(id); }
+  else if (type === 'timeline') { setMode('life'); showPage('l-timeline'); openTimelineEventModal(id); }
+}
+
+function openMvDayModal(ds) {
+  const items = _mvItemsForDay(ds);
+  document.getElementById('mv-day-modal-title').textContent = new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const listEl = document.getElementById('mv-day-modal-list');
+  listEl.innerHTML = items.length
+    ? items.map(i => {
+        const st = MV_TYPE_STYLES[i.type];
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-light);">
+          <span class="hw-badge" style="background:${st.bg};color:${st.fg};">${st.icon} ${st.label}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;">${i.title}</div>
+            ${i.sub?`<div style="font-size:11px;color:var(--text-muted);">${i.sub}</div>`:''}
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="mvOpenItem('${i.type}','${i.id}')">Open →</button>
+        </div>`;
+      }).join('')
+    : `<div class="ins-empty">Nothing on this day.</div>`;
+  openModal('mv-day-modal');
+}
+
+function renderMonthView() {
+  if (!DB.mvCalMonth) DB.mvCalMonth = today().slice(0, 7);
+  const [y, m] = DB.mvCalMonth.split('-').map(Number);
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('mv-cal-month-label').textContent = `${monthNames[m-1]} ${y}`;
+
+  document.getElementById('mv-cal-legend').innerHTML = MV_LEGEND.map(st =>
+    `<div class="hw-cal-legend-item"><span class="hw-cal-legend-dot" style="background:${st.bg};border:1px solid ${st.fg};"></span>${st.icon} ${st.label}</div>`
+  ).join('');
+
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const leadingBlank = (firstDow + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = today();
+  const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = dow.map(d => `<div class="hw-cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < leadingBlank; i++) html += `<div class="hw-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const items = _mvItemsForDay(ds);
+    const cap = 3;
+    const visible = items.slice(0, cap);
+    const extra = items.length - visible.length;
+    html += `<div class="hw-cal-day ${ds===todayStr?'today':''}" onclick="openMvDayModal('${ds}')">
+      <div class="hw-cal-daynum">${d}</div>
+      <div class="hw-cal-events">
+        ${visible.map(i => { const st = MV_TYPE_STYLES[i.type]; return `<div class="hw-cal-item" style="background:${st.bg};color:${st.fg};">${st.icon} ${i.title}</div>`; }).join('')}
+        ${extra > 0 ? `<div class="hw-cal-more">+${extra} more</div>` : ''}
+      </div>
+    </div>`;
+  }
+  document.getElementById('mv-cal-grid').innerHTML = html;
 }
 
 // ============================================================
