@@ -752,6 +752,25 @@ a:hover{text-decoration:underline;}
 .hw-filter-select{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
 
 /* ============================================================
+   PLANNER STREAMS
+============================================================ */
+.pl-streams-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;}
+.pl-stream{flex:0 0 252px;background:var(--bg);border:1px solid var(--border-light);border-top:3px solid var(--accent);border-radius:var(--radius-lg);padding:12px;}
+.pl-stream-head{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:8px;}
+.pl-stream-name{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;min-width:0;}
+.pl-stream-actions{display:flex;gap:2px;flex-shrink:0;}
+.pl-status-pills{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.pl-status-pill{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-family:inherit;}
+.pl-status-pill.active{border-color:transparent;color:#fff;}
+.pl-task-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border-light);}
+.pl-task-row:last-child{border-bottom:none;}
+.pl-task-text{flex:1;font-size:12px;min-width:0;overflow-wrap:break-word;}
+.pl-task-hours{font-size:10px;font-weight:700;color:var(--text-muted);flex-shrink:0;white-space:nowrap;}
+.pl-quickadd{display:flex;gap:4px;margin-top:10px;}
+.pl-quickadd input[type=text]{flex:1;min-width:0;}
+.pl-quickadd input[type=number]{width:48px;flex-shrink:0;}
+
+/* ============================================================
    IDEAS
 ============================================================ */
 .idea-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-secondary);transition:all .15s;font-family:inherit;}
@@ -2881,9 +2900,26 @@ a:hover{text-decoration:underline;}
       <div class="form-group"><label>From *</label><input type="date" id="plan-start"></div>
       <div class="form-group"><label>To *</label><input type="date" id="plan-end"></div>
     </div>
-    <div class="form-group"><label>Title</label><input type="text" id="plan-title" placeholder="e.g. Essay push week"></div>
-    <div class="form-group"><label>Activities &amp; target hours (one per line, e.g. "Common App essay, 5")</label><textarea id="plan-tasks" rows="5" placeholder="John Locke essay, 6&#10;Common App essay, 4&#10;Website, 2"></textarea></div>
+    <div class="form-group"><label>Title</label><input type="text" id="plan-title" placeholder="e.g. September Plan"></div>
     <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancel</button><button class="btn btn-primary" onclick="savePlanBlock()">Save</button></div>
+  </div>
+</div>
+
+<!-- Plan stream modal -->
+<div class="modal-overlay" id="plan-stream-modal">
+  <div class="modal">
+    <h3 id="plan-stream-modal-title">Add Stream</h3>
+    <input type="hidden" id="plan-stream-plan-id">
+    <input type="hidden" id="plan-stream-edit-id">
+    <div class="form-row">
+      <div class="form-group" style="max-width:90px;"><label>Icon</label><input type="text" id="plan-stream-icon" maxlength="4" placeholder="🔹"></div>
+      <div class="form-group"><label>Name *</label><input type="text" id="plan-stream-name" placeholder="e.g. SAT Prep, Essays, Schoolwork"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="plan-stream-delete-btn" style="display:none;margin-right:auto;" onclick="deletePlanStream()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('plan-stream-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlanStream()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -3508,6 +3544,13 @@ function ensureDBDefaults() {
   if (!DB.wardrobe) DB.wardrobe = [];
   if (!DB.journal) DB.journal = [];
   if (!DB.planner) DB.planner = [];
+  DB.planner.forEach(p => {
+    if (!p.streams || !p.streams.length) {
+      const legacyTasks = (p.tasks || []).map(t => ({ id: t.id || uid(), text: t.text, hours: t.hours || 0, done: false }));
+      p.streams = [{ id: uid(), name: 'General', icon: '🔹', color: _planStreamColor('General'), status: 'active', tasks: legacyTasks }];
+      delete p.tasks;
+    }
+  });
   if (!DB.routineChecks) DB.routineChecks = {};
   if (!DB.weekPlanner) DB.weekPlanner = {};
   if (!DB.gymDays) DB.gymDays = [];
@@ -6978,57 +7021,159 @@ function saveNotes() { DB.collegeNotes=document.getElementById('notes-content').
 // ============================================================
 // COLLEGE — PLANNER
 // ============================================================
+const PLAN_STREAM_STATUSES = {
+  active:  { label: 'Active',  color: 'var(--green)' },
+  onhold:  { label: 'On Hold', color: 'var(--amber)' },
+  dropped: { label: 'Dropped', color: 'var(--red)' },
+  done:    { label: 'Done',    color: 'var(--c-accent)' },
+};
+function _planStreamColor(name) {
+  const palette = ['#2563eb', '#16a34a', '#7c3aed', '#b5620d', '#dc2626', '#4a7856', '#0891b2', '#db2777'];
+  const s = (name || 'Stream').trim() || 'Stream';
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  return palette[hash % palette.length];
+}
+
 function openAddPlanBlock() {
-  document.getElementById('plan-modal-title').textContent='Add Plan';
   openModal('plan-modal');
+  document.getElementById('plan-modal-title').textContent='Add Plan';
   document.getElementById('plan-edit-id').value='';
 }
 function editPlanBlock(id) {
   const p=DB.planner.find(p=>p.id===id);if(!p)return;
+  openModal('plan-modal',id);
   document.getElementById('plan-modal-title').textContent='Edit Plan';
   document.getElementById('plan-start').value=p.start;document.getElementById('plan-end').value=p.end;
   document.getElementById('plan-title').value=p.title||'';
-  document.getElementById('plan-tasks').value=(p.tasks||[]).map(t=>t.text+(t.hours?', '+t.hours:'')).join('\n');
-  openModal('plan-modal',id);
   document.getElementById('plan-edit-id').value=id;
 }
 function savePlanBlock() {
   const start=document.getElementById('plan-start').value;const end=document.getElementById('plan-end').value;
   if(!start||!end){alert('Please enter both a start and end date.');return;}
   const id=document.getElementById('plan-edit-id').value||uid();
-  const lines=document.getElementById('plan-tasks').value.split('\n').map(t=>t.trim()).filter(Boolean);
-  const tasks=lines.map(line=>{
-    const idx=line.lastIndexOf(',');
-    let text=line, hours=0;
-    if(idx>=0){
-      const hVal=parseFloat(line.slice(idx+1).trim());
-      if(!isNaN(hVal)){text=line.slice(0,idx).trim();hours=hVal;}
-    }
-    return {id:uid(),text,hours};
-  });
   const existing=DB.planner.find(p=>p.id===id);
-  const block={id,start,end,title:document.getElementById('plan-title').value.trim(),tasks,schedule:(existing&&existing.schedule)||[]};
+  const block={id,start,end,title:document.getElementById('plan-title').value.trim(),streams:(existing&&existing.streams)||[],schedule:(existing&&existing.schedule)||[]};
   const i=DB.planner.findIndex(p=>p.id===id);
   if(i>=0)DB.planner[i]=block;else DB.planner.push(block);
   save();closeModal('plan-modal');renderPlanner();renderDashboardPlanner();
 }
-function deletePlanBlock(id) { if(!confirm('Delete this plan?'))return; DB.planner=DB.planner.filter(p=>p.id!==id);save();renderPlanner();renderDashboardPlanner(); }
-function planHoursListHtml(p) {
-  const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  const tasks=p.tasks||[];
-  const total=tasks.reduce((s,t)=>s+(t.hours||0),0);
-  const max=Math.max(...tasks.map(t=>t.hours||0),1);
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-      <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${p.title?` · ${p.title}`:''}</div>
-      ${total?`<div style="font-size:12px;color:var(--text-muted);font-weight:600;">${total}h planned</div>`:''}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${tasks.map(t=>{const pct=Math.round((t.hours||0)/max*100);return `<div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${t.text}</span><span style="font-weight:700;">${t.hours||0}h</span></div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      </div>`;}).join('')}
-    </div>`;
+function deletePlanBlock(id) { if(!confirm('Delete this plan and all its streams?'))return; DB.planner=DB.planner.filter(p=>p.id!==id);save();renderPlanner();renderDashboardPlanner(); }
+
+function openPlanStreamModal(planId, streamId) {
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  const s = streamId ? (p.streams || []).find(x => x.id === streamId) : null;
+  openModal('plan-stream-modal', streamId || null);
+  document.getElementById('plan-stream-modal-title').textContent = streamId ? 'Edit Stream' : 'Add Stream';
+  document.getElementById('plan-stream-plan-id').value = planId;
+  document.getElementById('plan-stream-edit-id').value = streamId || '';
+  document.getElementById('plan-stream-icon').value = s ? (s.icon || '') : '';
+  document.getElementById('plan-stream-name').value = s ? s.name : '';
+  document.getElementById('plan-stream-delete-btn').style.display = streamId ? '' : 'none';
 }
+function savePlanStream() {
+  const planId = document.getElementById('plan-stream-plan-id').value;
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  const name = document.getElementById('plan-stream-name').value.trim();
+  if (!name) { alert('Please enter a stream name.'); return; }
+  if (!p.streams) p.streams = [];
+  const editId = document.getElementById('plan-stream-edit-id').value;
+  const icon = document.getElementById('plan-stream-icon').value.trim() || '🔹';
+  if (editId) {
+    const s = p.streams.find(x => x.id === editId); if (!s) return;
+    s.name = name; s.icon = icon;
+  } else {
+    p.streams.push({ id: uid(), name, icon, color: _planStreamColor(name), status: 'active', tasks: [] });
+  }
+  save(); closeModal('plan-stream-modal'); renderPlanner(); renderDashboardPlanner();
+}
+function deletePlanStream() {
+  const planId = document.getElementById('plan-stream-plan-id').value;
+  const editId = document.getElementById('plan-stream-edit-id').value;
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  if (!editId || !confirm('Delete this stream and all its tasks?')) return;
+  p.streams = (p.streams || []).filter(x => x.id !== editId);
+  save(); closeModal('plan-stream-modal'); renderPlanner(); renderDashboardPlanner();
+}
+function setPlanStreamStatus(planId, streamId, status) {
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  const s = (p.streams || []).find(x => x.id === streamId); if (!s) return;
+  s.status = status;
+  save(); renderPlanner(); renderDashboardPlanner();
+}
+function quickAddPlanTask(planId, streamId) {
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  const s = (p.streams || []).find(x => x.id === streamId); if (!s) return;
+  const textInput = document.getElementById('pl-task-input-' + streamId);
+  const hoursInput = document.getElementById('pl-hours-input-' + streamId);
+  const text = textInput.value.trim();
+  if (!text) return;
+  const hours = parseFloat(hoursInput.value) || 0;
+  if (!s.tasks) s.tasks = [];
+  s.tasks.push({ id: uid(), text, hours, done: false });
+  save(); renderPlanner(); renderDashboardPlanner();
+  setTimeout(() => { const el = document.getElementById('pl-task-input-' + streamId); if (el) el.focus(); }, 0);
+}
+function togglePlanTask(planId, streamId, taskId) {
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  const s = (p.streams || []).find(x => x.id === streamId); if (!s) return;
+  const t = (s.tasks || []).find(x => x.id === taskId); if (!t) return;
+  t.done = !t.done;
+  save(); renderPlanner(); renderDashboardPlanner();
+}
+function deletePlanTask(planId, streamId, taskId) {
+  const p = DB.planner.find(x => x.id === planId); if (!p) return;
+  const s = (p.streams || []).find(x => x.id === streamId); if (!s) return;
+  s.tasks = (s.tasks || []).filter(x => x.id !== taskId);
+  save(); renderPlanner(); renderDashboardPlanner();
+}
+
+function planStreamsHtml(p, interactive) {
+  const streams = p.streams || [];
+  if (!streams.length && !interactive) return '';
+  const lanes = streams.map(s => {
+    const tasks = s.tasks || [];
+    const totalHours = tasks.reduce((a, t) => a + (t.hours || 0), 0);
+    const doneHours = tasks.filter(t => t.done).reduce((a, t) => a + (t.hours || 0), 0);
+    const pct = totalHours ? Math.round(doneHours / totalHours * 100) : (tasks.length ? Math.round(tasks.filter(t => t.done).length / tasks.length * 100) : 0);
+    if (!interactive) {
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${(PLAN_STREAM_STATUSES[s.status]||PLAN_STREAM_STATUSES.active).color};flex-shrink:0;"></span>
+        <span style="flex:1;font-size:12.5px;font-weight:600;min-width:0;">${s.icon||''} ${s.name}</span>
+        <span style="font-size:11px;color:var(--text-muted);">${totalHours?`${doneHours}/${totalHours}h`:`${tasks.filter(t=>t.done).length}/${tasks.length}`}</span>
+      </div>`;
+    }
+    return `<div class="pl-stream" style="border-top-color:${s.color};">
+      <div class="pl-stream-head">
+        <div class="pl-stream-name">${s.icon||''} ${s.name}</div>
+        <div class="pl-stream-actions"><button class="btn-ghost" style="font-size:12px;" onclick="openPlanStreamModal('${p.id}','${s.id}')">✏️</button></div>
+      </div>
+      <div class="pl-status-pills">
+        ${Object.keys(PLAN_STREAM_STATUSES).map(key => {
+          const active = s.status === key; const c = PLAN_STREAM_STATUSES[key];
+          return `<button class="pl-status-pill${active?' active':''}" style="${active?`background:${c.color};`:''}" onclick="setPlanStreamStatus('${p.id}','${s.id}','${key}')">${c.label}</button>`;
+        }).join('')}
+      </div>
+      ${totalHours ? `<div class="progress-bar" style="margin-bottom:10px;"><div class="progress-fill" style="width:${pct}%;background:${s.color};"></div></div>` : ''}
+      <div class="pl-tasks">
+        ${tasks.length ? tasks.map(t => `<div class="pl-task-row">
+            <input type="checkbox" ${t.done?'checked':''} onchange="togglePlanTask('${p.id}','${s.id}','${t.id}')" style="width:14px;height:14px;flex-shrink:0;accent-color:${s.color};cursor:pointer;">
+            <span class="pl-task-text" style="${t.done?'text-decoration:line-through;color:var(--text-muted);':''}">${t.text}</span>
+            ${t.hours?`<span class="pl-task-hours">${t.hours}h</span>`:''}
+            <button class="btn-ghost" style="font-size:10px;padding:0 2px;" onclick="deletePlanTask('${p.id}','${s.id}','${t.id}')">✕</button>
+          </div>`).join('') : `<div style="font-size:11px;color:var(--text-muted);padding:6px 0;">No tasks yet.</div>`}
+      </div>
+      <div class="pl-quickadd">
+        <input type="text" id="pl-task-input-${s.id}" placeholder="+ Task" onkeydown="if(event.key==='Enter')quickAddPlanTask('${p.id}','${s.id}')">
+        <input type="number" id="pl-hours-input-${s.id}" placeholder="hrs" min="0" step="0.5">
+        <button class="btn btn-secondary btn-sm" onclick="quickAddPlanTask('${p.id}','${s.id}')">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  if (!interactive) return lanes;
+  return `<div class="pl-streams-row">${lanes}<div class="pl-stream" style="display:flex;align-items:center;justify-content:center;border-top-color:var(--border);cursor:pointer;min-height:120px;" onclick="openPlanStreamModal('${p.id}')"><div style="text-align:center;color:var(--text-muted);"><div style="font-size:22px;">+</div><div style="font-size:12px;font-weight:700;">Add Stream</div></div></div></div>`;
+}
+
 function renderDashboardPlanner() {
   const card=document.getElementById('dash-planner-card');if(!card)return;
   const now=new Date();
@@ -7037,13 +7182,15 @@ function renderDashboardPlanner() {
   const upcoming=DB.planner.filter(p=>new Date(p.start+'T12:00:00')>now).sort((a,b)=>new Date(a.start)-new Date(b.start));
   const title=document.getElementById('dash-planner-title');
   const content=document.getElementById('dash-planner-content');
+  const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const summaryBlock=p=>`<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">${fmt(p.start)} – ${fmt(p.end)}${p.title?' · '+p.title:''}</div>${planStreamsHtml(p,false)||'<div style="font-size:12px;color:var(--text-muted);">No streams yet.</div>'}`;
   if(active.length){
     card.style.display='';title.textContent='Current Plan';
-    content.innerHTML=active.map((p,i)=>`<div${i>0?' style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);"':''}>${planHoursListHtml(p)}</div>`).join('');
+    content.innerHTML=active.map((p,i)=>`<div${i>0?' style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);"':''}>${summaryBlock(p)}</div>`).join('');
   } else if(upcoming.length){
     const p=upcoming[0];
     card.style.display='';title.textContent='Next Plan';
-    content.innerHTML=planHoursListHtml(p);
+    content.innerHTML=summaryBlock(p);
   } else {
     card.style.display='none';
   }
@@ -7056,15 +7203,15 @@ function renderPlanner() {
   list.innerHTML=sorted.map(p=>{
     const startD=new Date(p.start+'T12:00:00');const endD=new Date(p.end+'T23:59:59');
     const active=now>=startD&&now<=endD;
-    return `<div class="card" style="margin-bottom:14px;${active?'border-color:var(--accent);':''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+    return `<div class="card" style="margin-bottom:16px;${active?'border-color:var(--accent);':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px;">
         <div>
           <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${active?' <span class="badge badge-green" style="margin-left:6px;">Active</span>':''}</div>
           ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
         </div>
         <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm" onclick="openPlanSchedule('${p.id}')">📅 Schedule</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
       </div>
-      ${planHoursListHtml(p)}
+      ${planStreamsHtml(p,true)}
     </div>`;
   }).join('');
 }
