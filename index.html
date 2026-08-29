@@ -1559,6 +1559,7 @@ a:hover{text-decoration:underline;}
     <div class="page-header"><h2>Planner</h2><p>Plan what you'll work on during each time period.</p></div>
     <div class="section-header"><h3></h3><button class="btn btn-primary" onclick="openAddPlanBlock()">+ Add Plan</button></div>
     <div id="planner-list"><div class="empty-state card"><div class="ei">🗓️</div><p>Add a plan for an upcoming time period.</p></div></div>
+    <div id="planner-completed-wrap" style="margin-top:8px;"></div>
   </div>
 
   <!-- Plan Day Schedule -->
@@ -7078,25 +7079,50 @@ function renderDashboardPlanner() {
     card.style.display='none';
   }
 }
+function planCardHtml(p, active) {
+  const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return `<div class="card" style="margin-bottom:14px;${active?'border-color:var(--accent);':''}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${active?' <span class="badge badge-green" style="margin-left:6px;">Active</span>':''}</div>
+        ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
+      </div>
+      <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm" onclick="openPlanSchedule('${p.id}')">📅 Schedule</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
+    </div>
+    ${planHoursListHtml(p)}
+  </div>`;
+}
+let _plannerCompletedOpen = false;
+function togglePlannerCompleted() { _plannerCompletedOpen = !_plannerCompletedOpen; renderPlanner(); }
 function renderPlanner() {
   const list=document.getElementById('planner-list');
-  if(DB.planner.length===0){list.innerHTML='<div class="empty-state card"><div class="ei">🗓️</div><p>Add a plan for an upcoming time period.</p></div>';return;}
-  const now=new Date();const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const completedWrap=document.getElementById('planner-completed-wrap');
+  if(DB.planner.length===0){
+    list.innerHTML='<div class="empty-state card"><div class="ei">🗓️</div><p>Add a plan for an upcoming time period.</p></div>';
+    completedWrap.innerHTML='';
+    return;
+  }
+  const now=new Date();
   const sorted=[...DB.planner].sort((a,b)=>new Date(a.start)-new Date(b.start));
-  list.innerHTML=sorted.map(p=>{
-    const startD=new Date(p.start+'T12:00:00');const endD=new Date(p.end+'T23:59:59');
-    const active=now>=startD&&now<=endD;
-    return `<div class="card" style="margin-bottom:14px;${active?'border-color:var(--accent);':''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
-        <div>
-          <div style="font-size:13px;font-weight:700;">${fmt(p.start)} – ${fmt(p.end)}${active?' <span class="badge badge-green" style="margin-left:6px;">Active</span>':''}</div>
-          ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
-        </div>
-        <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm" onclick="openPlanSchedule('${p.id}')">📅 Schedule</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editPlanBlock('${p.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletePlanBlock('${p.id}')">🗑</button></div>
-      </div>
-      ${planHoursListHtml(p)}
+  const upcoming=sorted.filter(p=>new Date(p.end+'T23:59:59')>=now);
+  const completed=sorted.filter(p=>new Date(p.end+'T23:59:59')<now).sort((a,b)=>new Date(b.end)-new Date(a.end));
+
+  list.innerHTML = upcoming.length
+    ? upcoming.map(p=>{
+        const active=now>=new Date(p.start+'T12:00:00')&&now<=new Date(p.end+'T23:59:59');
+        return planCardHtml(p,active);
+      }).join('')
+    : '<div class="empty-state card"><div class="ei">🗓️</div><p>No current or upcoming plans. Past plans have moved to Completed below.</p></div>';
+
+  if (!completed.length) { completedWrap.innerHTML=''; return; }
+  const arrow = _plannerCompletedOpen ? '▼' : '▶';
+  completedWrap.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;color:var(--text-secondary);font-weight:700;font-size:13px;" onclick="togglePlannerCompleted()">
+      <span style="font-size:11px;">${arrow}</span> Completed (${completed.length})
+    </div>
+    <div style="display:${_plannerCompletedOpen?'block':'none'};opacity:.85;">
+      ${completed.map(p=>planCardHtml(p,false)).join('')}
     </div>`;
-  }).join('');
 }
 
 // ============================================================
