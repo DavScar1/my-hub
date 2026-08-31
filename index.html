@@ -2648,6 +2648,37 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Calendar Event modal (Scenarios) -->
+<div class="modal-overlay" id="cal-event-modal">
+  <div class="modal">
+    <h3 id="cal-event-modal-title">Add Event</h3>
+    <input type="hidden" id="cal-event-plan-id">
+    <input type="hidden" id="cal-event-edit-id">
+    <div class="form-group"><label>Title *</label><input type="text" id="cal-event-title" placeholder="e.g. Campus visit"></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="cal-event-date"></div>
+    <div class="form-group"><label>Notes</label><textarea id="cal-event-notes" placeholder="Details…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="cal-event-delete-btn" style="display:none;margin-right:auto;" onclick="deleteCalEvent()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('cal-event-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCalEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import from Timeline modal -->
+<div class="modal-overlay" id="import-timeline-modal">
+  <div class="modal modal-lg">
+    <h3>Import from Timeline</h3>
+    <input type="hidden" id="import-timeline-plan-id">
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Timeline events dated in this plan's month. Importing makes an independent copy — deleting it here won't touch the original Timeline event.</p>
+    <div id="import-timeline-list" style="max-height:360px;overflow-y:auto;"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('import-timeline-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="importSelectedTimelineEvents()">Import Selected</button>
+    </div>
+  </div>
+</div>
+
 <!-- College modal -->
 <div class="modal-overlay" id="college-modal">
   <div class="modal">
@@ -11492,6 +11523,112 @@ function scenarioCardHtml(p, s) {
   </div>`;
 }
 
+function openCalEventModal(planId, eventId, dateDefault) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const ev = eventId ? (p.calendarEvents || []).find(x => x.id === eventId) : null;
+  openModal('cal-event-modal', eventId || null);
+  document.getElementById('cal-event-modal-title').textContent = eventId ? 'Edit Event' : 'Add Event';
+  document.getElementById('cal-event-plan-id').value = planId;
+  document.getElementById('cal-event-edit-id').value = eventId || '';
+  document.getElementById('cal-event-title').value = ev ? ev.title : '';
+  document.getElementById('cal-event-date').value = ev ? ev.date : (dateDefault || (p.month + '-01'));
+  document.getElementById('cal-event-notes').value = ev ? (ev.notes || '') : '';
+  document.getElementById('cal-event-delete-btn').style.display = eventId ? '' : 'none';
+}
+function saveCalEvent() {
+  const planId = document.getElementById('cal-event-plan-id').value;
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  const title = document.getElementById('cal-event-title').value.trim();
+  if (!title) { alert('Please enter a title.'); return; }
+  const date = document.getElementById('cal-event-date').value;
+  if (!date) { alert('Please pick a date.'); return; }
+  if (!p.calendarEvents) p.calendarEvents = [];
+  const editId = document.getElementById('cal-event-edit-id').value;
+  const notes = document.getElementById('cal-event-notes').value.trim();
+  if (editId) {
+    const ev = p.calendarEvents.find(x => x.id === editId); if (!ev) return;
+    ev.title = title; ev.date = date; ev.notes = notes;
+  } else {
+    p.calendarEvents.push({ id: uid(), title, date, notes, fromTimelineId: null });
+  }
+  save(); closeModal('cal-event-modal'); renderScenarios();
+}
+function deleteCalEvent() {
+  const planId = document.getElementById('cal-event-plan-id').value;
+  const editId = document.getElementById('cal-event-edit-id').value;
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  if (!editId || !confirm("Delete this calendar event? (This only removes it here — the original Timeline event, if any, is untouched.)")) return;
+  p.calendarEvents = (p.calendarEvents || []).filter(x => x.id !== editId);
+  save(); closeModal('cal-event-modal'); renderScenarios();
+}
+
+function openImportTimelineModal(planId) {
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  openModal('import-timeline-modal');
+  document.getElementById('import-timeline-plan-id').value = planId;
+  const candidates = (DB.timelineEvents || []).filter(e => e.date.slice(0, 7) === p.month);
+  const alreadyImported = new Set((p.calendarEvents || []).map(e => e.fromTimelineId).filter(Boolean));
+  const listEl = document.getElementById('import-timeline-list');
+  if (!candidates.length) {
+    listEl.innerHTML = `<div class="ins-empty">No Timeline events dated in ${_scMonthLabel(p.month)}.</div>`;
+  } else {
+    listEl.innerHTML = candidates.map(e => {
+      const cat = TIMELINE_CATEGORIES[e.category] || TIMELINE_CATEGORIES.milestone;
+      const dateLbl = new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `<label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border-light);">
+        <input type="checkbox" value="${e.id}" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;">
+        <span class="tl-badge" style="background:${cat.light};color:${cat.color};">${cat.icon} ${cat.label}</span>
+        <span style="flex:1;font-size:13px;min-width:0;">${e.title}</span>
+        <span style="font-size:11px;color:var(--text-muted);flex-shrink:0;">${dateLbl}</span>
+      </label>`;
+    }).join('');
+    candidates.forEach(e => {
+      if (alreadyImported.has(e.id)) {
+        const cb = listEl.querySelector(`input[value="${e.id}"]`);
+        if (cb) { cb.checked = true; cb.disabled = true; }
+      }
+    });
+  }
+}
+function importSelectedTimelineEvents() {
+  const planId = document.getElementById('import-timeline-plan-id').value;
+  const p = DB.monthScenarios.find(x => x.id === planId); if (!p) return;
+  if (!p.calendarEvents) p.calendarEvents = [];
+  const checked = Array.from(document.querySelectorAll('#import-timeline-list input[type=checkbox]')).filter(cb => cb.checked && !cb.disabled);
+  checked.forEach(cb => {
+    const ev = DB.timelineEvents.find(e => e.id === cb.value);
+    if (ev) p.calendarEvents.push({ id: uid(), title: ev.title, date: ev.date, notes: ev.desc || '', fromTimelineId: ev.id });
+  });
+  save(); closeModal('import-timeline-modal'); renderScenarios();
+}
+
+function planCalendarHtml(p) {
+  const [y, m] = p.month.split('-').map(Number);
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const leadingBlank = (firstDow + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = today();
+  const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const events = p.calendarEvents || [];
+  let html = dow.map(d => `<div class="hw-cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < leadingBlank; i++) html += `<div class="hw-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayEvents = events.filter(e => e.date === ds);
+    const cap = 2;
+    const visible = dayEvents.slice(0, cap);
+    const extra = dayEvents.length - visible.length;
+    html += `<div class="hw-cal-day ${ds===todayStr?'today':''}" onclick="openCalEventModal('${p.id}',null,'${ds}')">
+      <div class="hw-cal-daynum">${d}</div>
+      <div class="hw-cal-events">
+        ${visible.map(e => `<div class="hw-cal-item" style="background:#eef5f1;color:#3a6044;" onclick="event.stopPropagation();openCalEventModal('${p.id}','${e.id}')">${e.fromTimelineId?'🕐 ':''}${e.title}</div>`).join('')}
+        ${extra > 0 ? `<div class="hw-cal-more">+${extra} more</div>` : ''}
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
 function monthPlanCardHtml(p) {
   const scenarios = p.scenarios || [];
   const cardsHtml = scenarios.map(s => scenarioCardHtml(p, s)).join('');
@@ -11503,6 +11640,16 @@ function monthPlanCardHtml(p) {
         ${p.title?`<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.title}</div>`:''}
       </div>
       <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-sm btn-icon" onclick="openMonthPlanModal('${p.id}')">✏️</button></div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <div class="section-header" style="margin-bottom:8px;">
+        <h4 style="margin:0;font-size:13px;color:var(--text-secondary);">📅 Calendar</h4>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="openImportTimelineModal('${p.id}')">⬇️ Import from Timeline</button>
+          <button class="btn btn-secondary btn-sm" onclick="openCalEventModal('${p.id}')">+ Add Event</button>
+        </div>
+      </div>
+      <div class="hw-cal-grid">${planCalendarHtml(p)}</div>
     </div>
     <div class="sc-scenarios-row">${cardsHtml}${addTile}</div>
   </div>`;
