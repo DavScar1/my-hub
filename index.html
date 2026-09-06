@@ -433,6 +433,9 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .ca-school-progress-fill{height:5px;background:var(--c-accent);border-radius:99px;transition:width .3s;}
 .essays-school-card{margin-top:14px;}
 .essay-prompt-lg{font-size:16px;line-height:1.65;color:var(--text);font-style:normal;background:var(--bg);border-left:3px solid var(--c-accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:10px 0;}
+.essays-next-wrap{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.essays-next-card{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--c-accent);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:box-shadow .15s,transform .15s;}
+.essays-next-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.08);transform:translateY(-1px);}
 .ca-tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:16px;overflow-x:auto;padding:0;}
 .ca-tab-btn{padding:9px 14px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0;}
 .ca-tab-btn:hover:not(.ca-tab-active){color:var(--text);}
@@ -1534,6 +1537,8 @@ a:hover{text-decoration:underline;}
   <!-- Essays -->
   <div class="page" id="page-c-essays">
     <div class="page-header"><h2>Essays</h2><p>Your Common App essay, then supplemental essays grouped by university.</p></div>
+
+    <div id="essays-upcoming"></div>
 
     <div class="card" id="essays-common-card"></div>
 
@@ -6966,7 +6971,53 @@ function _essaysEarliestDeadline() {
   const dates = DB.caSchools.map(s => s.deadline).filter(Boolean).sort();
   return dates.length ? dates[0] : null;
 }
+function _essaysUpcomingDeadlines() {
+  const items = [];
+  const p = DB.caProfile;
+  if ((p.commonEssayStatus || 'not_started') !== 'done') {
+    const earliest = _essaysEarliestDeadline();
+    if (earliest) items.push({ date: earliest, icon: '🎓', title: 'Common App Essay', sub: 'Personal statement', onclick: 'openCommonEssayWriter()' });
+  }
+  DB.caSchools.forEach(s => {
+    const essays = s.essays || [];
+    if (!s.deadline || essays.length === 0) return;
+    const remaining = essays.filter(e => e.status !== 'done').length;
+    if (remaining === 0) return;
+    items.push({ date: s.deadline, icon: '🏫', title: s.name, sub: `${remaining} essay${remaining>1?'s':''} left`, onclick: `jumpToEssaysSchool('${s.id}')` });
+  });
+  items.sort((a, b) => new Date(a.date+'T12:00:00') - new Date(b.date+'T12:00:00'));
+  return items.slice(0, 3);
+}
+function jumpToEssaysSchool(schoolId) {
+  _caSchoolOpen[schoolId] = true;
+  renderEssaysCommonAndSchools();
+  const el = document.getElementById('essays-school-' + schoolId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function renderEssaysUpcoming() {
+  const el = document.getElementById('essays-upcoming');
+  if (!el) return;
+  const items = _essaysUpcomingDeadlines();
+  if (items.length === 0) { el.innerHTML = ''; return; }
+  const now = new Date();
+  el.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">⏰ Coming Up Next</div>
+    <div class="essays-next-wrap">
+      ${items.map(it => {
+        const d = new Date(it.date+'T12:00:00');
+        const daysLeft = Math.ceil((d - now) / 86400000);
+        const urgency = daysLeft < 14 ? 'var(--red)' : daysLeft < 45 ? 'var(--amber)' : 'var(--c-accent)';
+        const dLbl = d.toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+        return `<div class="essays-next-card" style="border-left-color:${urgency};" onclick="${it.onclick}">
+          <div style="font-size:20px;font-weight:800;color:${urgency};line-height:1;">${daysLeft>=0?daysLeft:0}<span style="font-size:11px;font-weight:600;color:var(--text-muted);">d</span></div>
+          <div style="font-size:12px;font-weight:700;margin-top:4px;">${it.icon} ${it.title}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${it.sub} · ${dLbl}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
 function renderEssaysCommonAndSchools() {
+  renderEssaysUpcoming();
   const commonCard = document.getElementById('essays-common-card');
   const schoolsList = document.getElementById('essays-schools-list');
   if (!commonCard || !schoolsList) return;
@@ -7009,7 +7060,7 @@ function renderEssaysCommonAndSchools() {
     const essays = school.essays || [];
     const isOpen = !!_caSchoolOpen[school.id];
     const essaysDone = essays.filter(e => e.status === 'done').length;
-    return `<div class="ca-school-card essays-school-card">
+    return `<div class="ca-school-card essays-school-card" id="essays-school-${school.id}">
       <div class="ca-school-head" style="cursor:pointer;" onclick="toggleCaSchoolCard('${school.id}')">
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:7px;">
