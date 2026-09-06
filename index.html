@@ -432,6 +432,7 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .ca-school-progress{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-left:auto;width:60px;flex-shrink:0;}
 .ca-school-progress-fill{height:5px;background:var(--c-accent);border-radius:99px;transition:width .3s;}
 .essays-school-card{margin-top:14px;}
+.essay-prompt-lg{font-size:16px;line-height:1.65;color:var(--text);font-style:normal;background:var(--bg);border-left:3px solid var(--c-accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:10px 0;}
 .ca-tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:16px;overflow-x:auto;padding:0;}
 .ca-tab-btn{padding:9px 14px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0;}
 .ca-tab-btn:hover:not(.ca-tab-active){color:var(--text);}
@@ -6998,20 +6999,31 @@ function renderEssaysCommonAndSchools() {
     return;
   }
 
-  schoolsList.innerHTML = DB.caSchools.map(school => {
+  const anyOpen = DB.caSchools.some(s => _caSchoolOpen[s.id]);
+  schoolsList.innerHTML = `<div style="display:flex;justify-content:flex-end;gap:6px;margin:10px 0 4px;">
+      <button class="btn-ghost" style="font-size:12px;" onclick="${anyOpen?'collapseAllCaSchools()':'expandAllCaSchools()'}">${anyOpen?'Collapse all':'Expand all'}</button>
+    </div>` + DB.caSchools.map(school => {
     const deadlineLbl = school.deadline ? new Date(school.deadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : null;
     const daysLeft = school.deadline ? Math.ceil((new Date(school.deadline+'T12:00:00')-new Date())/86400000) : null;
     const urgency = daysLeft !== null ? (daysLeft < 30 ? 'var(--red)' : daysLeft < 90 ? 'var(--amber)' : 'var(--text-muted)') : 'var(--text-muted)';
     const essays = school.essays || [];
-    return `<div class="card essays-school-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-        <div>
-          <div class="card-title" style="margin-bottom:2px;">${school.name}</div>
-          <div style="font-size:11px;font-weight:600;color:${urgency};">${deadlineLbl ? `Due ${deadlineLbl}${daysLeft!==null?` · ${daysLeft>=0?daysLeft+'d left':'past due'}`:''}` : 'No deadline set'}</div>
+    const isOpen = !!_caSchoolOpen[school.id];
+    const essaysDone = essays.filter(e => e.status === 'done').length;
+    return `<div class="ca-school-card essays-school-card">
+      <div class="ca-school-head" style="cursor:pointer;" onclick="toggleCaSchoolCard('${school.id}')">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:11px;color:var(--text-muted);transition:transform .15s;display:inline-block;transform:rotate(${isOpen?90:0}deg);">▶</span>
+            <span style="font-weight:800;font-size:14px;">${school.name}</span>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:${urgency};margin-top:2px;margin-left:18px;">
+            ${deadlineLbl ? `Due ${deadlineLbl}${daysLeft!==null?` · ${daysLeft>=0?daysLeft+'d left':'past due'}`:''}` : 'No deadline set'}
+            ${!isOpen?`<span style="color:var(--text-muted);font-weight:400;">&nbsp;· ${essaysDone}/${essays.length} essays done</span>`:''}
+          </div>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="openCaEssayModal('${school.id}')">+ Add Prompt</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaEssayModal('${school.id}')">+ Add Prompt</button>
       </div>
-      <div style="margin-top:8px;">
+      <div class="ca-school-body" style="display:${isOpen?'block':'none'};">
       ${essays.length === 0
         ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">None</div>`
         : essays.map(e => `<div class="ca-essay-row">
@@ -7022,7 +7034,7 @@ function renderEssaysCommonAndSchools() {
               <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="openSchoolEssayWriter('${school.id}','${e.id}')" title="Write">✍️</button>
               <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="openCaEssayModal('${school.id}','${e.id}')" title="Edit">✏️</button>
             </div>
-            ${e.prompt?`<div class="ca-essay-prompt">"${e.prompt}"</div>`:''}
+            ${e.prompt?`<div class="essay-prompt-lg">${e.prompt}</div>`:''}
             ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
           </div>`).join('')
       }
@@ -10966,9 +10978,9 @@ let _caTab = 'profile';
 function setCaTab(tab) { _caTab = tab; renderCommonApp(); }
 
 let _caSchoolOpen = {};
-function toggleCaSchoolCard(id) { _caSchoolOpen[id] = !_caSchoolOpen[id]; renderCommonApp(); }
-function expandAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = true); renderCommonApp(); }
-function collapseAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = false); renderCommonApp(); }
+function toggleCaSchoolCard(id) { _caSchoolOpen[id] = !_caSchoolOpen[id]; renderCommonApp(); renderEssaysCommonAndSchools(); }
+function expandAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = true); renderCommonApp(); renderEssaysCommonAndSchools(); }
+function collapseAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = false); renderCommonApp(); renderEssaysCommonAndSchools(); }
 
 function renderCommonApp() {
   const p = DB.caProfile;
