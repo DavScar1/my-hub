@@ -431,6 +431,7 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .ca-essay-prompt{font-size:11px;color:var(--text-muted);margin-top:3px;font-style:italic;}
 .ca-school-progress{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-left:auto;width:60px;flex-shrink:0;}
 .ca-school-progress-fill{height:5px;background:var(--c-accent);border-radius:99px;transition:width .3s;}
+.essays-school-card{margin-top:14px;}
 .ca-tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:16px;overflow-x:auto;padding:0;}
 .ca-tab-btn{padding:9px 14px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0;}
 .ca-tab-btn:hover:not(.ca-tab-active){color:var(--text);}
@@ -1531,7 +1532,13 @@ a:hover{text-decoration:underline;}
 
   <!-- Essays -->
   <div class="page" id="page-c-essays">
-    <div class="page-header"><h2>Essays</h2><p>Track your personal statement and supplemental essays for each school.</p></div>
+    <div class="page-header"><h2>Essays</h2><p>Your Common App essay, then supplemental essays grouped by university.</p></div>
+
+    <div class="card" id="essays-common-card"></div>
+
+    <div id="essays-schools-list"></div>
+
+    <div class="page-header" style="margin-top:26px;"><h3 style="margin:0;">Other Essays</h3><p>Anything not tied to a Common App school.</p></div>
     <div class="section-header">
       <select id="essay-college-filter" onchange="renderEssays()" style="width:auto;padding:6px 10px;"><option value="">All Colleges</option></select>
       <button class="btn btn-primary" onclick="openModal('essay-modal')">+ Add Essay</button>
@@ -3652,6 +3659,11 @@ function ensureDBDefaults() {
     commonEssayStatus:'not_started', commonEssayPrompt:'', commonEssayNotes:''
   };
   if (!DB.caSchools) DB.caSchools = [];
+  if (DB.caProfile.commonEssayContent === undefined) DB.caProfile.commonEssayContent = '';
+  DB.caSchools.forEach(s => (s.essays || []).forEach(e => {
+    if (e.content === undefined) e.content = '';
+    if (e.wordCount === undefined) e.wordCount = '0';
+  }));
   if (!DB.satPlan) DB.satPlan = { testDate:'', notesPages:[], plans:[] };
   if (DB.satPlan.notesPages === undefined) DB.satPlan.notesPages = [];
   if (DB.satPlan.testDate === undefined) DB.satPlan.testDate = '';
@@ -6940,7 +6952,86 @@ function editEssay(id) {
   document.getElementById('essay-notes').value=e.notes||'';openModal('essay-modal',id);
 }
 function deleteEssay(id) { if(!confirm('Delete this essay?'))return; DB.essays=DB.essays.filter(e=>e.id!==id);save();renderEssays(); }
+const _CA_COMMON_PROMPT_LABELS = {
+  '1': '1. Background, identity, interest, or talent',
+  '2': '2. Obstacle, challenge, or failure and what you learned',
+  '3': '3. Questioned or challenged a belief or idea',
+  '4': '4. Something someone did for you — gratitude and paying it forward',
+  '5': '5. Accomplishment or realisation that sparked personal growth',
+  '6': '6. Topic or idea that makes you lose track of time',
+  '7': '7. Free choice — topic of your own design',
+};
+function _essaysEarliestDeadline() {
+  const dates = DB.caSchools.map(s => s.deadline).filter(Boolean).sort();
+  return dates.length ? dates[0] : null;
+}
+function renderEssaysCommonAndSchools() {
+  const commonCard = document.getElementById('essays-common-card');
+  const schoolsList = document.getElementById('essays-schools-list');
+  if (!commonCard || !schoolsList) return;
+
+  const p = DB.caProfile;
+  const essayStatus = p.commonEssayStatus || 'not_started';
+  const promptLabel = p.commonEssayPrompt ? _CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] : null;
+  const earliestDeadline = _essaysEarliestDeadline();
+  const earliestLbl = earliestDeadline ? new Date(earliestDeadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : null;
+
+  commonCard.innerHTML = `
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>🎓 Common App Essay</span>
+      <button class="btn btn-secondary btn-sm" onclick="openCommonEssayWriter()">✍️ Write</button>
+    </div>
+    <div class="ca-essay-title" style="margin-top:8px;">
+      ${essayStatus==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
+      ${promptLabel || 'No prompt chosen yet'}
+      <span style="font-size:10px;color:var(--text-muted);font-weight:400;">650w</span>
+    </div>
+    ${p.commonEssayNotes ? `<div class="ca-essay-prompt">"${p.commonEssayNotes}"</div>` : ''}
+    ${_caCommonEssayPill(essayStatus)}
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Shared with every school you apply to${earliestLbl?` · earliest due ${earliestLbl}`:''}</div>`;
+
+  if (DB.caSchools.length === 0) {
+    schoolsList.innerHTML = `<div class="empty-state card essays-school-card" style="text-align:center;padding:20px;">
+      <div class="ei">🏫</div><p>No universities added yet.<br><span style="font-size:12px;color:var(--text-muted);">Add schools in the Common App section to see their supplemental essays here.</span></p>
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="setMode('college');showPage('c-commonapp')">Go to Common App →</button>
+    </div>`;
+    return;
+  }
+
+  schoolsList.innerHTML = DB.caSchools.map(school => {
+    const deadlineLbl = school.deadline ? new Date(school.deadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : null;
+    const daysLeft = school.deadline ? Math.ceil((new Date(school.deadline+'T12:00:00')-new Date())/86400000) : null;
+    const urgency = daysLeft !== null ? (daysLeft < 30 ? 'var(--red)' : daysLeft < 90 ? 'var(--amber)' : 'var(--text-muted)') : 'var(--text-muted)';
+    const essays = school.essays || [];
+    return `<div class="card essays-school-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div>
+          <div class="card-title" style="margin-bottom:2px;">${school.name}</div>
+          <div style="font-size:11px;font-weight:600;color:${urgency};">${deadlineLbl ? `Due ${deadlineLbl}${daysLeft!==null?` · ${daysLeft>=0?daysLeft+'d left':'past due'}`:''}` : 'No deadline set'}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openCaEssayModal('${school.id}')">+ Add Prompt</button>
+      </div>
+      <div style="margin-top:8px;">
+      ${essays.length === 0
+        ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">None</div>`
+        : essays.map(e => `<div class="ca-essay-row">
+            <div class="ca-essay-title">
+              ${e.status==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
+              ${e.title}
+              ${e.wordLimit?`<span style="font-size:10px;color:var(--text-muted);font-weight:400;">${e.wordLimit}w</span>`:''}
+              <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="openSchoolEssayWriter('${school.id}','${e.id}')" title="Write">✍️</button>
+              <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="openCaEssayModal('${school.id}','${e.id}')" title="Edit">✏️</button>
+            </div>
+            ${e.prompt?`<div class="ca-essay-prompt">"${e.prompt}"</div>`:''}
+            ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
+          </div>`).join('')
+      }
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderEssays() {
+  renderEssaysCommonAndSchools();
   updateEssayCollegeFilter();
   const filter=document.getElementById('essay-college-filter').value;
   const list=filter?DB.essays.filter(e=>e.college===filter):DB.essays;
@@ -6952,11 +7043,11 @@ function renderEssays() {
   }).join('');
 }
 
-let _essayWriterId = null;
+let _essayWriterSource = { type: 'flat', id: null };
 let _essayWriterSaveTimer = null;
 function openEssayWriter(id) {
   const e = DB.essays.find(e => e.id === id); if (!e) return;
-  _essayWriterId = id;
+  _essayWriterSource = { type: 'flat', id };
   document.getElementById('essay-writer-title').textContent = `${e.college} — ${e.type}`;
   document.getElementById('essay-writer-prompt').textContent = e.prompt || '';
   document.getElementById('essay-writer-content').value = e.content || '';
@@ -6965,15 +7056,50 @@ function openEssayWriter(id) {
   showPage('c-essay-writer');
   document.getElementById('essay-writer-content').focus();
 }
+function openSchoolEssayWriter(schoolId, essayId) {
+  const school = DB.caSchools.find(s => s.id === schoolId); if (!school) return;
+  const e = school.essays.find(x => x.id === essayId); if (!e) return;
+  _essayWriterSource = { type: 'school', schoolId, id: essayId };
+  document.getElementById('essay-writer-title').textContent = `${school.name} — ${e.title}`;
+  document.getElementById('essay-writer-prompt').textContent = e.prompt || '';
+  document.getElementById('essay-writer-content').value = e.content || '';
+  document.getElementById('essay-writer-saved').textContent = '';
+  updateEssayWriterCount();
+  showPage('c-essay-writer');
+  document.getElementById('essay-writer-content').focus();
+}
+function openCommonEssayWriter() {
+  const p = DB.caProfile;
+  _essayWriterSource = { type: 'common' };
+  document.getElementById('essay-writer-title').textContent = 'Common App Essay';
+  document.getElementById('essay-writer-prompt').textContent = p.commonEssayPrompt
+    ? (_CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] || '')
+    : 'No prompt chosen yet — pick one in the Common App section.';
+  document.getElementById('essay-writer-content').value = p.commonEssayContent || '';
+  document.getElementById('essay-writer-saved').textContent = '';
+  updateEssayWriterCount();
+  showPage('c-essay-writer');
+  document.getElementById('essay-writer-content').focus();
+}
+function _essayWriterWordLimit() {
+  const src = _essayWriterSource;
+  if (src.type === 'common') return 650;
+  if (src.type === 'flat') { const e = DB.essays.find(e => e.id === src.id); return e && e.wordLimit ? parseInt(e.wordLimit) : null; }
+  if (src.type === 'school') {
+    const school = DB.caSchools.find(s => s.id === src.schoolId);
+    const e = school ? school.essays.find(x => x.id === src.id) : null;
+    return e && e.wordLimit ? parseInt(e.wordLimit) : null;
+  }
+  return null;
+}
 function essayWordCount(text) {
   const words = (text || '').trim().split(/\s+/).filter(Boolean);
   return words.length;
 }
 function updateEssayWriterCount() {
-  const e = DB.essays.find(e => e.id === _essayWriterId); if (!e) return;
   const text = document.getElementById('essay-writer-content').value;
   const wc = essayWordCount(text);
-  const wl = e.wordLimit ? parseInt(e.wordLimit) : null;
+  const wl = _essayWriterWordLimit();
   document.getElementById('essay-writer-count').textContent = wl ? `${wc} / ${wl} words` : `${wc} words`;
 }
 function onEssayWriterInput() {
@@ -6983,11 +7109,23 @@ function onEssayWriterInput() {
   _essayWriterSaveTimer = setTimeout(saveEssayWriterContent, 800);
 }
 function saveEssayWriterContent() {
-  const e = DB.essays.find(e => e.id === _essayWriterId); if (!e) return;
-  e.content = document.getElementById('essay-writer-content').value;
-  e.wordCount = String(essayWordCount(e.content));
+  const src = _essayWriterSource;
+  const content = document.getElementById('essay-writer-content').value;
+  const wordCount = String(essayWordCount(content));
+  if (src.type === 'flat') {
+    const e = DB.essays.find(e => e.id === src.id); if (!e) return;
+    e.content = content; e.wordCount = wordCount;
+    renderEssays();
+  } else if (src.type === 'school') {
+    const school = DB.caSchools.find(s => s.id === src.schoolId); if (!school) return;
+    const e = school.essays.find(x => x.id === src.id); if (!e) return;
+    e.content = content; e.wordCount = wordCount;
+    renderEssaysCommonAndSchools();
+  } else if (src.type === 'common') {
+    DB.caProfile.commonEssayContent = content;
+    renderEssaysCommonAndSchools();
+  }
   save();
-  renderEssays();
   document.getElementById('essay-writer-saved').textContent = 'Saved at ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
@@ -11087,7 +11225,7 @@ function toggleCaItem(key) {
 
 function setCaCommonEssayStatus(status) {
   DB.caProfile.commonEssayStatus = status;
-  save(); renderCommonApp();
+  save(); renderCommonApp(); renderEssaysCommonAndSchools();
 }
 
 function setCaSchoolEssayStatus(schoolId, essayId, status) {
@@ -11096,7 +11234,7 @@ function setCaSchoolEssayStatus(schoolId, essayId, status) {
   const essay = school.essays.find(e => e.id === essayId);
   if (!essay) return;
   essay.status = status;
-  save(); renderCommonApp();
+  save(); renderCommonApp(); renderEssaysCommonAndSchools();
 }
 
 function toggleCaReq(schoolId, reqId) {
@@ -11158,7 +11296,7 @@ function saveCaSchool() {
     s.name = name; s.deadline = deadline; s.dtype = dtype;
     s.satCode = satCode; s.fee = fee; s.notes = notes;
   } else {
-    const essays = tmpl ? tmpl.essays.map(e => ({ ...e, id: uid(), status: 'not_started' })) : [];
+    const essays = tmpl ? tmpl.essays.map(e => ({ ...e, id: uid(), status: 'not_started', content: '', wordCount: '0' })) : [];
     const requirements = tmpl ? tmpl.requirements.map(r => ({ id: uid(), name: r, done: false })) : [
       {id:uid(),name:'School Report',done:false},
       {id:uid(),name:'Counsellor Recommendation',done:false},
@@ -11171,14 +11309,14 @@ function saveCaSchool() {
     DB.caSchools.push({ id: newId, name, deadline, dtype, satCode, fee, notes, essays, requirements });
     _caSchoolOpen[newId] = true;
   }
-  save(); closeModal('ca-school-modal'); renderCommonApp();
+  save(); closeModal('ca-school-modal'); renderCommonApp(); renderEssaysCommonAndSchools();
 }
 
 function deleteCaSchool() {
   const editId = document.getElementById('ca-school-edit-id').value;
   if (!editId || !confirm('Remove this school?')) return;
   DB.caSchools = DB.caSchools.filter(s => s.id !== editId);
-  save(); closeModal('ca-school-modal'); renderCommonApp();
+  save(); closeModal('ca-school-modal'); renderCommonApp(); renderEssaysCommonAndSchools();
 }
 
 function openCaEssayModal(schoolId, essayId) {
@@ -11209,9 +11347,9 @@ function saveCaEssay() {
     if (!e) return;
     e.title = title; e.wordLimit = wordLimit; e.prompt = promptText;
   } else {
-    school.essays.push({ id: uid(), title, wordLimit, prompt: promptText, status: 'not_started' });
+    school.essays.push({ id: uid(), title, wordLimit, prompt: promptText, status: 'not_started', content: '', wordCount: '0' });
   }
-  save(); closeModal('ca-essay-modal'); renderCommonApp();
+  save(); closeModal('ca-essay-modal'); renderCommonApp(); renderEssaysCommonAndSchools();
 }
 
 function deleteCaEssay() {
@@ -11221,7 +11359,7 @@ function deleteCaEssay() {
   const school = DB.caSchools.find(s => s.id === schoolId);
   if (!school) return;
   school.essays = school.essays.filter(e => e.id !== editId);
-  save(); closeModal('ca-essay-modal'); renderCommonApp();
+  save(); closeModal('ca-essay-modal'); renderCommonApp(); renderEssaysCommonAndSchools();
 }
 
 // ============================================================
