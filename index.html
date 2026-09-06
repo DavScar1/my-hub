@@ -6994,14 +6994,70 @@ function jumpToEssaysSchool(schoolId) {
   const el = document.getElementById('essays-school-' + schoolId);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+function _essaysDueByDate(dateStr) {
+  const cutoff = new Date(dateStr + 'T23:59:59');
+  const items = [];
+  const p = DB.caProfile;
+  const earliest = _essaysEarliestDeadline();
+  if (earliest && new Date(earliest + 'T12:00:00') <= cutoff) {
+    items.push({ date: earliest, school: 'Common App', title: 'Personal Statement', status: p.commonEssayStatus || 'not_started', writer: 'openCommonEssayWriter()' });
+  }
+  DB.caSchools.forEach(s => {
+    if (!s.deadline || new Date(s.deadline + 'T12:00:00') > cutoff) return;
+    (s.essays || []).forEach(e => {
+      items.push({ date: s.deadline, school: s.name, title: e.title, status: e.status || 'not_started', writer: `openSchoolEssayWriter('${s.id}','${e.id}')` });
+    });
+  });
+  items.sort((a, b) => new Date(a.date + 'T12:00:00') - new Date(b.date + 'T12:00:00') || a.school.localeCompare(b.school));
+  return items;
+}
+let _essaysCheckDate = '';
+function setEssaysCheckDate(v) { _essaysCheckDate = v; renderEssaysUpcoming(); }
 function renderEssaysUpcoming() {
   const el = document.getElementById('essays-upcoming');
   if (!el) return;
+
+  const headerRow = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">⏰ Coming Up Next</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label style="font-size:11px;color:var(--text-muted);font-weight:600;margin:0;">Due by</label>
+        <input type="date" value="${_essaysCheckDate}" style="width:auto;padding:4px 8px;font-size:12px;" onchange="setEssaysCheckDate(this.value)">
+        ${_essaysCheckDate ? `<button class="btn-ghost" style="font-size:12px;padding:2px 6px;" onclick="setEssaysCheckDate('')">✕ Clear</button>` : ''}
+      </div>
+    </div>`;
+
+  if (_essaysCheckDate) {
+    const items = _essaysDueByDate(_essaysCheckDate);
+    const dLbl = new Date(_essaysCheckDate + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (items.length === 0) {
+      el.innerHTML = headerRow + `<div style="font-size:12px;color:var(--text-muted);padding:4px 0 18px;">No essays due on or before ${dLbl}. 🎉</div>`;
+      return;
+    }
+    const remaining = items.filter(i => i.status !== 'done').length;
+    el.innerHTML = headerRow + `
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${items.length} essay${items.length>1?'s':''} due on or before ${dLbl} · ${remaining} still to do</div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:18px;">
+        ${items.map(it => `<div class="ca-essay-row" style="padding:10px 14px;">
+          <div class="ca-essay-title" style="justify-content:space-between;">
+            <span>${it.status==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'} ${it.school} — ${it.title}</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:var(--text-muted);font-weight:400;">${new Date(it.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}</span>
+              <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="${it.writer}">✍️</button>
+            </span>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    return;
+  }
+
   const items = _essaysUpcomingDeadlines();
-  if (items.length === 0) { el.innerHTML = ''; return; }
+  if (items.length === 0) {
+    el.innerHTML = headerRow + `<div style="font-size:12px;color:var(--text-muted);padding:4px 0 18px;">Nothing urgent right now. 🎉</div>`;
+    return;
+  }
   const now = new Date();
-  el.innerHTML = `
-    <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">⏰ Coming Up Next</div>
+  el.innerHTML = headerRow + `
     <div class="essays-next-wrap">
       ${items.map(it => {
         const d = new Date(it.date+'T12:00:00');
