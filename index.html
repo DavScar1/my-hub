@@ -4205,8 +4205,12 @@ const PREP_PLAN_TEMPLATE = [
   { daysBefore: 0,  title: 'Submit application' },
 ];
 
-function openPrepPlanModal(collegeId) {
-  const c = DB.colleges.find(x => x.id === collegeId); if (!c) return;
+let _prepPlanListKey = 'colleges';
+function _prepPlanList() { return DB[_prepPlanListKey] || []; }
+
+function openPrepPlanModal(collegeId, listKey) {
+  _prepPlanListKey = listKey || 'colleges';
+  const c = _prepPlanList().find(x => x.id === collegeId); if (!c) return;
   document.getElementById('prep-college-id').value = collegeId;
   document.getElementById('prep-modal-title').textContent = `🧭 ${c.name} — Prep Plan`;
   document.getElementById('prep-new-task').value = '';
@@ -4215,7 +4219,7 @@ function openPrepPlanModal(collegeId) {
 }
 
 function renderPrepPlanModal(collegeId) {
-  const c = DB.colleges.find(x => x.id === collegeId); if (!c) return;
+  const c = _prepPlanList().find(x => x.id === collegeId); if (!c) return;
   const deadlineLbl = c.deadline ? new Date(c.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline set';
   document.getElementById('prep-modal-sub').textContent = `Deadline: ${deadlineLbl}`;
 
@@ -4246,7 +4250,7 @@ function renderPrepPlanModal(collegeId) {
 }
 
 function generatePrepPlan(collegeId) {
-  const c = DB.colleges.find(x => x.id === collegeId); if (!c) return;
+  const c = _prepPlanList().find(x => x.id === collegeId); if (!c) return;
   if (!c.deadline) { alert('Set a deadline for this college first.'); return; }
   if (c.prepTasks && c.prepTasks.length && !confirm('This replaces your current prep plan (including custom tasks). Continue?')) return;
   const deadline = new Date(c.deadline + 'T12:00:00');
@@ -4258,21 +4262,21 @@ function generatePrepPlan(collegeId) {
 }
 
 function togglePrepTask(collegeId, taskId) {
-  const c = DB.colleges.find(x => x.id === collegeId); if (!c) return;
+  const c = _prepPlanList().find(x => x.id === collegeId); if (!c) return;
   const t = (c.prepTasks || []).find(x => x.id === taskId); if (!t) return;
   t.done = !t.done;
   save(); renderPrepPlanModal(collegeId);
 }
 
 function deletePrepTask(collegeId, taskId) {
-  const c = DB.colleges.find(x => x.id === collegeId); if (!c) return;
+  const c = _prepPlanList().find(x => x.id === collegeId); if (!c) return;
   c.prepTasks = (c.prepTasks || []).filter(x => x.id !== taskId);
   save(); renderPrepPlanModal(collegeId);
 }
 
 function addPrepTask() {
   const collegeId = document.getElementById('prep-college-id').value;
-  const c = DB.colleges.find(x => x.id === collegeId); if (!c) return;
+  const c = _prepPlanList().find(x => x.id === collegeId); if (!c) return;
   const input = document.getElementById('prep-new-task');
   const title = input.value.trim();
   if (!title) return;
@@ -4821,6 +4825,7 @@ function intlCollegeRowHtml(c, applying) {
       <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${deadline} · ${statusBadge(c.status)}${c.requirements?` · ${c.requirements}`:''}</div>
     </div>
     ${toggleBtn}
+    <button class="btn btn-secondary btn-xs" onclick="openPrepPlanModal('${c.id}','intlColleges')" title="Prep Plan">🧭</button>
     <button class="btn btn-secondary btn-xs" onclick="openIntlCollegeModal('${c.id}')">✏️</button>
     <button class="btn btn-danger btn-xs" onclick="deleteIntlCollege('${c.id}')">🗑</button>
   </div>`;
