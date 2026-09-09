@@ -1151,6 +1151,11 @@ a:hover{text-decoration:underline;}
   <!-- Leaving Cert -->
   <div class="page" id="page-c-leavingcert">
     <div class="page-header"><h2>Leaving Certificate</h2><p>Track test scores per subject and predicted CAO points. Best 6 of 7 count (max 625 with Maths bonus).</p></div>
+    <div class="tabs" style="margin-bottom:18px;">
+      <button class="tab-btn active" id="lc-tab-5" onclick="switchLcTab(5,this)">5th Year</button>
+      <button class="tab-btn" id="lc-tab-6" onclick="switchLcTab(6,this)">6th Year</button>
+      <button class="tab-btn" id="lc-tab-combined" onclick="switchLcTab('combined',this)">🔀 Combined</button>
+    </div>
     <div class="grid-4" style="margin-bottom:20px;">
       <div class="stat-card"><div class="card-title">Predicted CAO</div><div class="stat-value" id="lc-total-points" style="color:var(--accent);">—</div><div class="stat-sub">Best 6 of 7</div></div>
       <div class="stat-card"><div class="card-title">With Maths Bonus</div><div class="stat-value" id="lc-bonus-points" style="color:var(--green);">—</div><div class="stat-sub">+25 if HL Maths ≥ H6</div></div>
@@ -2739,6 +2744,7 @@ a:hover{text-decoration:underline;}
     <h3 id="grade-modal-title">Add Test Score</h3>
     <input type="hidden" id="grade-edit-id">
     <input type="hidden" id="grade-subject-key">
+    <input type="hidden" id="grade-year">
     <div class="form-group"><label>Test / Exam Name *</label><input type="text" id="gr-name" placeholder="e.g. Christmas Test, Mock Exam…"></div>
     <div class="form-row">
       <div class="form-group"><label>Score (%)</label><input type="number" id="gr-score" min="0" max="100" placeholder="78" oninput="updateGradePreview()"></div>
@@ -5213,30 +5219,54 @@ function lcGradeFromScore(pct, level) {
 }
 function initSubjects() {
   if (!DB.subjects) { DB.subjects={}; LC_SUBJECTS.forEach(s=>{ DB.subjects[s.key]={level:s.defaultLevel,predictedGrade:'',tests:[]}; }); }
+  if (!DB.subjects6) { DB.subjects6={}; LC_SUBJECTS.forEach(s=>{ DB.subjects6[s.key]={level:s.defaultLevel,predictedGrade:'',tests:[]}; }); }
 }
-function calcCAOPoints() {
+function _lcStore(year) { return year===6 ? DB.subjects6 : DB.subjects; }
+function calcCAOPointsForYear(year) {
   initSubjects();
-  const pts = LC_SUBJECTS.map(s=>{ const sub=DB.subjects[s.key]; return sub.predictedGrade?lcPointsFromGrade(sub.predictedGrade):0; });
+  const store = _lcStore(year);
+  const pts = LC_SUBJECTS.map(s=>{ const sub=store[s.key]; return sub.predictedGrade?lcPointsFromGrade(sub.predictedGrade):0; });
   pts.sort((a,b)=>b-a);
   const best6 = pts.slice(0,6).reduce((a,b)=>a+b,0);
-  const ms=DB.subjects['maths']; const mg=ms?ms.predictedGrade:'';
+  const ms=store['maths']; const mg=ms?ms.predictedGrade:'';
   const mathsBonus = ms&&ms.level==='Higher'&&mg&&LC_HL_POINTS[mg]>=46?25:0;
+  return {best6,withBonus:best6+mathsBonus,mathsBonus};
+}
+function calcCAOPoints() { return calcCAOPointsForYear(5); }
+function _lcCombinedPointsForSubject(key) {
+  const p5 = DB.subjects[key] && DB.subjects[key].predictedGrade ? lcPointsFromGrade(DB.subjects[key].predictedGrade) : null;
+  const p6 = DB.subjects6[key] && DB.subjects6[key].predictedGrade ? lcPointsFromGrade(DB.subjects6[key].predictedGrade) : null;
+  if (p5===null && p6===null) return 0;
+  if (p5===null) return p6;
+  if (p6===null) return p5;
+  return Math.round((p5+p6)/2);
+}
+function calcCombinedCAOPoints() {
+  initSubjects();
+  const pts = LC_SUBJECTS.map(s => _lcCombinedPointsForSubject(s.key));
+  const best6 = [...pts].sort((a,b)=>b-a).slice(0,6).reduce((a,b)=>a+b,0);
+  const ms5=DB.subjects['maths'], ms6=DB.subjects6['maths'];
+  const mathsLevel = (ms6&&ms6.predictedGrade) ? ms6.level : (ms5&&ms5.predictedGrade) ? ms5.level : 'Higher';
+  const mathsPts = _lcCombinedPointsForSubject('maths');
+  const mathsBonus = mathsLevel==='Higher' && mathsPts>=46 ? 25 : 0;
   return {best6,withBonus:best6+mathsBonus,mathsBonus};
 }
 function getGradeBadgeColor(g) {
   if(!g)return'gray'; const pts=lcPointsFromGrade(g);
   if(pts>=88)return'green';if(pts>=66)return'blue';if(pts>=46)return'yellow';if(pts>0)return'red';return'gray';
 }
-function openTestModal(subjectKey, testId) {
+function openTestModal(subjectKey, testId, year) {
+  year = year || 5;
   const sub=LC_SUBJECTS.find(s=>s.key===subjectKey);
-  document.getElementById('grade-modal-title').textContent=`${testId?'Edit':'Add'} Test — ${sub?sub.name:''}`;
+  document.getElementById('grade-modal-title').textContent=`${testId?'Edit':'Add'} Test — ${sub?sub.name:''} (${year}th Year)`;
   document.getElementById('grade-subject-key').value=subjectKey;
+  document.getElementById('grade-year').value=year;
   document.getElementById('grade-edit-id').value=testId||'';
   document.getElementById('gr-name').value=''; document.getElementById('gr-score').value='';
   document.getElementById('gr-date').value=''; document.getElementById('gr-notes').value='';
   document.getElementById('grade-preview-row').style.display='none';
   if (testId) {
-    const t=(DB.subjects[subjectKey].tests||[]).find(t=>t.id===testId);
+    const t=(_lcStore(year)[subjectKey].tests||[]).find(t=>t.id===testId);
     if(t){document.getElementById('gr-name').value=t.name;document.getElementById('gr-score').value=t.score;document.getElementById('gr-date').value=t.date||'';document.getElementById('gr-notes').value=t.notes||'';updateGradePreview();}
   }
   document.getElementById('grade-modal').classList.add('open');
@@ -5244,7 +5274,8 @@ function openTestModal(subjectKey, testId) {
 function updateGradePreview() {
   const score=parseFloat(document.getElementById('gr-score').value);
   const key=document.getElementById('grade-subject-key').value;
-  const level=(DB.subjects[key]||{level:'Higher'}).level;
+  const year=parseInt(document.getElementById('grade-year').value)||5;
+  const level=(_lcStore(year)[key]||{level:'Higher'}).level;
   const row=document.getElementById('grade-preview-row');
   if(isNaN(score)||score<0||score>100){row.style.display='none';return;}
   const grade=lcGradeFromScore(score,level);
@@ -5259,8 +5290,9 @@ function saveTestScore() {
   if(!name){alert('Please enter a test name.');return;}
   initSubjects();
   const key=document.getElementById('grade-subject-key').value;
+  const year=parseInt(document.getElementById('grade-year').value)||5;
   const editId=document.getElementById('grade-edit-id').value;
-  const subData=DB.subjects[key];
+  const subData=_lcStore(year)[key];
   if(!subData.tests)subData.tests=[];
   const pct=parseFloat(document.getElementById('gr-score').value);
   const grade=!isNaN(pct)?lcGradeFromScore(pct,subData.level):'';
@@ -5269,51 +5301,94 @@ function saveTestScore() {
   else subData.tests.push(entry);
   save();closeModal('grade-modal');renderGrades();
 }
-function deleteTest(subjectKey,testId) {
+function deleteTest(subjectKey,testId,year) {
   if(!confirm('Delete this test score?'))return;
-  DB.subjects[subjectKey].tests=DB.subjects[subjectKey].tests.filter(t=>t.id!==testId);
+  const store=_lcStore(year||5);
+  store[subjectKey].tests=store[subjectKey].tests.filter(t=>t.id!==testId);
   save();renderGrades();
 }
-function saveSubjectSettings(key) {
+function saveSubjectSettings(key,year) {
   initSubjects();
-  DB.subjects[key].level=document.getElementById('level-'+key).value;
-  DB.subjects[key].predictedGrade=document.getElementById('predicted-'+key).value;
+  const store=_lcStore(year||5);
+  store[key].level=document.getElementById(`level-${year||5}-${key}`).value;
+  store[key].predictedGrade=document.getElementById(`predicted-${year||5}-${key}`).value;
   save();renderGrades();
+}
+let _lcTab = 5;
+function switchLcTab(tab, btn) {
+  _lcTab = tab;
+  document.querySelectorAll('#page-c-leavingcert .tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrades();
+}
+function lcSubjectCardHtml(s, sub, year) {
+  const level=sub.level||'Higher';const predicted=sub.predictedGrade||'';const tests=sub.tests||[];
+  const pts=predicted?lcPointsFromGrade(predicted):null;
+  const avgScore=tests.length?Math.round(tests.reduce((a,t)=>a+(t.score||0),0)/tests.length):null;
+  const avgGrade=avgScore!==null?lcGradeFromScore(avgScore,level):null;
+  const hlOptions=Object.keys(LC_HL_POINTS).map(g=>`<option ${predicted===g?'selected':''}>${g}</option>`).join('');
+  const olOptions=Object.keys(LC_OL_POINTS).map(g=>`<option ${predicted===g?'selected':''}>${g}</option>`).join('');
+  const gradeOptions=level==='Higher'?hlOptions:olOptions;
+  return `<div class="card" style="margin-bottom:16px;"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <strong style="font-size:15px;">${s.name}</strong>
+        ${predicted?`<span class="badge badge-${getGradeBadgeColor(predicted)}" style="font-size:13px;padding:3px 10px;">${predicted}</span>`:'<span class="badge badge-gray">No prediction set</span>'}
+        ${pts!==null?`<span style="font-size:12px;color:var(--text-muted);">${pts} CAO pts</span>`:''}
+        ${avgGrade?`<span style="font-size:11px;color:var(--text-muted);">Test avg: ${avgGrade} (${avgScore}%)</span>`:''}
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div><label style="font-size:11px;margin-bottom:3px;">Level</label><select id="level-${year}-${s.key}" onchange="saveSubjectSettings('${s.key}',${year})" style="padding:5px 8px;font-size:12px;"><option ${level==='Higher'?'selected':''}>Higher</option><option ${level==='Ordinary'?'selected':''}>Ordinary</option></select></div>
+        <div><label style="font-size:11px;margin-bottom:3px;">Predicted Grade</label><select id="predicted-${year}-${s.key}" onchange="saveSubjectSettings('${s.key}',${year})" style="padding:5px 8px;font-size:12px;"><option value="">— Not set —</option>${gradeOptions}</select></div>
+        <div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="openTestModal('${s.key}',null,${year})">+ Add Test</button></div>
+      </div>
+    </div>
+    ${tests.length>0?`<div style="flex:2;min-width:300px;"><table style="font-size:12px;"><thead><tr><th style="padding:4px 8px;">Test</th><th style="padding:4px 8px;">Score</th><th style="padding:4px 8px;">Grade</th><th style="padding:4px 8px;">Date</th><th></th></tr></thead><tbody>${tests.map(t=>{const g=t.grade||lcGradeFromScore(t.score,level);return`<tr><td style="padding:6px 8px;"><strong>${t.name}</strong>${t.notes?`<div style="color:var(--text-muted);font-size:11px;">${t.notes}</div>`:''}</td><td style="padding:6px 8px;">${t.score!==undefined?t.score+'%':'—'}</td><td style="padding:6px 8px;"><span class="badge badge-${getGradeBadgeColor(g)}">${g}</span></td><td style="padding:6px 8px;color:var(--text-muted);">${t.date?new Date(t.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—'}</td><td><div class="row-actions" style="opacity:1;"><button class="btn btn-secondary btn-sm btn-icon" onclick="openTestModal('${s.key}','${t.id}',${year})">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteTest('${s.key}','${t.id}',${year})">🗑</button></div></td></tr>`;}).join('')}</tbody></table></div>`:`<div style="flex:2;min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;padding:12px;">No tests added yet.</div>`}
+  </div></div>`;
+}
+function lcCombinedSubjectCardHtml(s) {
+  const sub5=DB.subjects[s.key], sub6=DB.subjects6[s.key];
+  const g5=sub5.predictedGrade||'', g6=sub6.predictedGrade||'';
+  const combinedPts=_lcCombinedPointsForSubject(s.key);
+  const merged=[
+    ...(sub5.tests||[]).map(t=>({...t,year:5})),
+    ...(sub6.tests||[]).map(t=>({...t,year:6})),
+  ].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  return `<div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+      <strong style="font-size:15px;">${s.name}</strong>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-secondary);">
+        <span>5th Year: ${g5?`<span class="badge badge-${getGradeBadgeColor(g5)}">${g5}</span>`:'<span class="badge badge-gray">Not set</span>'}</span>
+        <span>6th Year: ${g6?`<span class="badge badge-${getGradeBadgeColor(g6)}">${g6}</span>`:'<span class="badge badge-gray">Not set</span>'}</span>
+        <span style="font-weight:700;color:var(--text);">Combined: ${combinedPts} pts</span>
+      </div>
+    </div>
+    ${merged.length?`<table style="font-size:12px;width:100%;"><thead><tr><th style="padding:4px 8px;">Test</th><th style="padding:4px 8px;">Year</th><th style="padding:4px 8px;">Score</th><th style="padding:4px 8px;">Grade</th><th style="padding:4px 8px;">Date</th></tr></thead><tbody>${merged.map(t=>{
+      const lvl=t.year===6?sub6.level:sub5.level;
+      const g=t.grade||lcGradeFromScore(t.score,lvl);
+      return `<tr><td style="padding:6px 8px;"><strong>${t.name}</strong>${t.notes?`<div style="color:var(--text-muted);font-size:11px;">${t.notes}</div>`:''}</td><td style="padding:6px 8px;"><span class="badge badge-gray">${t.year}th</span></td><td style="padding:6px 8px;">${t.score!==undefined?t.score+'%':'—'}</td><td style="padding:6px 8px;"><span class="badge badge-${getGradeBadgeColor(g)}">${g}</span></td><td style="padding:6px 8px;color:var(--text-muted);">${t.date?new Date(t.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—'}</td></tr>`;
+    }).join('')}</tbody></table>`:`<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No tests logged yet in either year.</div>`}
+  </div>`;
+}
+function renderGradesCombined() {
+  const {best6,withBonus}=calcCombinedCAOPoints();
+  const hasAny=LC_SUBJECTS.some(s=>DB.subjects[s.key].predictedGrade||DB.subjects6[s.key].predictedGrade);
+  document.getElementById('lc-total-points').textContent=hasAny?best6:'—';
+  document.getElementById('lc-bonus-points').textContent=hasAny?withBonus:'—';
+  document.getElementById('lc-h1-count').textContent=LC_SUBJECTS.filter(s=>DB.subjects[s.key].predictedGrade==='H1'||DB.subjects6[s.key].predictedGrade==='H1').length;
+  document.getElementById('subjects-container').innerHTML=LC_SUBJECTS.map(s=>lcCombinedSubjectCardHtml(s)).join('');
 }
 function renderGrades() {
   initSubjects();
-  const {best6,withBonus,mathsBonus}=calcCAOPoints();
-  const hasAny=LC_SUBJECTS.some(s=>DB.subjects[s.key].predictedGrade);
+  if (_lcTab==='combined') { renderGradesCombined(); return; }
+  const year=_lcTab;
+  const store=_lcStore(year);
+  const {best6,withBonus}=calcCAOPointsForYear(year);
+  const hasAny=LC_SUBJECTS.some(s=>store[s.key].predictedGrade);
   document.getElementById('lc-total-points').textContent=hasAny?best6:'—';
   document.getElementById('lc-bonus-points').textContent=hasAny?withBonus:'—';
-  document.getElementById('lc-h1-count').textContent=LC_SUBJECTS.filter(s=>DB.subjects[s.key].predictedGrade==='H1').length;
-  const container=document.getElementById('subjects-container');
-  container.innerHTML=LC_SUBJECTS.map(s=>{
-    const sub=DB.subjects[s.key];
-    const level=sub.level||'Higher';const predicted=sub.predictedGrade||'';const tests=sub.tests||[];
-    const pts=predicted?lcPointsFromGrade(predicted):null;
-    const avgScore=tests.length?Math.round(tests.reduce((a,t)=>a+(t.score||0),0)/tests.length):null;
-    const avgGrade=avgScore!==null?lcGradeFromScore(avgScore,level):null;
-    const hlOptions=Object.keys(LC_HL_POINTS).map(g=>`<option ${predicted===g?'selected':''}>${g}</option>`).join('');
-    const olOptions=Object.keys(LC_OL_POINTS).map(g=>`<option ${predicted===g?'selected':''}>${g}</option>`).join('');
-    const gradeOptions=level==='Higher'?hlOptions:olOptions;
-    return `<div class="card" style="margin-bottom:16px;"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:200px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-          <strong style="font-size:15px;">${s.name}</strong>
-          ${predicted?`<span class="badge badge-${getGradeBadgeColor(predicted)}" style="font-size:13px;padding:3px 10px;">${predicted}</span>`:'<span class="badge badge-gray">No prediction set</span>'}
-          ${pts!==null?`<span style="font-size:12px;color:var(--text-muted);">${pts} CAO pts</span>`:''}
-          ${avgGrade?`<span style="font-size:11px;color:var(--text-muted);">Test avg: ${avgGrade} (${avgScore}%)</span>`:''}
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <div><label style="font-size:11px;margin-bottom:3px;">Level</label><select id="level-${s.key}" onchange="saveSubjectSettings('${s.key}')" style="padding:5px 8px;font-size:12px;"><option ${level==='Higher'?'selected':''}>Higher</option><option ${level==='Ordinary'?'selected':''}>Ordinary</option></select></div>
-          <div><label style="font-size:11px;margin-bottom:3px;">Predicted Grade</label><select id="predicted-${s.key}" onchange="saveSubjectSettings('${s.key}')" style="padding:5px 8px;font-size:12px;"><option value="">— Not set —</option>${gradeOptions}</select></div>
-          <div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="openTestModal('${s.key}')">+ Add Test</button></div>
-        </div>
-      </div>
-      ${tests.length>0?`<div style="flex:2;min-width:300px;"><table style="font-size:12px;"><thead><tr><th style="padding:4px 8px;">Test</th><th style="padding:4px 8px;">Score</th><th style="padding:4px 8px;">Grade</th><th style="padding:4px 8px;">Date</th><th></th></tr></thead><tbody>${tests.map(t=>{const g=t.grade||lcGradeFromScore(t.score,level);return`<tr><td style="padding:6px 8px;"><strong>${t.name}</strong>${t.notes?`<div style="color:var(--text-muted);font-size:11px;">${t.notes}</div>`:''}</td><td style="padding:6px 8px;">${t.score!==undefined?t.score+'%':'—'}</td><td style="padding:6px 8px;"><span class="badge badge-${getGradeBadgeColor(g)}">${g}</span></td><td style="padding:6px 8px;color:var(--text-muted);">${t.date?new Date(t.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}):'—'}</td><td><div class="row-actions" style="opacity:1;"><button class="btn btn-secondary btn-sm btn-icon" onclick="openTestModal('${s.key}','${t.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteTest('${s.key}','${t.id}')">🗑</button></div></td></tr>`;}).join('')}</tbody></table></div>`:`<div style="flex:2;min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;padding:12px;">No tests added yet.</div>`}
-    </div></div>`;
-  }).join('');
+  document.getElementById('lc-h1-count').textContent=LC_SUBJECTS.filter(s=>store[s.key].predictedGrade==='H1').length;
+  document.getElementById('subjects-container').innerHTML=LC_SUBJECTS.map(s=>lcSubjectCardHtml(s,store[s.key],year)).join('');
 }
 
 // ============================================================
