@@ -255,6 +255,8 @@ input.goal-step-row[type=checkbox]{width:16px;height:16px;accent-color:var(--acc
 .goal-drag-handle:active{cursor:grabbing;}
 [data-goal-row].goal-drag-over{border-color:var(--accent)!important;background:var(--accent-light);}
 [data-goal-row].goal-dragging{opacity:.4;}
+[data-college-row].goal-drag-over{border-color:var(--accent)!important;background:var(--accent-light);}
+[data-college-row].goal-dragging{opacity:.4;}
 .step-time{font-size:11px;color:var(--text-muted);}
 
 /* ============================================================
@@ -1103,7 +1105,7 @@ a:hover{text-decoration:underline;}
 
   <!-- Colleges -->
   <div class="page" id="page-c-colleges">
-    <div class="page-header"><h2>Colleges</h2><p>Track each school, deadlines, and application status.</p></div>
+    <div class="page-header"><h2>Colleges</h2><p>Track each school, deadlines, and application status. Drag ☰ to reorder.</p></div>
 
     <!-- US / International tabs -->
     <div class="tabs" style="margin-bottom:18px;">
@@ -4152,13 +4154,45 @@ function deleteCollege(id) {
 
 function collegesTableHtml(list) {
   return `<div class="card" style="padding:0;overflow:hidden;">
-    <table><thead><tr><th>School</th><th>Type</th><th>Deadline</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+    <table><thead><tr><th></th><th>School</th><th>Type</th><th>Deadline</th><th>Status</th><th>Notes</th><th></th></tr></thead>
     <tbody>${list.map(c => {
       const deadline = c.deadline ? new Date(c.deadline+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       const nameCell = c.portal ? `<a href="${c.portal}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">${c.name}</a>` : `<strong>${c.name}</strong>`;
-      return `<tr><td>${nameCell}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.appType||''} ${c.satRange?'· SAT: '+c.satRange:''}</div></td><td>${typeBadge(c.type)}</td><td>${deadline}</td><td>${statusBadge(c.status)}</td><td style="max-width:200px;font-size:12px;color:var(--text-secondary);">${c.notes?c.notes.slice(0,60)+(c.notes.length>60?'…':''):''}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="openPrepPlanModal('${c.id}')" title="Prep Plan">🧭</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editCollege('${c.id}')" title="Edit">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteCollege('${c.id}')" title="Delete">🗑</button></div></td></tr>`;
+      return `<tr data-college-row="${c.id}" draggable="true" ondragstart="_collegeDragStart(event,'${c.id}')" ondragover="_collegeDragOver(event,'${c.id}')" ondrop="_collegeDrop(event,'${c.id}')" ondragend="_collegeDragEnd(event)"><td><span class="goal-drag-handle" title="Drag to reorder">&#x2630;</span></td><td>${nameCell}<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.appType||''} ${c.satRange?'· SAT: '+c.satRange:''}</div></td><td>${typeBadge(c.type)}</td><td>${deadline}</td><td>${statusBadge(c.status)}</td><td style="max-width:200px;font-size:12px;color:var(--text-secondary);">${c.notes?c.notes.slice(0,60)+(c.notes.length>60?'…':''):''}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="openPrepPlanModal('${c.id}')" title="Prep Plan">🧭</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editCollege('${c.id}')" title="Edit">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteCollege('${c.id}')" title="Delete">🗑</button></div></td></tr>`;
     }).join('')}</tbody></table>
   </div>`;
+}
+let _collegeDragId = null;
+function _collegeDragStart(e, id) {
+  _collegeDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  const el = document.querySelector('[data-college-row="' + id + '"]');
+  if (el) setTimeout(() => el.classList.add('goal-dragging'), 0);
+}
+function _collegeDragEnd(e) {
+  document.querySelectorAll('[data-college-row].goal-dragging').forEach(el => el.classList.remove('goal-dragging'));
+  document.querySelectorAll('[data-college-row].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
+  _collegeDragId = null;
+}
+function _collegeDragOver(e, id) {
+  if (!_collegeDragId || _collegeDragId === id) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('[data-college-row].goal-drag-over').forEach(el => el.classList.remove('goal-drag-over'));
+  const el = document.querySelector('[data-college-row="' + id + '"]');
+  if (el) el.classList.add('goal-drag-over');
+}
+function _collegeDrop(e, targetId) {
+  e.preventDefault();
+  if (!_collegeDragId || _collegeDragId === targetId) return;
+  const from = DB.colleges.findIndex(c => c.id === _collegeDragId);
+  const to   = DB.colleges.findIndex(c => c.id === targetId);
+  if (from < 0 || to < 0) return;
+  const [item] = DB.colleges.splice(from, 1);
+  DB.colleges.splice(to, 0, item);
+  save();
+  renderColleges();
 }
 
 function collegeRowHtml(c, applying) {
@@ -4167,7 +4201,10 @@ function collegeRowHtml(c, applying) {
   const toggleBtn = applying
     ? `<button class="btn btn-secondary btn-xs" onclick="setCollegeApplying('${c.id}',false)" title="Move to Considering">→ Considering</button>`
     : `<button class="btn btn-primary btn-xs" onclick="setCollegeApplying('${c.id}',true)" title="Move to Applying">← Applying</button>`;
-  return `<div class="wish-item">
+  return `<div class="wish-item" data-college-row="${c.id}" draggable="true"
+    ondragstart="_collegeDragStart(event,'${c.id}')" ondragover="_collegeDragOver(event,'${c.id}')"
+    ondrop="_collegeDrop(event,'${c.id}')" ondragend="_collegeDragEnd(event)">
+    <span class="goal-drag-handle" title="Drag to reorder">&#x2630;</span>
     <div style="flex:1;min-width:0;">
       <div style="font-size:13px;">${nameCell}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${deadline} · ${statusBadge(c.status)}</div>
