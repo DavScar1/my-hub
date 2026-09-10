@@ -2818,6 +2818,26 @@ a:hover{text-decoration:underline;}
   </div>
 </div>
 
+<!-- Study Plan modal -->
+<div class="modal-overlay" id="hw-study-plan-modal">
+  <div class="modal" style="max-width:520px;">
+    <h3 id="study-plan-modal-title">Study Plan</h3>
+    <input type="hidden" id="study-plan-test-id">
+    <div id="study-plan-sub" style="font-size:12px;color:var(--text-muted);margin-bottom:14px;"></div>
+    <div id="study-plan-generate-row" style="margin-bottom:14px;"></div>
+    <div id="study-plan-list" style="max-height:300px;overflow-y:auto;"></div>
+    <div id="study-plan-summary" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <input type="date" id="study-plan-new-date" style="flex:1;">
+      <input type="number" id="study-plan-new-minutes" placeholder="Minutes" min="5" step="5" style="width:100px;">
+      <button class="btn btn-secondary" onclick="addStudySession()">+ Add</button>
+    </div>
+    <div class="form-actions" style="margin-top:14px;">
+      <button class="btn btn-secondary" onclick="closeModal('hw-study-plan-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- SAT modal -->
 <div class="modal-overlay" id="sat-modal">
   <div class="modal">
@@ -5618,6 +5638,7 @@ function renderHomeworkTests() {
     const items = [];
     DB.homework.filter(h => h.dueDate === ds).forEach(h => items.push({ cls: h.done ? 'opacity:.5;text-decoration:line-through;' : '', bg: '#eef2ff', fg: '#4338ca', onclick: `openHomeworkModal('${h.id}')`, label: `📘 ${h.title}` }));
     DB.tests.filter(t => t.date === ds).forEach(t => items.push({ cls: '', bg: '#fef2f2', fg: '#b91c1c', onclick: `openHwTestModal('${t.id}')`, label: `📝 ${t.title}` }));
+    DB.tests.forEach(t => (t.studyPlan||[]).filter(s => s.date === ds).forEach(s => items.push({ cls: s.done?'opacity:.5;text-decoration:line-through;':'', bg: '#f0fdf4', fg: '#15803d', onclick: `openStudyPlanModal('${t.id}')`, label: `📖 Study: ${t.title} — ${_hwFmtMinutes(s.minutes)}` })));
     const cap = 3;
     const visible = items.slice(0, cap);
     const extra = items.length - visible.length;
@@ -5676,6 +5697,7 @@ function renderHomeworkTests() {
     testsListEl.innerHTML = sortedTests.map(t => {
       const dateLbl = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const isPast = t.date < todayStr;
+      const { total: studyTotal, doneCount: studyDone } = _hwStudyTotals(t);
       return `<div class="hw-row" style="cursor:pointer;" onclick="openHwTestModal('${t.id}')">
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;">${t.title}</div>
@@ -5684,12 +5706,112 @@ function renderHomeworkTests() {
             <span style="font-size:11px;color:var(--text-muted);">${dateLbl} · ${t.type}</span>
           </div>
         </div>
-        <div style="text-align:right;flex-shrink:0;">
-          ${t.score ? `<div style="font-size:13px;font-weight:800;color:var(--c-accent);">${t.score}</div>` : isPast ? '' : `<span class="hw-badge" style="color:${prepColors[t.prep]||'var(--text-muted)'};">${prepLabels[t.prep]||'Not Started'}</span>`}
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <button class="btn btn-secondary btn-xs" onclick="event.stopPropagation();openStudyPlanModal('${t.id}')" title="Study Plan">📖${studyTotal?` ${studyDone}/${studyTotal}`:''}</button>
+          <div style="text-align:right;">
+            ${t.score ? `<div style="font-size:13px;font-weight:800;color:var(--c-accent);">${t.score}</div>` : isPast ? '' : `<span class="hw-badge" style="color:${prepColors[t.prep]||'var(--text-muted)'};">${prepLabels[t.prep]||'Not Started'}</span>`}
+          </div>
         </div>
       </div>`;
     }).join('');
   }
+}
+
+function _hwStudyTotals(t) {
+  const sessions = t.studyPlan || [];
+  const totalMin = sessions.reduce((a, s) => a + (s.minutes || 0), 0);
+  const doneMin = sessions.filter(s => s.done).reduce((a, s) => a + (s.minutes || 0), 0);
+  const doneCount = sessions.filter(s => s.done).length;
+  return { sessions, totalMin, doneMin, doneCount, total: sessions.length };
+}
+function _hwFmtMinutes(min) {
+  min = min || 0;
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? `${h}h${m ? ` ${m}m` : ''}` : `${m}m`;
+}
+function openStudyPlanModal(testId) {
+  const t = DB.tests.find(x => x.id === testId); if (!t) return;
+  document.getElementById('study-plan-test-id').value = testId;
+  document.getElementById('study-plan-modal-title').textContent = `📖 ${t.title} — Study Plan`;
+  document.getElementById('study-plan-new-date').value = '';
+  document.getElementById('study-plan-new-minutes').value = '';
+  renderStudyPlanModal(testId);
+  document.getElementById('hw-study-plan-modal').classList.add('open');
+}
+function renderStudyPlanModal(testId) {
+  const t = DB.tests.find(x => x.id === testId); if (!t) return;
+  const dateLbl = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const days = _hwDaysUntil(t.date);
+  document.getElementById('study-plan-sub').textContent = `Test on ${dateLbl} · ${days > 0 ? days + ' day' + (days>1?'s':'') + ' away' : days === 0 ? 'Today' : 'Past'}`;
+
+  document.getElementById('study-plan-generate-row').innerHTML = `
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;background:var(--bg);padding:10px 12px;border-radius:var(--radius);">
+      <div><label style="font-size:11px;margin-bottom:3px;">Start (days before test)</label><input type="number" id="study-plan-gen-days" min="1" value="5" style="width:80px;"></div>
+      <div><label style="font-size:11px;margin-bottom:3px;">Minutes/day</label><input type="number" id="study-plan-gen-minutes" min="5" step="5" value="30" style="width:90px;"></div>
+      <button class="btn btn-secondary btn-sm" onclick="generateStudyPlan('${testId}')">✨ Generate Plan</button>
+    </div>`;
+
+  const { sessions, totalMin, doneMin, doneCount, total } = _hwStudyTotals(t);
+  const listEl = document.getElementById('study-plan-list');
+  if (!sessions.length) {
+    listEl.innerHTML = `<div class="ins-empty">No study sessions yet — generate a plan or add a day below.</div>`;
+  } else {
+    const sorted = [...sessions].sort((a, b) => a.date.localeCompare(b.date));
+    const todayStr = today();
+    listEl.innerHTML = sorted.map(s => {
+      const overdue = !s.done && s.date < todayStr;
+      const dLbl = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-light);">
+        <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleStudySession('${testId}','${s.id}')" style="width:16px;height:16px;flex-shrink:0;accent-color:var(--c-accent);cursor:pointer;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;${s.done?'text-decoration:line-through;color:var(--text-muted);':''}">${dLbl}</div>
+          <div style="font-size:11px;color:${overdue?'var(--red)':'var(--text-muted)'};font-weight:${overdue?700:400};">${_hwFmtMinutes(s.minutes)}${overdue?' · Missed':''}</div>
+        </div>
+        <button class="btn-ghost" style="font-size:12px;" onclick="deleteStudySession('${testId}','${s.id}')">🗑</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('study-plan-summary').textContent = total
+    ? `Total planned: ${_hwFmtMinutes(totalMin)} across ${total} day${total>1?'s':''} · ${doneCount}/${total} completed (${_hwFmtMinutes(doneMin)})`
+    : '';
+}
+function generateStudyPlan(testId) {
+  const t = DB.tests.find(x => x.id === testId); if (!t) return;
+  const daysBefore = parseInt(document.getElementById('study-plan-gen-days').value) || 1;
+  const minutes = parseInt(document.getElementById('study-plan-gen-minutes').value) || 30;
+  if (t.studyPlan && t.studyPlan.length && !confirm('This replaces your current study plan. Continue?')) return;
+  const testDate = new Date(t.date + 'T12:00:00');
+  const sessions = [];
+  for (let i = daysBefore; i >= 1; i--) {
+    const d = new Date(testDate); d.setDate(d.getDate() - i);
+    sessions.push({ id: uid(), date: dateStr(d), minutes, done: false });
+  }
+  t.studyPlan = sessions;
+  save(); renderStudyPlanModal(testId); renderHomeworkTests();
+}
+function toggleStudySession(testId, sessionId) {
+  const t = DB.tests.find(x => x.id === testId); if (!t) return;
+  const s = (t.studyPlan || []).find(x => x.id === sessionId); if (!s) return;
+  s.done = !s.done;
+  save(); renderStudyPlanModal(testId); renderHomeworkTests();
+}
+function deleteStudySession(testId, sessionId) {
+  const t = DB.tests.find(x => x.id === testId); if (!t) return;
+  t.studyPlan = (t.studyPlan || []).filter(x => x.id !== sessionId);
+  save(); renderStudyPlanModal(testId); renderHomeworkTests();
+}
+function addStudySession() {
+  const testId = document.getElementById('study-plan-test-id').value;
+  const t = DB.tests.find(x => x.id === testId); if (!t) return;
+  const date = document.getElementById('study-plan-new-date').value;
+  const minutes = parseInt(document.getElementById('study-plan-new-minutes').value) || 0;
+  if (!date) { alert('Pick a date.'); return; }
+  if (!minutes) { alert('Enter minutes.'); return; }
+  if (!t.studyPlan) t.studyPlan = [];
+  t.studyPlan.push({ id: uid(), date, minutes, done: false });
+  document.getElementById('study-plan-new-date').value = '';
+  document.getElementById('study-plan-new-minutes').value = '';
+  save(); renderStudyPlanModal(testId); renderHomeworkTests();
 }
 
 // ============================================================
