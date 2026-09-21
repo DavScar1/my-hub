@@ -846,6 +846,12 @@ a:hover{text-decoration:underline;}
   .form-actions .btn{width:100%;justify-content:center;}
   .page-header h2{font-size:20px;}
 }
+@media print {
+  body > *:not(#investor-report-modal){display:none!important;}
+  #investor-report-modal{position:static!important;background:#fff!important;padding:0!important;}
+  #investor-report-modal .modal{box-shadow:none!important;max-width:100%!important;width:100%!important;max-height:none!important;overflow:visible!important;margin:0!important;}
+  #investor-report-modal .form-actions,#investor-report-modal h3,#investor-report-modal > div > div:first-child{display:none!important;}
+}
 </style>
 </head>
 <body>
@@ -969,6 +975,7 @@ a:hover{text-decoration:underline;}
       <span class="icon">🗓️</span>Supplier Calendar
       <span class="nbadge" id="nav-biz-order-badge" style="display:none;"></span>
     </button>
+    <button class="nav-item" onclick="showPage('b-investors')"><span class="icon">🤝</span>Investors</button>
 
     <div class="nav-section">Insights</div>
     <button class="nav-item" onclick="showPage('b-analytics')"><span class="icon">📈</span>Analytics</button>
@@ -2466,6 +2473,19 @@ a:hover{text-decoration:underline;}
       <div id="biz-orders-list" style="margin-top:10px;"></div>
     </div>
   </div>
+
+  <!-- Investors -->
+  <div class="page" id="page-b-investors">
+    <div class="section-header" style="margin-bottom:18px;">
+      <div>
+        <h2 style="font-size:23px;font-weight:800;letter-spacing:-.4px;">🤝 Investors</h2>
+        <p style="color:var(--text-secondary);margin-top:4px;font-size:13px;">Money people put into a specific order, and what's owed back as it sells.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openInvestmentModal()">+ Add Investment</button>
+    </div>
+    <div class="grid-4" style="margin-bottom:18px;" id="investor-kpi-grid"></div>
+    <div id="investor-list"></div>
+  </div>
 </main>
 
 </div><!-- end .app -->
@@ -3673,7 +3693,10 @@ function ensureDBDefaults() {
   if (!DB.bizCashflow) DB.bizCashflow = [];
   if (!DB.bizInventory) DB.bizInventory = [];
   if (!DB.bizOrders) DB.bizOrders = [];
+  if (!DB.bizInvestments) DB.bizInvestments = [];
   if (!DB.bizCalMonth) DB.bizCalMonth = today().slice(0,7);
+  // Pre-existing sales predate the 100%-profit change — they were under a 50/50 split.
+  DB.bizSales.forEach(s => { if (s.profitShare === undefined) s.profitShare = 0.5; });
   if (!DB.honours) DB.honours = [];
   if (!DB.ecMetrics) DB.ecMetrics = [];
   if (!DB.ecLog) DB.ecLog = {};
@@ -4028,6 +4051,7 @@ function renderPage(id) {
   if (id === 'b-calendar') renderBizCalendar();
   if (id === 'b-analytics') renderBizAnalytics();
   if (id === 'b-cashflow') renderCashFlow();
+  if (id === 'b-investors') renderBizInvestors();
   if (id === 'c-commonapp') renderCommonApp();
 }
 
@@ -10741,6 +10765,13 @@ function renderTodayTab() {
 function _bizFmt(n) {
   return '€' + (Math.round((n||0)*100)/100).toLocaleString('en-IE', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+// Sales logged before the profit-split change are worth half to me; every sale
+// logged since defaults to profitShare 1 (100% mine). This is applied wherever
+// "profit" is shown or aggregated — revenue and cost themselves are never split.
+function _bizSaleProfit(s) {
+  const share = s.profitShare != null ? s.profitShare : 1;
+  return ((s.price || 0) - (s.cost || 0)) * share;
+}
 
 function updateBizBadges() {
   const lowBadge = document.getElementById('nav-biz-low-badge');
@@ -10797,7 +10828,8 @@ function saveSale() {
   const notes = document.getElementById('sale-notes').value.trim();
   if (!date || !item || qty <= 0) { alert('Please enter a date, item and quantity.'); return; }
   const editId = document.getElementById('sale-edit-id').value;
-  const sale = { id: editId || uid(), date, item, qty, price, cost, notes };
+  const prevSale = editId ? DB.bizSales.find(x => x.id === editId) : null;
+  const sale = { id: editId || uid(), date, item, qty, price, cost, notes, profitShare: prevSale ? prevSale.profitShare : 1 };
   if (editId) {
     const i = DB.bizSales.findIndex(x => x.id === editId);
     if (i >= 0) DB.bizSales[i] = sale;
@@ -10818,11 +10850,10 @@ function deleteSale(id) {
 function renderBizSales() {
   const listEl = document.getElementById('biz-sales-list');
   if (!listEl) return;
-  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; return acc; }, { revenue: 0, cost: 0 });
-  const profit = totals.revenue - totals.cost;
+  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, cost: 0, profit: 0 });
   document.getElementById('biz-sales-revenue').textContent = _bizFmt(totals.revenue);
   document.getElementById('biz-sales-cost').textContent = _bizFmt(totals.cost);
-  document.getElementById('biz-sales-profit').textContent = _bizFmt(profit);
+  document.getElementById('biz-sales-profit').textContent = _bizFmt(totals.profit);
   document.getElementById('biz-sales-count').textContent = DB.bizSales.length;
 
   if (DB.bizSales.length === 0) {
@@ -10831,7 +10862,7 @@ function renderBizSales() {
   }
   const sorted = [...DB.bizSales].sort((a, b) => b.date.localeCompare(a.date));
   listEl.innerHTML = sorted.map(s => {
-    const p = s.price - s.cost;
+    const p = _bizSaleProfit(s);
     const dateLbl = new Date(s.date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openSaleModal('${s.id}')">
       <div style="flex:1;min-width:0;">
@@ -10840,7 +10871,7 @@ function renderBizSales() {
       </div>
       <div style="text-align:right;">
         <div style="font-weight:700;font-size:13px;">${_bizFmt(s.price)}</div>
-        <div style="font-size:11px;color:${p >= 0 ? 'var(--green)' : 'var(--red)'};">${p >= 0 ? '+' : ''}${_bizFmt(p)} profit</div>
+        <div style="font-size:11px;color:${p >= 0 ? 'var(--green)' : 'var(--red)'};">${p >= 0 ? '+' : ''}${_bizFmt(p)} profit${s.profitShare != null && s.profitShare < 1 ? ` <span style="opacity:.75;">(${Math.round(s.profitShare*100)}% share)</span>` : ''}</div>
       </div>
     </div>`;
   }).join('');
@@ -10895,7 +10926,7 @@ function confirmSaleImport() {
   const text = document.getElementById('sale-import-text').value;
   const sales = _parseSaleImportRows(text);
   if (sales.length === 0) { previewSaleImport(); return; }
-  sales.forEach(s => DB.bizSales.push({ id: uid(), ...s }));
+  sales.forEach(s => DB.bizSales.push({ id: uid(), ...s, profitShare: 1 }));
   save();
   closeModal('sale-import-modal');
   document.getElementById('sale-import-text').value = '';
@@ -11182,10 +11213,9 @@ function renderBizCalendar() {
 
 // ---- Dashboard ----
 function renderBizDashboard() {
-  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; return acc; }, { revenue: 0, cost: 0 });
-  const profit = totals.revenue - totals.cost;
+  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, profit: 0 });
   document.getElementById('biz-stat-revenue').textContent = _bizFmt(totals.revenue);
-  document.getElementById('biz-stat-profit').textContent = _bizFmt(profit);
+  document.getElementById('biz-stat-profit').textContent = _bizFmt(totals.profit);
 
   const invValue = DB.bizInventory.reduce((a, i) => a + i.qty * i.unitCost, 0);
   document.getElementById('biz-stat-inventory-value').textContent = _bizFmt(invValue);
@@ -11206,7 +11236,7 @@ function renderBizDashboard() {
   const monthData = months.map(mo => {
     const sales = DB.bizSales.filter(s => s.date.startsWith(mo.key));
     const rev = sales.reduce((a, s) => a + s.price, 0);
-    const prof = sales.reduce((a, s) => a + (s.price - s.cost), 0);
+    const prof = sales.reduce((a, s) => a + _bizSaleProfit(s), 0);
     return { ...mo, rev, prof };
   });
   const maxVal = Math.max(...monthData.map(mo => Math.max(mo.rev, mo.prof)), 1);
@@ -11909,8 +11939,8 @@ function renderInsights() {
     <span class="ins-nav-link" onclick="setMode('life');showPage('l-countries')">Open Countries Visited →</span>`;
 
   // ---- Business ----
-  const bizTotals = (DB.bizSales || []).reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; return acc; }, { revenue: 0, cost: 0 });
-  const bizProfit = bizTotals.revenue - bizTotals.cost;
+  const bizTotals = (DB.bizSales || []).reduce((acc, s) => { acc.revenue += s.price; acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, profit: 0 });
+  const bizProfit = bizTotals.profit;
   const itemTotals = {};
   (DB.bizSales || []).forEach(s => { itemTotals[s.item] = (itemTotals[s.item] || 0) + s.price; });
   const topItem = Object.entries(itemTotals).sort((a, b) => b[1] - a[1])[0];
@@ -12209,7 +12239,7 @@ function renderMonthSummary() {
   const sales = (DB.bizSales||[]).filter(s => s.date && s.date.slice(0,7) === month);
   const revenue = sales.reduce((a,s) => a + (s.price||0), 0);
   const cost    = sales.reduce((a,s) => a + (s.cost||0), 0);
-  const profit  = revenue - cost;
+  const profit  = sales.reduce((a,s) => a + _bizSaleProfit(s), 0);
   const units   = sales.reduce((a,s) => a + (s.qty||1), 0);
   const fmt = v => '€' + v.toFixed(2);
   const card = (icon, label, value, color) =>
@@ -12243,7 +12273,7 @@ function renderBizAnalytics() {
 
   const totalRev    = sales.reduce((a, s) => a + s.price, 0);
   const totalCost   = sales.reduce((a, s) => a + s.cost, 0);
-  const totalProfit = totalRev - totalCost;
+  const totalProfit = sales.reduce((a, s) => a + _bizSaleProfit(s), 0);
   const totalUnits  = sales.reduce((a, s) => a + (s.qty || 1), 0);
   const margin      = totalRev > 0 ? totalProfit / totalRev * 100 : 0;
   const avgSaleVal  = totalRev / sales.length;
@@ -12262,8 +12292,8 @@ function renderBizAnalytics() {
   const momChange = prevRev > 0 ? (curRev - prevRev) / prevRev * 100 : null;
 
   // Best single sale
-  const bestSale = [...sales].sort((a,b) => (b.price-b.cost)-(a.price-a.cost))[0];
-  const bestSaleProfit = bestSale ? bestSale.price - bestSale.cost : 0;
+  const bestSale = [...sales].sort((a,b) => _bizSaleProfit(b)-_bizSaleProfit(a))[0];
+  const bestSaleProfit = bestSale ? _bizSaleProfit(bestSale) : 0;
 
   // --- KPI grid ---
   const kpiData = [
@@ -12286,14 +12316,15 @@ function renderBizAnalytics() {
   const prodMap = {};
   sales.forEach(s => {
     const name = s.item || '(unlabeled)';
-    if (!prodMap[name]) prodMap[name] = { rev:0, cost:0, units:0, count:0 };
-    prodMap[name].rev   += s.price;
-    prodMap[name].cost  += s.cost;
-    prodMap[name].units += (s.qty || 1);
+    if (!prodMap[name]) prodMap[name] = { rev:0, cost:0, profit:0, units:0, count:0 };
+    prodMap[name].rev    += s.price;
+    prodMap[name].cost   += s.cost;
+    prodMap[name].profit += _bizSaleProfit(s);
+    prodMap[name].units  += (s.qty || 1);
     prodMap[name].count++;
   });
   const prods = Object.entries(prodMap).map(([name, d]) => ({
-    name, ...d, profit: d.rev - d.cost, margin: d.rev > 0 ? (d.rev-d.cost)/d.rev*100 : 0
+    name, ...d, margin: d.rev > 0 ? d.profit/d.rev*100 : 0
   })).sort((a,b) => b.rev - a.rev);
   const maxProdRev = Math.max(...prods.map(p => p.rev), 1);
   document.getElementById('an-product-table').innerHTML = `
@@ -12323,7 +12354,7 @@ function renderBizAnalytics() {
     const ms = sales.filter(s => s.date.startsWith(mo));
     const rev = ms.reduce((a,s) => a+s.price, 0);
     const cost = ms.reduce((a,s) => a+s.cost, 0);
-    const prof = rev - cost;
+    const prof = ms.reduce((a,s) => a+_bizSaleProfit(s), 0);
     const mgn  = rev > 0 ? prof/rev*100 : 0;
     const units = ms.reduce((a,s) => a+(s.qty||1), 0);
     const d = new Date(mo + '-01T12:00:00');
@@ -12489,11 +12520,8 @@ function renderCashFlow() {
   var orders = DB.bizCashflow || [];
   var tod = new Date(); tod.setHours(0,0,0,0);
 
-  // Summary strip — always shown
-  var gaps = orders.filter(function(o){return o.orderDate&&o.cashInDate;}).map(function(o){return (new Date(o.cashInDate)-new Date(o.orderDate))/86400000;});
-  var avgGap = gaps.length ? Math.round(gaps.reduce(function(a,b){return a+b;},0)/gaps.length) : null;
-  var inTransit = orders.filter(function(o){return cfStatus(o)==='transit';});
-  var selling   = orders.filter(function(o){return cfStatus(o)==='selling';});
+  // Summary strip — always shown (simplified: just the money totals; per-status
+  // counts already live in the filter tabs just below)
   var cashOut   = orders.reduce(function(a,o){return a+(o.orderCost||0);},0);
   var cashIn    = orders.filter(function(o){return o.cashInDate&&new Date(o.cashInDate)<=tod;}).reduce(function(a,o){return a+(o.expectedRevenue||0);},0);
   var totalIncome = cashIn;
@@ -12505,9 +12533,6 @@ function renderCashFlow() {
       sumEl.innerHTML = '';
     } else {
       sumEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">'
-        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Avg Cash Gap</div><div style="font-size:26px;font-weight:800;color:var(--b-accent);">'+(avgGap!==null?avgGap+'d':'—')+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">order → cash in</div></div>'
-        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">In Transit</div><div style="font-size:26px;font-weight:800;color:#ef4444;">'+inTransit.length+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">orders en route</div></div>'
-        +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selling Now</div><div style="font-size:26px;font-weight:800;color:#22c55e;">'+selling.length+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">active batches</div></div>'
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Spent</div><div style="font-size:26px;font-weight:800;color:#f59e0b;">€'+cashOut.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">across all orders</div></div>'
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Income</div><div style="font-size:26px;font-weight:800;color:#22c55e;">€'+totalIncome.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">cash actually received</div></div>'
         +'<div class="card" style="padding:16px 14px;"><div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Net Position</div><div style="font-size:26px;font-weight:800;color:'+(net>=0?'#22c55e':'#ef4444')+';">€'+net.toFixed(0)+'</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">received − paid</div></div>'
@@ -12654,6 +12679,206 @@ function deleteCFOrder() {
   DB.bizCashflow=(DB.bizCashflow||[]).filter(function(x){return x.id!==id;});
   save();closeModal('cf-modal');renderCashFlow();
 }
+
+// ============================================================
+// INVESTORS
+// ============================================================
+function populateInvestmentOrderSelect(currentOrderId) {
+  var sel = document.getElementById('investment-order');
+  var orders = (DB.bizCashflow || []).slice().sort(function(a,b){ return (b.orderDate||'').localeCompare(a.orderDate||''); });
+  sel.innerHTML = orders.length
+    ? orders.map(function(o){ return '<option value="'+o.id+'">'+o.name+' ('+_bizFmt(o.orderCost||0)+')</option>'; }).join('')
+    : '<option value="">No orders yet</option>';
+  if (currentOrderId) sel.value = currentOrderId;
+}
+// What's owed back: their principal, plus their % share (amount ÷ order cost) of that
+// order's profit so far, times the agreed cut of that share.
+function investmentPayout(inv) {
+  var order = (DB.bizCashflow || []).find(function(o){ return o.id === inv.orderId; });
+  if (!order) return { orderFound: false, totalOwed: inv.amount };
+  var orderCost = order.orderCost || 0;
+  var sharePercent = orderCost > 0 ? inv.amount / orderCost : 0;
+  var orderProfit = (order.expectedRevenue || 0) - orderCost;
+  var profitCutPercent = inv.profitCutPercent != null ? inv.profitCutPercent : 0.4;
+  var fullProfitShare = sharePercent * orderProfit;
+  var theirProfitShare = fullProfitShare * profitCutPercent;
+  return { orderFound: true, order: order, orderCost: orderCost, sharePercent: sharePercent, orderProfit: orderProfit, profitCutPercent: profitCutPercent, fullProfitShare: fullProfitShare, profitShare: theirProfitShare, totalOwed: inv.amount + theirProfitShare };
+}
+function openInvestmentModal(id) {
+  document.getElementById('investment-edit-id').value = id || '';
+  document.getElementById('investment-modal-title').textContent = id ? 'Edit Investment' : 'Add Investment';
+  document.getElementById('investment-delete-btn').style.display = id ? '' : 'none';
+  if (id) {
+    var inv = DB.bizInvestments.find(function(x){ return x.id === id; });
+    document.getElementById('investment-name').value = inv.name;
+    populateInvestmentOrderSelect(inv.orderId);
+    document.getElementById('investment-amount').value = inv.amount;
+    document.getElementById('investment-date').value = inv.date;
+    document.getElementById('investment-status').value = inv.status;
+    document.getElementById('investment-profit-cut').value = inv.profitCutPercent != null ? inv.profitCutPercent * 100 : 40;
+    document.getElementById('investment-notes').value = inv.notes || '';
+  } else {
+    document.getElementById('investment-name').value = '';
+    populateInvestmentOrderSelect();
+    document.getElementById('investment-amount').value = '';
+    document.getElementById('investment-date').value = today();
+    document.getElementById('investment-status').value = 'Unpaid';
+    document.getElementById('investment-profit-cut').value = 40;
+    document.getElementById('investment-notes').value = '';
+  }
+  document.getElementById('investment-modal').classList.add('open');
+}
+function saveInvestment() {
+  var id = document.getElementById('investment-edit-id').value;
+  var name = document.getElementById('investment-name').value.trim();
+  if (!name) { alert("Please enter the investor's name."); return; }
+  var orderId = document.getElementById('investment-order').value;
+  var amount = parseFloat(document.getElementById('investment-amount').value) || 0;
+  var data = {
+    name: name,
+    orderId: orderId,
+    amount: amount,
+    date: document.getElementById('investment-date').value || today(),
+    status: document.getElementById('investment-status').value,
+    profitCutPercent: (parseFloat(document.getElementById('investment-profit-cut').value) || 0) / 100,
+    notes: document.getElementById('investment-notes').value.trim()
+  };
+  if (!DB.bizInvestments) DB.bizInvestments = [];
+  if (id) {
+    var idx = DB.bizInvestments.findIndex(function(x){ return x.id === id; });
+    if (idx > -1) DB.bizInvestments[idx] = Object.assign({ id: id }, data);
+  } else {
+    data.id = uid();
+    DB.bizInvestments.push(data);
+  }
+  save(); closeModal('investment-modal'); renderBizInvestors();
+}
+function deleteInvestment(id) {
+  id = id || document.getElementById('investment-edit-id').value;
+  if (!id) return;
+  if (!confirm('Delete this investment record?')) return;
+  DB.bizInvestments = (DB.bizInvestments || []).filter(function(x){ return x.id !== id; });
+  save(); closeModal('investment-modal'); renderBizInvestors();
+}
+function toggleInvestmentPaid(id) {
+  var inv = (DB.bizInvestments || []).find(function(x){ return x.id === id; });
+  if (!inv) return;
+  inv.status = inv.status === 'Paid' ? 'Unpaid' : 'Paid';
+  save(); renderBizInvestors();
+}
+function renderBizInvestors() {
+  if (!DB.bizInvestments) DB.bizInvestments = [];
+  var rows = DB.bizInvestments.map(function(inv){ return { inv: inv, payout: investmentPayout(inv) }; });
+  var unpaid = rows.filter(function(r){ return r.inv.status !== 'Paid'; });
+  var totalOwed = unpaid.reduce(function(a,r){ return a + r.payout.totalOwed; }, 0);
+  var totalPaidBack = rows.filter(function(r){ return r.inv.status === 'Paid'; }).reduce(function(a,r){ return a + r.payout.totalOwed; }, 0);
+
+  var kpiEl = document.getElementById('investor-kpi-grid');
+  if (kpiEl) kpiEl.innerHTML =
+    '<div class="stat-card"><div class="stat-value">'+_bizFmt(totalOwed)+'</div><div class="stat-label">Currently Owed</div><div class="stat-sub">'+unpaid.length+' unpaid</div></div>'
+    +'<div class="stat-card"><div class="stat-value">'+_bizFmt(totalPaidBack)+'</div><div class="stat-label">Paid Back</div><div class="stat-sub">All time</div></div>'
+    +'<div class="stat-card"><div class="stat-value">'+DB.bizInvestments.length+'</div><div class="stat-label">Investments</div><div class="stat-sub">All time</div></div>';
+
+  var listEl = document.getElementById('investor-list');
+  if (!listEl) return;
+  if (!rows.length) {
+    listEl.innerHTML = '<div class="empty-state card"><div class="ei">🤝</div><p>No investments yet. Click "+ Add Investment" when someone puts money into a specific order.</p></div>';
+    return;
+  }
+  var sorted = rows.slice().sort(function(a,b){
+    if (a.inv.status !== b.inv.status) return a.inv.status === 'Paid' ? 1 : -1;
+    return (b.inv.date||'').localeCompare(a.inv.date||'');
+  });
+  listEl.innerHTML = sorted.map(function(r){
+    var inv = r.inv, payout = r.payout;
+    var orderLabel = payout.orderFound ? (payout.order.name) : 'Linked order no longer exists';
+    return '<div class="card" style="margin-bottom:12px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+      +'<div><strong>'+inv.name+'</strong><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">'+orderLabel+'</div></div>'
+      +'<span class="badge '+(inv.status==='Paid'?'badge-green':'badge-amber')+'">'+inv.status+'</span>'
+      +'</div>'
+      +(payout.orderFound ? (
+        '<div style="display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">'
+        +'<div>Invested<br><strong style="color:var(--text);font-size:14px;">'+_bizFmt(inv.amount)+'</strong></div>'
+        +'<div>Order Share<br><strong style="color:var(--text);font-size:14px;">'+(payout.sharePercent*100).toFixed(1)+'%</strong></div>'
+        +'<div>Their Cut<br><strong style="color:var(--text);font-size:14px;">'+(payout.profitCutPercent*100).toFixed(0)+'%</strong></div>'
+        +'<div>Profit Share<br><strong style="color:'+(payout.profitShare>=0?'var(--green)':'var(--red)')+';font-size:14px;">'+_bizFmt(payout.profitShare)+'</strong></div>'
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">'+(payout.sharePercent*100).toFixed(1)+'% of order profit ('+_bizFmt(payout.fullProfitShare)+') × their '+(payout.profitCutPercent*100).toFixed(0)+'% cut — updates as the order\'s numbers change</div>'
+        +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;">'
+        +'<span style="font-size:12px;color:var(--text-muted);">Total Owed</span>'
+        +'<span style="font-size:18px;font-weight:800;">'+_bizFmt(payout.totalOwed)+'</span>'
+        +'</div>'
+      ) : '<div style="font-size:12px;color:var(--red);margin-top:10px;">Owed: '+_bizFmt(payout.totalOwed)+' (principal only — order was deleted, no profit share possible)</div>')
+      +(inv.notes ? '<div style="font-size:12px;color:var(--text-muted);margin-top:8px;">'+inv.notes+'</div>' : '')
+      +'<div style="display:flex;gap:6px;margin-top:12px;">'
+      +'<button class="btn '+(inv.status==='Paid'?'btn-secondary':'btn-primary')+' btn-sm" style="flex:1;" onclick="toggleInvestmentPaid(\''+inv.id+'\')">'+(inv.status==='Paid' ? 'Mark Unpaid' : '✓ Mark Paid Back')+'</button>'
+      +(payout.orderFound ? '<button class="btn btn-secondary btn-sm btn-icon" title="Generate investor report" onclick="openInvestorReportModal(\''+inv.id+'\')">📄</button>' : '')
+      +'<button class="btn btn-secondary btn-sm btn-icon" onclick="openInvestmentModal(\''+inv.id+'\')">✏️</button>'
+      +'<button class="btn btn-danger btn-sm btn-icon" onclick="deleteInvestment(\''+inv.id+'\')">🗑</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+// Printable breakdown for one investor: their investment, how the profit share is
+// calculated step by step, and the linked order's own numbers.
+function openInvestorReportModal(invId) {
+  var inv = (DB.bizInvestments || []).find(function(x){ return x.id === invId; });
+  if (!inv) return;
+  var payout = investmentPayout(inv);
+  if (!payout.orderFound) { alert("The order behind this investment no longer exists, so a full report isn't possible."); return; }
+  var o = payout.order;
+  var dateLbl = function(d){ return d ? new Date(d+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : '—'; };
+
+  document.getElementById('investor-report-body').innerHTML = `
+    <div style="background:#fff;color:#111827;font-family:inherit;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;border-bottom:2px solid #111827;padding-bottom:14px;">
+        <div>
+          <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#6b7280;font-weight:700;">Investor Report</div>
+          <div style="font-size:22px;font-weight:800;margin-top:2px;">${inv.name}</div>
+        </div>
+        <div style="text-align:right;font-size:11.5px;color:#6b7280;">
+          Generated ${dateLbl(today())}<br>
+          <span class="badge ${inv.status==='Paid'?'badge-green':'badge-amber'}" style="margin-top:4px;display:inline-block;">${inv.status}</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;">
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+          <div style="font-size:11px;color:#6b7280;">Amount Invested</div>
+          <div style="font-size:18px;font-weight:800;margin-top:2px;">${_bizFmt(inv.amount)}</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">on ${dateLbl(inv.date)}</div>
+        </div>
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+          <div style="font-size:11px;color:#6b7280;">Order</div>
+          <div style="font-size:14px;font-weight:700;margin-top:2px;">${o.name}</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">ordered ${dateLbl(o.orderDate)} · arrived ${dateLbl(o.arrivalDate)}</div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">How the profit share is calculated</div>
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Order total cost</span><strong>${_bizFmt(payout.orderCost)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Your investment</span><strong>${_bizFmt(inv.amount)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px dashed #d1d5db;"><span>Your share of the order (${_bizFmt(inv.amount)} ÷ ${_bizFmt(payout.orderCost)})</span><strong>${(payout.sharePercent*100).toFixed(1)}%</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Order profit (expected)</span><strong style="color:${payout.orderProfit>=0?'#16a34a':'#dc2626'};">${_bizFmt(payout.orderProfit)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px dashed #d1d5db;"><span>Your share of that profit (${(payout.sharePercent*100).toFixed(1)}% × ${_bizFmt(payout.orderProfit)})</span><strong>${_bizFmt(payout.fullProfitShare)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Agreed cut of your share</span><strong>${(payout.profitCutPercent*100).toFixed(0)}%</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px;border-top:1px solid #d1d5db;margin-top:4px;"><span style="font-weight:700;">Your profit share</span><strong style="color:#16a34a;">${_bizFmt(payout.profitShare)}</strong></div>
+      </div>
+
+      <div style="background:#111827;color:#fff;border-radius:12px;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Total Owed</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:4px;">Investment (${_bizFmt(inv.amount)}) + Profit Share (${_bizFmt(payout.profitShare)})</div>
+        </div>
+        <div style="font-size:30px;font-weight:800;">${_bizFmt(payout.totalOwed)}</div>
+      </div>
+
+      <p style="font-size:11px;color:#9ca3af;margin-top:16px;">Profit share is based on the order's expected revenue and will change if you update those figures.${inv.notes ? ` Notes: ${inv.notes}` : ''}</p>
+    </div>`;
+  document.getElementById('investor-report-modal').classList.add('open');
+}
 </script>
 
 <!-- CF Modal -->
@@ -12680,6 +12905,44 @@ function deleteCFOrder() {
       <button class="btn btn-secondary" onclick="closeModal('cf-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveCFOrder()">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- Investment modal -->
+<div class="modal-overlay" id="investment-modal">
+  <div class="modal" style="max-width:480px;">
+    <h3 id="investment-modal-title">Add Investment</h3>
+    <input type="hidden" id="investment-edit-id">
+    <div class="form-group"><label>Investor Name</label><input type="text" id="investment-name" placeholder="e.g. James"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Order</label><select id="investment-order"></select></div>
+      <div class="form-group"><label>Amount Invested (€)</label><input type="number" id="investment-amount" min="0" step="0.01"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Date</label><input type="date" id="investment-date"></div>
+      <div class="form-group"><label>Status</label><select id="investment-status"><option>Unpaid</option><option>Paid</option></select></div>
+    </div>
+    <div class="form-group"><label>Investor's Cut of Their Profit Share (%)</label><input type="number" id="investment-profit-cut" min="0" max="100" step="1" value="40"></div>
+    <div class="form-group"><label>Notes</label><textarea id="investment-notes" rows="2" placeholder="Anything worth remembering about this arrangement"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-danger" id="investment-delete-btn" style="display:none;margin-right:auto;" onclick="deleteInvestment()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('investment-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInvestment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Investor report modal (printable) -->
+<div class="modal-overlay" id="investor-report-modal">
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <h3 style="margin:0;">Investor Report</h3>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('investor-report-modal')">Close</button>
+      </div>
+    </div>
+    <div id="investor-report-body"></div>
   </div>
 </div>
 
