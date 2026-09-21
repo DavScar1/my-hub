@@ -2344,6 +2344,7 @@ a:hover{text-decoration:underline;}
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-secondary" onclick="openSaleImportModal()">📋 Import from Excel</button>
+        <button class="btn btn-secondary" onclick="openMultiSaleModal()">+ Multi-Item Sale</button>
         <button class="btn btn-primary" onclick="openSaleModal()">+ Log Sale</button>
       </div>
     </div>
@@ -3144,11 +3145,67 @@ a:hover{text-decoration:underline;}
       <div class="form-group"><label>Sale Price (€) *<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> — total</span></label><input type="number" id="sale-price" min="0" step="0.01" placeholder="0.00"></div>
       <div class="form-group"><label>Item Cost (€)<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> — total</span></label><input type="number" id="sale-cost" min="0" step="0.01" placeholder="0.00"></div>
     </div>
+    <div class="form-group"><label>Order <span style="font-size:11px;font-weight:400;color:var(--text-muted);">— link to a Cash Flow order, optional</span></label><select id="sale-order"><option value="">— Not linked —</option></select></div>
     <div class="form-group"><label>Notes</label><textarea id="sale-notes" rows="2" placeholder="Buyer, platform, condition notes…"></textarea></div>
+    <div id="sale-refund-banner" style="display:none;font-size:12px;background:var(--red-light);color:var(--red);border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;"></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('sale-modal')">Cancel</button>
+      <button class="btn btn-secondary btn-sm" id="sale-refund-btn" style="display:none;color:var(--red);" onclick="openRefundModal(document.getElementById('sale-edit-id').value)">↩ Refund</button>
       <button class="btn btn-danger btn-sm" id="sale-delete-btn" style="display:none;" onclick="deleteSale(document.getElementById('sale-edit-id').value)">Delete</button>
       <button class="btn btn-primary" onclick="saveSale()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Multi-Item Sale modal -->
+<div class="modal-overlay" id="multi-sale-modal">
+  <div class="modal" style="max-width:620px;">
+    <h3 id="msale-modal-title">Log Multi-Item Sale</h3>
+    <input type="hidden" id="msale-edit-group-id">
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="msale-date"></div>
+      <div class="form-group"><label>Order <span style="font-size:11px;font-weight:400;color:var(--text-muted);">— optional</span></label><select id="msale-order"><option value="">— Not linked —</option></select></div>
+    </div>
+    <div class="form-group"><label>Total Revenue (€) <span style="font-size:11px;font-weight:400;color:var(--text-muted);">— what you actually received in total</span></label><input type="number" id="msale-revenue" min="0" step="0.01" placeholder="0.00" oninput="computeMultiSalePreview()"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Total Shipping (€)</label><input type="number" id="msale-shipping" min="0" step="0.01" value="0" oninput="computeMultiSalePreview()"></div>
+      <div class="form-group"><label>Total Platform Fees (€)</label><input type="number" id="msale-fee" min="0" step="0.01" value="0" oninput="computeMultiSalePreview()"></div>
+    </div>
+    <p style="color:var(--text-muted);font-size:11.5px;margin-top:-6px;margin-bottom:12px;">No need to work out a price per item — revenue, shipping and fees are all split across the items automatically, by each item's share of total cost.</p>
+    <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;">Items</label>
+    <div id="msale-items"></div>
+    <button class="btn btn-secondary btn-sm" type="button" onclick="addMultiSaleItemRow()">+ Add Item</button>
+    <div class="form-group" style="margin-top:14px;"><label>Notes</label><textarea id="msale-notes" rows="2" placeholder="Anything worth remembering about this sale"></textarea></div>
+    <div id="msale-preview" style="margin-top:4px;font-size:12px;color:var(--text-secondary);background:var(--bg);border-radius:var(--radius);padding:10px 12px;"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('multi-sale-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMultiSale()">Save Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- Refund modal -->
+<div class="modal-overlay" id="refund-modal">
+  <div class="modal">
+    <h3 id="refund-modal-title">Process Refund</h3>
+    <input type="hidden" id="refund-sale-id">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;" id="refund-sale-summary"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Refund Amount (€)</label><input type="number" id="refund-amount" min="0" step="0.01" oninput="computeRefundPreview()"></div>
+      <div class="form-group"><label>Return Label Cost (€) <span style="font-size:11px;font-weight:400;color:var(--text-muted);">optional</span></label><input type="number" id="refund-shipping" min="0" step="0.01" value="0" oninput="computeRefundPreview()"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="refund-date"></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:11px;">
+        <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--text);"><input type="checkbox" id="refund-restock" style="width:16px;height:16px;flex-shrink:0;">Add item back to Inventory</label>
+      </div>
+    </div>
+    <div class="form-group"><label>Reason / Notes <span style="font-size:11px;font-weight:400;color:var(--text-muted);">optional</span></label><textarea id="refund-notes" rows="2" placeholder="Why it was returned"></textarea></div>
+    <div id="refund-preview" style="margin-top:4px;margin-bottom:10px;font-size:12px;color:var(--text-secondary);background:var(--bg);border-radius:var(--radius);padding:10px 12px;"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('refund-modal')">Cancel</button>
+      <button class="btn btn-secondary btn-sm" id="refund-undo-btn" style="display:none;color:var(--red);" onclick="undoRefund()">Undo Refund</button>
+      <button class="btn btn-primary" style="background:var(--red);" onclick="saveRefund()">Process Refund</button>
     </div>
   </div>
 </div>
@@ -10765,12 +10822,15 @@ function renderTodayTab() {
 function _bizFmt(n) {
   return '€' + (Math.round((n||0)*100)/100).toLocaleString('en-IE', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+// A refund reduces what a sale actually earned without rewriting its original price/cost.
+function _bizSaleNetRevenue(s) { return (s.price || 0) - (s.refunded ? (s.refundAmount || 0) : 0); }
+function _bizSaleTrueCost(s) { return (s.cost || 0) + (s.fee || 0) + (s.shipping || 0) + (s.refunded ? (s.refundShippingCost || 0) : 0); }
 // Sales logged before the profit-split change are worth half to me; every sale
 // logged since defaults to profitShare 1 (100% mine). This is applied wherever
 // "profit" is shown or aggregated — revenue and cost themselves are never split.
 function _bizSaleProfit(s) {
   const share = s.profitShare != null ? s.profitShare : 1;
-  return ((s.price || 0) - (s.cost || 0)) * share;
+  return (_bizSaleNetRevenue(s) - _bizSaleTrueCost(s)) * share;
 }
 
 function updateBizBadges() {
@@ -10804,12 +10864,21 @@ function _updateSaleCostFromInventory() {
 function onSaleItemInput() { _updateSaleCostFromInventory(); }
 function onSaleQtyChange() { _updateSaleCostFromInventory(); }
 
+function populateSaleOrderSelect(selectId, currentOrderId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const orders = [...DB.bizCashflow].sort((a, b) => (b.orderDate || '').localeCompare(a.orderDate || ''));
+  sel.innerHTML = '<option value="">— Not linked —</option>' + orders.map(o => `<option value="${o.id}">${o.name} (${_bizFmt(o.orderCost || 0)})</option>`).join('');
+  sel.value = currentOrderId || '';
+}
+
 function openSaleModal(editId) {
   const s = editId ? DB.bizSales.find(x => x.id === editId) : null;
   document.getElementById('sale-modal-title').textContent = s ? 'Edit Sale' : 'Log Sale';
   document.getElementById('sale-edit-id').value = editId || '';
   openModal('sale-modal', editId);
   _populateBizInvDatalist();
+  populateSaleOrderSelect('sale-order', s ? s.orderId : '');
   document.getElementById('sale-date').value = s ? s.date : today();
   document.getElementById('sale-item').value = s ? s.item : '';
   document.getElementById('sale-qty').value = s ? s.qty : 1;
@@ -10817,6 +10886,15 @@ function openSaleModal(editId) {
   document.getElementById('sale-cost').value = s ? s.cost : '';
   document.getElementById('sale-notes').value = s ? (s.notes || '') : '';
   document.getElementById('sale-delete-btn').style.display = editId ? '' : 'none';
+  document.getElementById('sale-refund-btn').style.display = editId ? '' : 'none';
+  const banner = document.getElementById('sale-refund-banner');
+  if (s && s.refunded) {
+    banner.style.display = '';
+    const dLbl = s.refundDate ? new Date(s.refundDate + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    banner.textContent = `↩ Refunded ${dLbl} — ${_bizFmt(s.refundAmount || 0)}${s.refundRestocked ? ' · restocked' : ''}`;
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
 function saveSale() {
@@ -10826,10 +10904,11 @@ function saveSale() {
   const price = parseFloat(document.getElementById('sale-price').value) || 0;
   const cost = parseFloat(document.getElementById('sale-cost').value) || 0;
   const notes = document.getElementById('sale-notes').value.trim();
+  const orderId = document.getElementById('sale-order').value;
   if (!date || !item || qty <= 0) { alert('Please enter a date, item and quantity.'); return; }
   const editId = document.getElementById('sale-edit-id').value;
   const prevSale = editId ? DB.bizSales.find(x => x.id === editId) : null;
-  const sale = { id: editId || uid(), date, item, qty, price, cost, notes, profitShare: prevSale ? prevSale.profitShare : 1 };
+  const sale = Object.assign({}, prevSale, { id: editId || uid(), date, item, qty, price, cost, notes, orderId, profitShare: prevSale ? prevSale.profitShare : 1 });
   if (editId) {
     const i = DB.bizSales.findIndex(x => x.id === editId);
     if (i >= 0) DB.bizSales[i] = sale;
@@ -10847,10 +10926,180 @@ function deleteSale(id) {
   save(); closeModal('sale-modal'); renderBizSales(); renderBizDashboard();
 }
 
+// ---- Refunds ----
+function openRefundModal(id) {
+  const s = DB.bizSales.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('refund-modal-title').textContent = s.refunded ? 'Edit Refund' : 'Process Refund';
+  document.getElementById('refund-sale-id').value = id;
+  const dateLbl = new Date(s.date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+  document.getElementById('refund-sale-summary').innerHTML = `<strong>${s.item}</strong> × ${s.qty} — sold ${dateLbl} for ${_bizFmt(s.price)}`;
+  document.getElementById('refund-amount').value = (s.refunded ? s.refundAmount : s.price).toFixed(2);
+  document.getElementById('refund-shipping').value = s.refunded ? (s.refundShippingCost || 0) : 0;
+  document.getElementById('refund-date').value = s.refunded ? s.refundDate : today();
+  document.getElementById('refund-restock').checked = s.refunded ? !!s.refundRestocked : false;
+  document.getElementById('refund-notes').value = s.refunded ? (s.refundNotes || '') : '';
+  document.getElementById('refund-undo-btn').style.display = s.refunded ? '' : 'none';
+  computeRefundPreview();
+  document.getElementById('refund-modal').classList.add('open');
+}
+function computeRefundPreview() {
+  const amount = parseFloat(document.getElementById('refund-amount').value) || 0;
+  const shipping = parseFloat(document.getElementById('refund-shipping').value) || 0;
+  document.getElementById('refund-preview').innerHTML = `Total cost of this refund: <strong style="color:var(--red);">${_bizFmt(amount + shipping)}</strong> (${_bizFmt(amount)} refunded to buyer + ${_bizFmt(shipping)} return label)`;
+}
+function saveRefund() {
+  const id = document.getElementById('refund-sale-id').value;
+  const s = DB.bizSales.find(x => x.id === id);
+  if (!s) return;
+  const refundAmount = parseFloat(document.getElementById('refund-amount').value) || 0;
+  if (refundAmount <= 0) { alert('Refund amount must be greater than 0.'); return; }
+  const nowRestocked = document.getElementById('refund-restock').checked;
+  const wasRestocked = !!s.refundRestocked;
+  s.refunded = true;
+  s.refundAmount = refundAmount;
+  s.refundShippingCost = parseFloat(document.getElementById('refund-shipping').value) || 0;
+  s.refundDate = document.getElementById('refund-date').value || today();
+  s.refundRestocked = nowRestocked;
+  s.refundNotes = document.getElementById('refund-notes').value.trim();
+  if (wasRestocked !== nowRestocked) {
+    const invItem = DB.bizInventory.find(x => x.name.toLowerCase() === s.item.toLowerCase());
+    if (invItem) invItem.qty = Math.max(0, invItem.qty + (nowRestocked ? s.qty : -s.qty));
+  }
+  save(); closeModal('refund-modal'); closeModal('sale-modal'); renderBizSales(); renderBizInventory(); renderBizDashboard();
+}
+function undoRefund() {
+  const id = document.getElementById('refund-sale-id').value;
+  const s = DB.bizSales.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm('Undo this refund? The sale will count as a normal completed sale again.')) return;
+  if (s.refundRestocked) {
+    const invItem = DB.bizInventory.find(x => x.name.toLowerCase() === s.item.toLowerCase());
+    if (invItem) invItem.qty = Math.max(0, invItem.qty - s.qty);
+  }
+  s.refunded = false;
+  delete s.refundAmount; delete s.refundShippingCost; delete s.refundDate; delete s.refundRestocked; delete s.refundNotes;
+  save(); closeModal('refund-modal'); closeModal('sale-modal'); renderBizSales(); renderBizInventory(); renderBizDashboard();
+}
+
+// ---- Multi-item sales ----
+let _multiSaleItemsDraft = [];
+function renderMultiSaleItems() {
+  const el = document.getElementById('msale-items');
+  el.innerHTML = _multiSaleItemsDraft.map((r, idx) => `
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+      <input type="text" value="${r.item || ''}" placeholder="Item" list="biz-inv-datalist" style="flex:2;" oninput="_multiSaleItemsDraft[${idx}].item=this.value">
+      <input type="number" value="${r.qty || 1}" min="1" placeholder="Qty" style="width:70px;" oninput="_multiSaleItemsDraft[${idx}].qty=this.value;computeMultiSalePreview()">
+      <input type="number" value="${r.cost !== undefined && r.cost !== '' ? r.cost : ''}" min="0" step="0.01" placeholder="Unit cost €" style="width:120px;" oninput="_multiSaleItemsDraft[${idx}].cost=this.value;computeMultiSalePreview()">
+      <button type="button" class="btn-ghost" onclick="removeMultiSaleItemRow(${idx})" ${_multiSaleItemsDraft.length <= 1 ? 'disabled' : ''}>🗑</button>
+    </div>`).join('');
+  computeMultiSalePreview();
+}
+function addMultiSaleItemRow() {
+  _multiSaleItemsDraft.push({ item: '', qty: 1, cost: '' });
+  renderMultiSaleItems();
+}
+function removeMultiSaleItemRow(idx) {
+  if (_multiSaleItemsDraft.length <= 1) return;
+  _multiSaleItemsDraft.splice(idx, 1);
+  renderMultiSaleItems();
+}
+// Splits total revenue across rows proportional to each row's cost (qty×unit cost); falls
+// back to an even per-unit split when no costs are entered.
+function _allocateMultiSaleRevenue(rows, totalRevenue) {
+  const totalCost = rows.reduce((a, r) => a + (parseFloat(r.qty) || 0) * (parseFloat(r.cost) || 0), 0);
+  const totalQty = rows.reduce((a, r) => a + (parseFloat(r.qty) || 0), 0) || 1;
+  return rows.map(r => {
+    const share = totalCost > 0 ? ((parseFloat(r.qty) || 0) * (parseFloat(r.cost) || 0)) / totalCost : (parseFloat(r.qty) || 0) / totalQty;
+    return totalRevenue * share;
+  });
+}
+function computeMultiSalePreview() {
+  const revenue = parseFloat(document.getElementById('msale-revenue').value) || 0;
+  const shipping = parseFloat(document.getElementById('msale-shipping').value) || 0;
+  const fee = parseFloat(document.getElementById('msale-fee').value) || 0;
+  const rows = _multiSaleItemsDraft;
+  const cost = rows.reduce((a, r) => a + (parseFloat(r.qty) || 0) * (parseFloat(r.cost) || 0), 0);
+  const profit = revenue - cost - fee - shipping;
+  document.getElementById('msale-preview').innerHTML =
+    `Revenue: <strong>${_bizFmt(revenue)}</strong> · Cost: <strong>${_bizFmt(cost)}</strong> · Profit: <strong style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'};">${_bizFmt(profit)}</strong> · ${rows.length} item${rows.length === 1 ? '' : 's'}`;
+}
+function openMultiSaleModal(groupId) {
+  _populateBizInvDatalist();
+  if (groupId) {
+    const members = DB.bizSales.filter(s => s.groupId === groupId);
+    if (!members.length) return;
+    if (members.some(s => s.refunded)) { alert('One or more items in this sale have a refund on them. Undo that refund first (open that item individually via the Sales list) before editing the whole sale.'); return; }
+    document.getElementById('msale-modal-title').textContent = 'Edit Multi-Item Sale';
+    document.getElementById('msale-edit-group-id').value = groupId;
+    document.getElementById('msale-date').value = members[0].date;
+    populateSaleOrderSelect('msale-order', members[0].orderId);
+    document.getElementById('msale-revenue').value = members.reduce((a, s) => a + s.price, 0).toFixed(2);
+    document.getElementById('msale-shipping').value = members.reduce((a, s) => a + (s.shipping || 0), 0).toFixed(2);
+    document.getElementById('msale-fee').value = members.reduce((a, s) => a + (s.fee || 0), 0).toFixed(2);
+    document.getElementById('msale-notes').value = members[0].notes || '';
+    _multiSaleItemsDraft = members.map(s => ({ item: s.item, qty: s.qty, cost: s.qty ? (s.cost / s.qty) : s.cost }));
+  } else {
+    document.getElementById('msale-modal-title').textContent = 'Log Multi-Item Sale';
+    document.getElementById('msale-edit-group-id').value = '';
+    document.getElementById('msale-date').value = today();
+    populateSaleOrderSelect('msale-order', '');
+    document.getElementById('msale-revenue').value = '';
+    document.getElementById('msale-shipping').value = 0;
+    document.getElementById('msale-fee').value = 0;
+    document.getElementById('msale-notes').value = '';
+    _multiSaleItemsDraft = [{ item: '', qty: 1, cost: '' }, { item: '', qty: 1, cost: '' }];
+  }
+  renderMultiSaleItems();
+  document.getElementById('multi-sale-modal').classList.add('open');
+}
+function saveMultiSale() {
+  const rows = _multiSaleItemsDraft
+    .map(r => ({ item: (r.item || '').trim(), qty: parseFloat(r.qty) || 0, cost: parseFloat(r.cost) || 0 }))
+    .filter(r => r.item && r.qty > 0);
+  if (!rows.length) { alert('Please add at least one item with a name and quantity.'); return; }
+  const editGroupId = document.getElementById('msale-edit-group-id').value;
+  const date = document.getElementById('msale-date').value || today();
+  const orderId = document.getElementById('msale-order').value;
+  const notes = document.getElementById('msale-notes').value.trim();
+  const totalRevenue = parseFloat(document.getElementById('msale-revenue').value) || 0;
+  const totalShipping = parseFloat(document.getElementById('msale-shipping').value) || 0;
+  const totalFee = parseFloat(document.getElementById('msale-fee').value) || 0;
+  const n = rows.length;
+  const shippingPerItem = totalShipping / n;
+  const feePerItem = totalFee / n;
+  const revenueByRow = _allocateMultiSaleRevenue(rows, totalRevenue);
+
+  if (editGroupId) {
+    const oldMembers = DB.bizSales.filter(s => s.groupId === editGroupId);
+    oldMembers.forEach(s => {
+      const invItem = DB.bizInventory.find(i => i.name.toLowerCase() === s.item.toLowerCase());
+      if (invItem) invItem.qty += s.qty;
+    });
+    DB.bizSales = DB.bizSales.filter(s => s.groupId !== editGroupId);
+  }
+  const groupId = editGroupId || uid();
+
+  rows.forEach((r, idx) => {
+    const invItem = DB.bizInventory.find(i => i.name.toLowerCase() === r.item.toLowerCase());
+    DB.bizSales.push({
+      id: uid(), date, item: r.item, qty: r.qty,
+      price: Math.round(revenueByRow[idx] * 100) / 100,
+      cost: Math.round(r.qty * r.cost * 100) / 100,
+      fee: Math.round(feePerItem * 100) / 100,
+      shipping: Math.round(shippingPerItem * 100) / 100,
+      notes, orderId: orderId || '', groupId, profitShare: 1,
+    });
+    if (invItem) invItem.qty = Math.max(0, invItem.qty - r.qty);
+  });
+
+  save(); closeModal('multi-sale-modal'); renderBizSales(); renderBizInventory(); renderBizDashboard();
+}
+
 function renderBizSales() {
   const listEl = document.getElementById('biz-sales-list');
   if (!listEl) return;
-  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.cost += s.cost; acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, cost: 0, profit: 0 });
+  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += _bizSaleNetRevenue(s); acc.cost += _bizSaleTrueCost(s); acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, cost: 0, profit: 0 });
   document.getElementById('biz-sales-revenue').textContent = _bizFmt(totals.revenue);
   document.getElementById('biz-sales-cost').textContent = _bizFmt(totals.cost);
   document.getElementById('biz-sales-profit').textContent = _bizFmt(totals.profit);
@@ -10860,18 +11109,45 @@ function renderBizSales() {
     listEl.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>No sales logged yet. Click <strong>+ Log Sale</strong> to get started.</p></div>`;
     return;
   }
-  const sorted = [...DB.bizSales].sort((a, b) => b.date.localeCompare(a.date));
-  listEl.innerHTML = sorted.map(s => {
-    const p = _bizSaleProfit(s);
-    const dateLbl = new Date(s.date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openSaleModal('${s.id}')">
+
+  // Multi-item sales share a groupId and render as one collapsed row; everything else stands alone.
+  const groups = {};
+  const standalone = [];
+  DB.bizSales.forEach(s => { if (s.groupId) (groups[s.groupId] = groups[s.groupId] || []).push(s); else standalone.push(s); });
+  const rows = [
+    ...standalone.map(s => ({ type: 'single', sortDate: s.date, sale: s })),
+    ...Object.entries(groups).map(([gid, members]) => ({ type: 'group', sortDate: members[0].date, groupId: gid, members })),
+  ].sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+
+  listEl.innerHTML = rows.map(r => {
+    if (r.type === 'single') {
+      const s = r.sale;
+      const p = _bizSaleProfit(s);
+      const dateLbl = new Date(s.date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;${s.refunded?'opacity:.65;':''}" onclick="openSaleModal('${s.id}')">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:13px;">${s.item} <span style="color:var(--text-muted);font-weight:400;">×${s.qty}</span>${s.refunded?' <span class="badge badge-red" style="font-size:10px;">Refunded</span>':''}${s.orderId?' <span class="badge badge-gray" style="font-size:10px;">🔗 order</span>':''}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${dateLbl}${s.notes ? ' · ' + s.notes : ''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;font-size:13px;${s.refunded?'text-decoration:line-through;':''}">${_bizFmt(s.price)}</div>
+          <div style="font-size:11px;color:${p >= 0 ? 'var(--green)' : 'var(--red)'};">${p >= 0 ? '+' : ''}${_bizFmt(p)} profit${s.profitShare != null && s.profitShare < 1 ? ` <span style="opacity:.75;">(${Math.round(s.profitShare*100)}% share)</span>` : ''}</div>
+        </div>
+      </div>`;
+    }
+    const members = r.members;
+    const groupRevenue = members.reduce((a, s) => a + _bizSaleNetRevenue(s), 0);
+    const groupProfit = members.reduce((a, s) => a + _bizSaleProfit(s), 0);
+    const dateLbl = new Date(members[0].date + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+    const itemsLbl = members.map(s => `${s.item} ×${s.qty}`).join(', ');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);cursor:pointer;" onclick="openMultiSaleModal('${r.groupId}')">
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;font-size:13px;">${s.item} <span style="color:var(--text-muted);font-weight:400;">×${s.qty}</span></div>
-        <div style="font-size:11px;color:var(--text-muted);">${dateLbl}${s.notes ? ' · ' + s.notes : ''}</div>
+        <div style="font-weight:600;font-size:13px;">🧾 Multi-item sale <span class="badge badge-gray" style="font-size:10px;">${members.length} items</span></div>
+        <div style="font-size:11px;color:var(--text-muted);">${dateLbl} · ${itemsLbl}</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-weight:700;font-size:13px;">${_bizFmt(s.price)}</div>
-        <div style="font-size:11px;color:${p >= 0 ? 'var(--green)' : 'var(--red)'};">${p >= 0 ? '+' : ''}${_bizFmt(p)} profit${s.profitShare != null && s.profitShare < 1 ? ` <span style="opacity:.75;">(${Math.round(s.profitShare*100)}% share)</span>` : ''}</div>
+        <div style="font-weight:700;font-size:13px;">${_bizFmt(groupRevenue)}</div>
+        <div style="font-size:11px;color:${groupProfit >= 0 ? 'var(--green)' : 'var(--red)'};">${groupProfit >= 0 ? '+' : ''}${_bizFmt(groupProfit)} profit</div>
       </div>
     </div>`;
   }).join('');
@@ -11213,7 +11489,7 @@ function renderBizCalendar() {
 
 // ---- Dashboard ----
 function renderBizDashboard() {
-  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += s.price; acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, profit: 0 });
+  const totals = DB.bizSales.reduce((acc, s) => { acc.revenue += _bizSaleNetRevenue(s); acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, profit: 0 });
   document.getElementById('biz-stat-revenue').textContent = _bizFmt(totals.revenue);
   document.getElementById('biz-stat-profit').textContent = _bizFmt(totals.profit);
 
@@ -11235,7 +11511,7 @@ function renderBizDashboard() {
   }
   const monthData = months.map(mo => {
     const sales = DB.bizSales.filter(s => s.date.startsWith(mo.key));
-    const rev = sales.reduce((a, s) => a + s.price, 0);
+    const rev = sales.reduce((a, s) => a + _bizSaleNetRevenue(s), 0);
     const prof = sales.reduce((a, s) => a + _bizSaleProfit(s), 0);
     return { ...mo, rev, prof };
   });
@@ -11939,7 +12215,7 @@ function renderInsights() {
     <span class="ins-nav-link" onclick="setMode('life');showPage('l-countries')">Open Countries Visited →</span>`;
 
   // ---- Business ----
-  const bizTotals = (DB.bizSales || []).reduce((acc, s) => { acc.revenue += s.price; acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, profit: 0 });
+  const bizTotals = (DB.bizSales || []).reduce((acc, s) => { acc.revenue += _bizSaleNetRevenue(s); acc.profit += _bizSaleProfit(s); return acc; }, { revenue: 0, profit: 0 });
   const bizProfit = bizTotals.profit;
   const itemTotals = {};
   (DB.bizSales || []).forEach(s => { itemTotals[s.item] = (itemTotals[s.item] || 0) + s.price; });
@@ -12237,8 +12513,8 @@ function renderMonthSummary() {
   if (!picker.value) picker.value = new Date().toISOString().slice(0,7);
   const month = picker.value; // 'YYYY-MM'
   const sales = (DB.bizSales||[]).filter(s => s.date && s.date.slice(0,7) === month);
-  const revenue = sales.reduce((a,s) => a + (s.price||0), 0);
-  const cost    = sales.reduce((a,s) => a + (s.cost||0), 0);
+  const revenue = sales.reduce((a,s) => a + _bizSaleNetRevenue(s), 0);
+  const cost    = sales.reduce((a,s) => a + _bizSaleTrueCost(s), 0);
   const profit  = sales.reduce((a,s) => a + _bizSaleProfit(s), 0);
   const units   = sales.reduce((a,s) => a + (s.qty||1), 0);
   const fmt = v => '€' + v.toFixed(2);
@@ -12271,8 +12547,8 @@ function renderBizAnalytics() {
     return;
   }
 
-  const totalRev    = sales.reduce((a, s) => a + s.price, 0);
-  const totalCost   = sales.reduce((a, s) => a + s.cost, 0);
+  const totalRev    = sales.reduce((a, s) => a + _bizSaleNetRevenue(s), 0);
+  const totalCost   = sales.reduce((a, s) => a + _bizSaleTrueCost(s), 0);
   const totalProfit = sales.reduce((a, s) => a + _bizSaleProfit(s), 0);
   const totalUnits  = sales.reduce((a, s) => a + (s.qty || 1), 0);
   const margin      = totalRev > 0 ? totalProfit / totalRev * 100 : 0;
@@ -12287,8 +12563,8 @@ function renderBizAnalytics() {
   const prevMo = `${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}`;
   const curSales  = sales.filter(s => s.date.startsWith(curMo));
   const prevSales = sales.filter(s => s.date.startsWith(prevMo));
-  const curRev    = curSales.reduce((a,s) => a+s.price, 0);
-  const prevRev   = prevSales.reduce((a,s) => a+s.price, 0);
+  const curRev    = curSales.reduce((a,s) => a+_bizSaleNetRevenue(s), 0);
+  const prevRev   = prevSales.reduce((a,s) => a+_bizSaleNetRevenue(s), 0);
   const momChange = prevRev > 0 ? (curRev - prevRev) / prevRev * 100 : null;
 
   // Best single sale
@@ -12317,8 +12593,8 @@ function renderBizAnalytics() {
   sales.forEach(s => {
     const name = s.item || '(unlabeled)';
     if (!prodMap[name]) prodMap[name] = { rev:0, cost:0, profit:0, units:0, count:0 };
-    prodMap[name].rev    += s.price;
-    prodMap[name].cost   += s.cost;
+    prodMap[name].rev    += _bizSaleNetRevenue(s);
+    prodMap[name].cost   += _bizSaleTrueCost(s);
     prodMap[name].profit += _bizSaleProfit(s);
     prodMap[name].units  += (s.qty || 1);
     prodMap[name].count++;
@@ -12352,8 +12628,8 @@ function renderBizAnalytics() {
   const allMonths = _uniqueMonths(sales).sort().reverse();
   const monthRows = allMonths.map(mo => {
     const ms = sales.filter(s => s.date.startsWith(mo));
-    const rev = ms.reduce((a,s) => a+s.price, 0);
-    const cost = ms.reduce((a,s) => a+s.cost, 0);
+    const rev = ms.reduce((a,s) => a+_bizSaleNetRevenue(s), 0);
+    const cost = ms.reduce((a,s) => a+_bizSaleTrueCost(s), 0);
     const prof = ms.reduce((a,s) => a+_bizSaleProfit(s), 0);
     const mgn  = rev > 0 ? prof/rev*100 : 0;
     const units = ms.reduce((a,s) => a+(s.qty||1), 0);
@@ -12391,7 +12667,7 @@ function renderBizAnalytics() {
   const bestRevMonth  = [...monthRows].sort((a,b)=>b.rev-a.rev)[0];
   const bestProfMonth = [...monthRows].sort((a,b)=>b.prof-a.prof)[0];
   const bestMarginMonth = [...monthRows].filter(r=>r.count>=2).sort((a,b)=>b.mgn-a.mgn)[0] || monthRows[0];
-  const biggestSale   = [...sales].sort((a,b)=>b.price-a.price)[0];
+  const biggestSale   = [...sales].sort((a,b)=>_bizSaleNetRevenue(b)-_bizSaleNetRevenue(a))[0];
   const avgDaysBetween = _avgDaysBetweenSales(sales);
   const topProd = prods[0];
   const insights = [
@@ -12399,7 +12675,7 @@ function renderBizAnalytics() {
     { icon:'💰', lbl:'Best Profit Month',     val: bestProfMonth ? bestProfMonth.lbl : '—',     sub: bestProfMonth ? _bizFmt(bestProfMonth.prof) + ' profit' : '' },
     { icon:'🎯', lbl:'Best Margin Month',     val: bestMarginMonth ? bestMarginMonth.lbl : '—', sub: bestMarginMonth ? bestMarginMonth.mgn.toFixed(1) + '% margin' : '' },
     { icon:'💎', lbl:'Most Profitable Sale',  val: bestSale ? bestSale.item : '—',              sub: bestSale ? `${_bizFmt(bestSaleProfit)} profit on ${new Date(bestSale.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}` : '' },
-    { icon:'🧾', lbl:'Biggest Single Sale',   val: biggestSale ? _bizFmt(biggestSale.price) : '—', sub: biggestSale ? `${biggestSale.item} · ${new Date(biggestSale.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}` : '' },
+    { icon:'🧾', lbl:'Biggest Single Sale',   val: biggestSale ? _bizFmt(_bizSaleNetRevenue(biggestSale)) : '—', sub: biggestSale ? `${biggestSale.item} · ${new Date(biggestSale.date+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short'})}` : '' },
     { icon:'⭐', lbl:'Top Product by Revenue',val: topProd ? topProd.name : '—',                sub: topProd ? `${_bizFmt(topProd.rev)} · ${topProd.margin.toFixed(1)}% margin` : '' },
     { icon:'📦', lbl:'Avg Units per Sale',    val: avgQty.toFixed(1),                           sub: `${totalUnits} units across ${sales.length} sales` },
     { icon:'📆', lbl:'Avg Days Between Sales',val: avgDaysBetween !== null ? avgDaysBetween.toFixed(1) + 'd' : '—', sub: avgDaysBetween !== null ? `~${(30/Math.max(avgDaysBetween,0.1)).toFixed(1)} sales/month` : '' },
@@ -12419,7 +12695,7 @@ function renderBizAnalytics() {
   const dowCount = [0,0,0,0,0,0,0];
   sales.forEach(s => {
     const d = new Date(s.date+'T12:00:00').getDay();
-    dowRev[d]   += s.price;
+    dowRev[d]   += _bizSaleNetRevenue(s);
     dowCount[d] += 1;
   });
   const maxDow = Math.max(...dowRev, 1);
@@ -12507,6 +12783,19 @@ function cfFmtDate(d) {
   return parseInt(p[2])+' '+mo[parseInt(p[1])-1];
 }
 
+// Once a sale is linked to an order, that order's real revenue/profit is the sum of its
+// linked sales' actual numbers — not the manually-entered expectedRevenue estimate.
+function _bizOrderLinkedSales(orderId) {
+  return DB.bizSales.filter(s => s.orderId === orderId);
+}
+function _bizOrderRevenueProfit(order) {
+  const linked = _bizOrderLinkedSales(order.id);
+  if (!linked.length) return { revenue: order.expectedRevenue || 0, profit: (order.expectedRevenue || 0) - (order.orderCost || 0), linkedCount: 0, isLive: false };
+  const revenue = linked.reduce((a, s) => a + _bizSaleNetRevenue(s), 0);
+  const profit = linked.reduce((a, s) => a + (_bizSaleNetRevenue(s) - _bizSaleTrueCost(s)), 0);
+  return { revenue, profit, linkedCount: linked.length, isLive: true };
+}
+
 function cfStatus(o) {
   var tod = new Date(); tod.setHours(0,0,0,0);
   if (o.cashInDate && new Date(o.cashInDate) <= tod) return 'complete';
@@ -12523,7 +12812,7 @@ function renderCashFlow() {
   // Summary strip — always shown (simplified: just the money totals; per-status
   // counts already live in the filter tabs just below)
   var cashOut   = orders.reduce(function(a,o){return a+(o.orderCost||0);},0);
-  var cashIn    = orders.filter(function(o){return o.cashInDate&&new Date(o.cashInDate)<=tod;}).reduce(function(a,o){return a+(o.expectedRevenue||0);},0);
+  var cashIn    = orders.filter(function(o){return o.cashInDate&&new Date(o.cashInDate)<=tod;}).reduce(function(a,o){return a+_bizOrderRevenueProfit(o).revenue;},0);
   var totalIncome = cashIn;
   var net = cashIn - cashOut;
 
@@ -12594,7 +12883,9 @@ function renderCashFlow() {
     }[st] || {label:'Unknown', color:'#6b7280', bg:'#f3f4f6', step:0};
 
     var gap = (o.orderDate&&o.cashInDate) ? Math.round((new Date(o.cashInDate)-new Date(o.orderDate))/86400000) : null;
-    var profit = (o.expectedRevenue||0) - (o.orderCost||0);
+    var rp = _bizOrderRevenueProfit(o);
+    var profit = rp.profit;
+    var revenue = rp.revenue;
 
     // Pipeline steps
     var steps = [
@@ -12626,12 +12917,13 @@ function renderCashFlow() {
       +'<span style="font-size:15px;font-weight:700;">'+o.name+'</span>'
       +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;background:'+statusMeta.bg+';color:'+statusMeta.color+';">'+statusMeta.label+'</span>'
       +(gap!==null?'<span style="font-size:11px;color:var(--text-secondary);">'+gap+'d cash gap</span>':'')
+      +(rp.isLive?'<span style="font-size:11px;color:var(--text-secondary);">🔗 '+rp.linkedCount+' linked sale'+(rp.linkedCount>1?'s':'')+'</span>':'')
       +'</div>'
       +(o.notes?'<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">'+o.notes+'</div>':'')
       +'</div>'
       +'<div style="text-align:right;flex-shrink:0;">'
       +'<div style="font-size:13px;font-weight:700;color:'+(profit>=0?'#22c55e':'#ef4444')+';">'+(profit>=0?'+':'')+'€'+profit.toFixed(0)+' profit</div>'
-      +'<div style="font-size:11px;color:var(--text-secondary);">€'+(o.orderCost||0).toFixed(0)+' → €'+(o.expectedRevenue||0).toFixed(0)+'</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);">€'+(o.orderCost||0).toFixed(0)+' → €'+revenue.toFixed(0)+(rp.isLive?' (actual)':' (expected)')+'</div>'
       +'</div>'
       +'</div>'
       + pipeline
@@ -12698,11 +12990,12 @@ function investmentPayout(inv) {
   if (!order) return { orderFound: false, totalOwed: inv.amount };
   var orderCost = order.orderCost || 0;
   var sharePercent = orderCost > 0 ? inv.amount / orderCost : 0;
-  var orderProfit = (order.expectedRevenue || 0) - orderCost;
+  var rp = _bizOrderRevenueProfit(order);
+  var orderProfit = rp.profit;
   var profitCutPercent = inv.profitCutPercent != null ? inv.profitCutPercent : 0.4;
   var fullProfitShare = sharePercent * orderProfit;
   var theirProfitShare = fullProfitShare * profitCutPercent;
-  return { orderFound: true, order: order, orderCost: orderCost, sharePercent: sharePercent, orderProfit: orderProfit, profitCutPercent: profitCutPercent, fullProfitShare: fullProfitShare, profitShare: theirProfitShare, totalOwed: inv.amount + theirProfitShare };
+  return { orderFound: true, order: order, orderCost: orderCost, sharePercent: sharePercent, orderProfit: orderProfit, isLive: rp.isLive, profitCutPercent: profitCutPercent, fullProfitShare: fullProfitShare, profitShare: theirProfitShare, totalOwed: inv.amount + theirProfitShare };
 }
 function openInvestmentModal(id) {
   document.getElementById('investment-edit-id').value = id || '';
@@ -12861,7 +13154,7 @@ function openInvestorReportModal(invId) {
         <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Order total cost</span><strong>${_bizFmt(payout.orderCost)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Your investment</span><strong>${_bizFmt(inv.amount)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px dashed #d1d5db;"><span>Your share of the order (${_bizFmt(inv.amount)} ÷ ${_bizFmt(payout.orderCost)})</span><strong>${(payout.sharePercent*100).toFixed(1)}%</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Order profit (expected)</span><strong style="color:${payout.orderProfit>=0?'#16a34a':'#dc2626'};">${_bizFmt(payout.orderProfit)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Order profit ${payout.isLive?'(from linked sales)':'(expected)'}</span><strong style="color:${payout.orderProfit>=0?'#16a34a':'#dc2626'};">${_bizFmt(payout.orderProfit)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px dashed #d1d5db;"><span>Your share of that profit (${(payout.sharePercent*100).toFixed(1)}% × ${_bizFmt(payout.orderProfit)})</span><strong>${_bizFmt(payout.fullProfitShare)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span>Agreed cut of your share</span><strong>${(payout.profitCutPercent*100).toFixed(0)}%</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px;border-top:1px solid #d1d5db;margin-top:4px;"><span style="font-weight:700;">Your profit share</span><strong style="color:#16a34a;">${_bizFmt(payout.profitShare)}</strong></div>
