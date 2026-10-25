@@ -12187,23 +12187,38 @@ function bzEnsure() {
 // Brings records over from an old-hub backup (the JSON "Export Backup" file). Anything already imported is
 // replaced only if it came from the legacy conversion above; records you've edited since are left alone.
 // Every imported sale is from the 50/50 period, so it counts at profitShare 0.5.
-function importOldHub(p) {
+function importOldHub(p, opts) {
+  opts = opts || {};
   const s = rawStore();
   const counts = {};
+  const clone = x => JSON.parse(JSON.stringify(x));
+  // Records the old hub deleted since an earlier backup (given by id) are removed too.
+  Object.keys(opts.remove || {}).forEach(k => { if (Array.isArray(s[k])) s[k] = s[k].filter(x => opts.remove[k].indexOf(x.id) < 0); });
   ['sales', 'inventory', 'orders', 'channels', 'investments', 'buyers'].forEach(k => {
     let added = 0;
     (p[k] || []).forEach(rec => {
       const bare = rec.id && rec.id.indexOf('mh_') === 0 ? rec.id.slice(3) : null;
       const existing = s[k].find(x => x.id === rec.id);
-      if (existing && !existing._legacy) return;
+      if (existing && !existing._legacy && !opts.overwrite) return;
       s[k] = s[k].filter(x => x.id !== rec.id && !(bare && x.id === bare && x._legacy));
-      const copy = JSON.parse(JSON.stringify(rec));
-      if (k === 'sales' && copy.profitShare === undefined) copy.profitShare = 0.5;
+      const copy = clone(rec);
+      if (k === 'sales') copy.profitShare = (existing && existing.profitShare != null) ? existing.profitShare : (copy.profitShare !== undefined ? copy.profitShare : 0.5);
       s[k].push(copy); added++;
     });
     counts[k] = added;
   });
-  if (p.balanceBaseline != null && s.balanceBaselineDate == null) { s.balanceBaseline = p.balanceBaseline; s.balanceBaselineDate = p.balanceBaselineDate; }
+  // Data for the sections My Hub doesn't show (deals, notes, pocket, tax, events, tasks) is kept as-is so nothing is lost.
+  ['deals', 'priceRefs', 'notes', 'pocketEntries', 'events', 'tasks', 'dismissedSuggestions', 'payouts'].forEach(k => {
+    if (!Array.isArray(p[k])) return;
+    s[k] = s[k] || [];
+    p[k].forEach(rec => {
+      const i = rec.id ? s[k].findIndex(x => x.id === rec.id) : -1;
+      if (i >= 0) { if (opts.overwrite) s[k][i] = clone(rec); }
+      else s[k].push(clone(rec));
+    });
+  });
+  ['pocket', 'taxRate', 'taxAccountBalance', 'cashFlowCutoff'].forEach(k => { if (p[k] !== undefined && (opts.overwrite || s[k] === undefined)) s[k] = clone(p[k]); });
+  if (p.balanceBaseline != null && (opts.overwrite || s.balanceBaselineDate == null)) { s.balanceBaseline = p.balanceBaseline; s.balanceBaselineDate = p.balanceBaselineDate; }
   const mergeLog = (key, cap) => { const ids = new Set(s[key].map(x => x.id)); (p[key] || []).forEach(x => { if (!ids.has(x.id)) s[key].push(x); }); s[key].sort((a, b) => ((b.at || b.deletedAt || '') + '').localeCompare((a.at || a.deletedAt || '') + '')); if (s[key].length > cap) s[key].length = cap; };
   mergeLog('activityLog', 300); mergeLog('trash', 200);
   save(true);
