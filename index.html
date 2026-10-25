@@ -803,6 +803,57 @@ a:hover{text-decoration:underline;}
 .ins-row-bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
 .ins-row-fill{height:100%;border-radius:4px;}
 .ins-row-value{width:46px;flex-shrink:0;text-align:right;font-size:11.5px;font-weight:700;color:var(--text-muted);}
+
+/* Cross-mode calendar */
+.gcal-viewtoggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface);}
+.gcal-viewtoggle button{border:none;background:none;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-secondary);font-family:inherit;}
+.gcal-viewtoggle button.active{background:var(--accent);color:#fff;}
+.gcal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.gcal-filters{display:flex;gap:6px;flex-wrap:wrap;}
+.gcal-filter{border:1.5px solid var(--gc);color:var(--gc);background:transparent;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.gcal-filter.on{background:var(--gc);color:#fff;}
+.gcal-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start;}
+.gcal-detail{position:sticky;top:12px;max-height:calc(100vh - 40px);overflow:auto;}
+.gcal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface);}
+.gcal-dow{padding:8px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:center;border-bottom:1px solid var(--border);background:var(--surface-warm);}
+.gcal-cell{min-height:104px;padding:5px;border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0;}
+.gcal-cell:nth-child(7n){border-right:none;}
+.gcal-cell:hover{background:var(--surface-warm);}
+.gcal-cell.other{background:var(--bg);opacity:.62;}
+.gcal-cell.sel{outline:2px solid var(--accent);outline-offset:-2px;}
+.gcal-cell .chips{display:contents;}
+.gcal-num{font-size:12px;font-weight:700;color:var(--text-secondary);width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.gcal-cell.today .gcal-num{background:var(--accent);color:#fff;}
+.gcal-chip{display:flex;align-items:center;gap:4px;font-size:11px;line-height:1.25;padding:2px 5px;border-radius:4px;border-left:3px solid var(--gc);background:color-mix(in srgb,var(--gc) 13%,transparent);color:var(--text);min-width:0;}
+.gcal-chip .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.gcal-chip.done{opacity:.5;text-decoration:line-through;}
+.gcal-more{font-size:10.5px;font-weight:700;color:var(--text-muted);padding-left:4px;}
+.gcal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
+.gcal-wcol{border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:8px;min-height:240px;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0;}
+.gcal-wcol.today{border-color:var(--accent);}
+.gcal-wcol.sel{outline:2px solid var(--accent);}
+.gcal-whead{font-size:12px;font-weight:700;color:var(--text-secondary);padding-bottom:5px;border-bottom:1px solid var(--border-light);}
+.gcal-wcol.today .gcal-whead{color:var(--accent);}
+.gcal-wcol .gcal-chip{white-space:normal;align-items:flex-start;}
+.gcal-wcol .gcal-chip .t{white-space:normal;}
+.gcal-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);}
+.gcal-item:last-child{border-bottom:none;}
+.gcal-item-bar{width:4px;border-radius:2px;flex-shrink:0;background:var(--gc);}
+.gcal-item.done .gcal-item-title{text-decoration:line-through;opacity:.55;}
+.gcal-item-title{font-size:13.5px;font-weight:600;}
+.gcal-item-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+.gcal-open{border:none;background:none;color:var(--accent);font-size:11.5px;font-weight:700;cursor:pointer;padding:0;margin-top:4px;font-family:inherit;}
+@media(max-width:1100px){.gcal-layout{grid-template-columns:1fr;}.gcal-detail{position:static;max-height:none;}}
+@media(max-width:760px){
+  .gcal-cell{min-height:58px;padding:3px;}
+  .gcal-chip{padding:0;height:6px;width:6px;border:none;border-radius:50%;background:var(--gc);}
+  .gcal-chip>*{display:none;}
+  .gcal-cell .chips{display:flex;flex-wrap:wrap;gap:3px;}
+  .gcal-week{grid-template-columns:1fr;}
+  .gcal-wcol{min-height:0;}
+  .gcal-wcol .gcal-chip{padding:2px 5px;height:auto;width:auto;border-radius:4px;border-left:3px solid var(--gc);background:color-mix(in srgb,var(--gc) 13%,transparent);}
+  .gcal-wcol .gcal-chip>*{display:inline;}
+}
 .ins-deadline-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);}
 .ins-deadline-row:last-child{border-bottom:none;}
 .ins-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;margin:0 6px 6px 0;}
@@ -1086,6 +1137,7 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
 
   <!-- Cross-mode nav (always visible) -->
   <div class="sidebar-nav-pinned" style="border-bottom:1px solid var(--border-light);">
+    <button class="nav-item" onclick="showPage('calendar')"><span class="icon">📅</span>Calendar</button>
     <button class="nav-item" onclick="showPage('insights')"><span class="icon">📊</span>Insights</button>
     <button class="nav-item" onclick="showPage('scenarios')"><span class="icon">🔀</span>Scenarios</button>
   </div>
@@ -1190,60 +1242,77 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
   ====================================================== -->
   <div class="page" id="page-insights">
     <div class="page-header">
-      <div><h2>📊 Insights</h2><p>Your complete picture — college, life, travel, and business, all in one place.</p></div>
+      <div><h2>📊 Insights</h2><p>Progress on what matters: your business, college applications, and school.</p></div>
+      <button class="btn btn-secondary" onclick="showPage('calendar')">📅 Open Calendar</button>
     </div>
-    <div class="grid-4" id="ins-snapshot" style="margin-bottom:24px;"></div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:6px;">⏳ Coming Up — Next 14 Days</div>
+      <div id="ins-coming"></div>
+    </div>
 
     <div class="card" style="margin-bottom:20px;">
-      <div class="card-title" style="margin-bottom:14px;">🎓 College Application Progress</div>
-      <div id="ins-sat-chart" style="margin-bottom:18px;"></div>
+      <div class="card-title" style="margin-bottom:14px;">💼 Business</div>
+      <div class="grid-4" id="ins-biz-stats" style="margin-bottom:18px;"></div>
+      <div class="grid-2">
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">Your Profit — Last 6 Months</div>
+          <div id="ins-biz-months"></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:8px;">To Deliver &amp; Collect</div>
+          <div id="ins-biz-fulfil"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:14px;">🎓 College Progress</div>
+      <div class="grid-4" id="ins-col-stats" style="margin-bottom:18px;"></div>
       <div class="grid-2" style="margin-bottom:18px;">
         <div>
           <div class="card-title" style="margin-bottom:8px;">Applications by Status</div>
           <div id="ins-app-status"></div>
         </div>
         <div>
-          <div class="card-title" style="margin-bottom:8px;">Essay Completion</div>
-          <div id="ins-essay-progress"></div>
+          <div class="card-title" style="margin-bottom:8px;">Next Deadlines</div>
+          <div id="ins-deadlines"></div>
         </div>
       </div>
-      <div class="card-title" style="margin-bottom:8px;">Upcoming Deadlines</div>
-      <div id="ins-deadlines"></div>
+      <div class="card-title" style="margin-bottom:8px;">SAT Score Trend</div>
+      <div id="ins-sat-chart"></div>
     </div>
 
-    <div class="card" style="margin-bottom:20px;">
-      <div class="card-title" style="margin-bottom:14px;">🌿 Life &amp; Productivity</div>
-      <div class="grid-2" style="margin-bottom:18px;">
-        <div>
-          <div class="card-title" style="margin-bottom:8px;">Habit Streaks</div>
-          <div id="ins-habits"></div>
-        </div>
-        <div>
-          <div class="card-title" style="margin-bottom:8px;">Study Time — Last 30 Days</div>
-          <div id="ins-time"></div>
-        </div>
-      </div>
-      <div class="grid-2">
-        <div>
-          <div class="card-title" style="margin-bottom:8px;">Goals</div>
-          <div id="ins-goals"></div>
-        </div>
-        <div>
-          <div class="card-title" style="margin-bottom:8px;">Timeline This Year</div>
-          <div id="ins-timeline-cats"></div>
-        </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;">📚 School &amp; Study</div>
+      <div class="grid-4" id="ins-sch-stats" style="margin-bottom:18px;"></div>
+      <div class="card-title" style="margin-bottom:8px;">Upcoming Tests &amp; Study Plan Progress</div>
+      <div id="ins-tests"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       CALENDAR (cross-mode, everything dated)
+  ====================================================== -->
+  <div class="page" id="page-calendar">
+    <div class="page-header">
+      <div><h2>📅 Calendar</h2><p>Every deadline, test, study session, delivery, task, and trip in one place.</p></div>
+      <div class="gcal-viewtoggle">
+        <button id="gcal-btn-month" onclick="gcalSetView('month')">Month</button>
+        <button id="gcal-btn-week" onclick="gcalSetView('week')">Week</button>
       </div>
     </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title" style="margin-bottom:10px;">✈️ Travel</div>
-        <div id="ins-travel"></div>
+    <div class="gcal-toolbar">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="btn btn-secondary btn-sm" onclick="gcalNav(-1)">‹</button>
+        <button class="btn btn-secondary btn-sm" onclick="gcalToday()">Today</button>
+        <button class="btn btn-secondary btn-sm" onclick="gcalNav(1)">›</button>
+        <strong id="gcal-label" style="margin-left:8px;font-size:16px;"></strong>
       </div>
-      <div class="card">
-        <div class="card-title" style="margin-bottom:10px;">💼 Business</div>
-        <div id="ins-business"></div>
-      </div>
+      <div id="gcal-filters" class="gcal-filters"></div>
+    </div>
+    <div class="gcal-layout">
+      <div id="gcal-main"></div>
+      <div class="card gcal-detail" id="gcal-detail"></div>
     </div>
   </div>
 
@@ -2513,6 +2582,10 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
         <div class="stat-card"><div class="stat-value" id="stat-inv-value">€0</div><div class="stat-label">Inventory Value</div><div class="stat-sub" id="stat-inv-sub">0 items</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-upcoming">0</div><div class="stat-label">Upcoming Orders</div><div class="stat-sub">Next 30 days</div></div>
       </div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">Upcoming Deliveries &amp; Collections</div>
+        <div id="dash-fulfilments"></div>
+      </div>
       <div class="grid-2" style="align-items:start;">
         <div class="card">
           <div class="card-title">Recent Sales</div>
@@ -2616,6 +2689,8 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
         <div class="cal-legend">
           <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#2563eb;"></span>Order placed</div>
           <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#0891b2;"></span>Stock arriving</div>
+          <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#16a34a;"></span>Delivery</div>
+          <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#d97706;"></span>Collection</div>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
       </div>
@@ -4133,6 +4208,7 @@ function mmStatus(msg){const el=document.getElementById('mm-status');if(el)el.te
 // ============================================================
 function renderPage(id) {
   if (id === 'insights') renderInsights();
+  if (id === 'calendar') renderGCal();
   if (id === 'scenarios') renderScenarios();
   // College pages (prefixed c-)
   if (id === 'c-dashboard') renderDashboard();
@@ -11444,129 +11520,240 @@ function _insSatChart() {
   </svg>`;
 }
 
+// ---- shared feed: everything in the app that has a date ----
+const GCAL_GROUPS = {
+  college:  { label: 'College',  color: '#7c5cd6', mode: 'college' },
+  school:   { label: 'School',   color: '#2563eb', mode: 'college' },
+  business: { label: 'Business', color: '#16a34a', mode: 'business' },
+  life:     { label: 'Life',     color: '#d97706', mode: 'life' },
+};
+function gcalItems() {
+  const items = [];
+  const ISO = /^\d{4}-\d{2}-\d{2}$/;
+  const add = (group, date, title, o) => { if (ISO.test(date || '')) items.push(Object.assign({ group, date, title, pri: 2, icon: '•', sub: '', page: '', done: false }, o)); };
+  const finished = ['Submitted', 'Accepted', 'Rejected', 'Waitlisted', 'Deferred'];
+
+  // College
+  [['colleges', ''], ['intlColleges', 'International: ']].forEach(([key, prefix]) => (DB[key] || []).forEach(c => {
+    if (c.applying !== false) add('college', c.deadline, `${prefix}${c.name} deadline`, { icon: '🎓', sub: c.status || '', page: 'c-colleges', pri: 0, kind: 'deadline', done: finished.includes(c.status) });
+    (c.prepTasks || []).forEach(t => add('college', t.date, `Prep: ${t.title}`, { icon: '🗂️', sub: c.name, page: 'c-colleges', pri: 3, done: !!t.done }));
+  }));
+  (DB.caSchools || []).forEach(sc => {
+    const left = (sc.essays || []).filter(e => e.status !== 'done').length;
+    add('college', sc.deadline, `${sc.name} (Common App)`, { icon: '🏫', sub: (sc.essays || []).length ? `${left} essay${left === 1 ? '' : 's'} left` : '', page: 'c-essays', pri: 0, kind: 'deadline', done: (sc.essays || []).length > 0 && left === 0 });
+  });
+  (DB.deadlines || []).forEach(d => add('college', d.date, d.title, { icon: '⏰', sub: d.category || '', page: 'c-deadlines', pri: 0, kind: 'deadline' }));
+  if (DB.satPlan) add('college', DB.satPlan.testDate, 'SAT test day', { icon: '✏️', page: 'c-sat', pri: 0, kind: 'deadline' });
+
+  // School
+  (DB.homework || []).forEach(h => add('school', h.dueDate, `Homework: ${h.title}`, { icon: '📘', sub: h.subject || '', page: 'c-homework', pri: 1, done: !!h.done }));
+  (DB.tests || []).forEach(t => {
+    add('school', t.date, `${t.type || 'Test'}: ${t.title}`, { icon: '📝', sub: t.subject || '', page: 'c-homework', pri: 0, kind: 'test' });
+    (t.studyPlan || []).forEach(sp => add('school', sp.date, `Study: ${t.title}`, { icon: '📖', sub: _hwFmtMinutes(sp.minutes), page: 'c-homework', pri: 2, done: !!sp.done }));
+  });
+
+  // Life
+  (DB.todoTasks || []).forEach(t => add('life', t.dueDate, t.title, { icon: '✅', page: 'l-todo', done: !!t.completed }));
+  (DB.goals || []).forEach(g => add('life', g.targetDate, `Goal: ${g.title}`, { icon: '🎯', page: 'l-goals', done: !!g.completed }));
+  (DB.trips || []).forEach(t => add('life', t.startDate, `Trip: ${t.title}`, { icon: '✈️', sub: t.companions || '', page: 'l-trips', endDate: t.endDate }));
+  (DB.timelineEvents || []).forEach(e => add('life', e.date, e.title, { icon: '🗓️', sub: (TIMELINE_CATEGORIES[e.category] || {}).label || '', page: 'l-timeline', endDate: e.endDate }));
+
+  // Business
+  (window.bzCalendarItems ? window.bzCalendarItems() : []).forEach(b => add('business', b.date, b.title, { icon: b.icon, sub: b.sub, page: b.page, done: b.done, time: b.time, pri: /^(Deliver|Collection)/.test(b.title) ? 1 : 2 }));
+
+  return items;
+}
+function _gcDaysUntil(ds) { return Math.round((new Date(ds + 'T12:00:00') - new Date(today() + 'T12:00:00')) / 86400000); }
+function _gcWhen(ds) { const d = _gcDaysUntil(ds); return d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : d < 0 ? `${-d}d ago` : `in ${d}d`; }
+function _gcPretty(ds, long) { return new Date(ds + 'T12:00:00').toLocaleDateString('en-GB', long ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } : { weekday: 'short', day: 'numeric', month: 'short' }); }
+function gcalOpen(group, page) {
+  setMode(GCAL_GROUPS[group].mode);
+  showPage(page);
+}
+
+// ============================================================
+// INSIGHTS — progress on business, college, school
+// ============================================================
 function renderInsights() {
   const todayStr = today();
+  const eur = n => (n < 0 ? '-' : '') + '€' + Math.round(Math.abs(n || 0)).toLocaleString('en-IE');
+  const stat = (icon, value, label, sub, color) => `<div class="stat-card"><div class="stat-icon">${icon}</div><div class="stat-value"${color ? ` style="color:${color}"` : ''}>${value}</div><div class="stat-label">${label}</div><div class="stat-sub">${sub || '&nbsp;'}</div></div>`;
+  const link = (mode, page, text) => `<span class="ins-nav-link" onclick="setMode('${mode}');showPage('${page}')">${text} →</span>`;
+  const empty = (msg, l) => `<div class="ins-empty">${msg} ${l || ''}</div>`;
+  const all = gcalItems();
 
-  // ---- College ----
-  const bestSat = getBestSAT();
-  const essaysDone = DB.essays.filter(e => e.status === 'Complete').length
-    + (DB.caSchools || []).reduce((a, s) => a + (s.essays || []).filter(e => e.status === 'done').length, 0);
-  const essaysTotal = DB.essays.length + (DB.caSchools || []).reduce((a, s) => a + (s.essays || []).length, 0);
-  const essayPct = essaysTotal ? Math.round(essaysDone / essaysTotal * 100) : 0;
-  const collegesApplying = DB.colleges.filter(c => c.applying !== false).length;
-
-  const statusKeyMap = { 'Submitted':'green','Accepted':'green','In Progress':'blue','Interview':'purple','Waitlisted':'purple','Deferred':'amber','Planning to Apply':'amber','Rejected':'red','Researching':'gray' };
-  const collegeStatusCounts = {};
-  DB.colleges.forEach(c => { collegeStatusCounts[c.status] = (collegeStatusCounts[c.status] || 0) + 1; });
-  const appStatusHtml = Object.keys(collegeStatusCounts).length
-    ? Object.entries(collegeStatusCounts).map(([status, count]) => {
-        const [color, light] = _insColorPair(statusKeyMap[status] || 'gray');
-        return `<span class="ins-chip" style="background:${light};color:${color};">${status} · ${count}</span>`;
+  // ---- Coming up ----
+  const soon = all.filter(i => !i.done && i.date >= todayStr && _gcDaysUntil(i.date) <= 14 && i.pri < 3)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.pri - b.pri).slice(0, 8);
+  document.getElementById('ins-coming').innerHTML = soon.length
+    ? soon.map(i => {
+        const d = _gcDaysUntil(i.date);
+        const col = d <= 1 ? 'var(--red)' : d <= 5 ? 'var(--amber)' : 'var(--text-muted)';
+        return `<div class="ins-deadline-row" style="cursor:pointer;" onclick="gcalOpen('${i.group}','${i.page}')"><span style="width:8px;height:8px;border-radius:50%;background:${GCAL_GROUPS[i.group].color};flex-shrink:0;"></span><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">${i.icon} ${escapeHtml(i.title)}</div><div style="font-size:11px;color:var(--text-muted);">${_gcPretty(i.date)}${i.sub ? ' · ' + escapeHtml(i.sub) : ''}</div></div><div style="font-size:12px;font-weight:700;color:${col};">${_gcWhen(i.date)}</div></div>`;
       }).join('')
-    : `<div class="ins-empty">No colleges added yet. <span class="ins-nav-link" onclick="setMode('college');showPage('c-colleges')">Add one →</span></div>`;
-
-  const essayHtml = essaysTotal
-    ? `<div style="font-size:22px;font-weight:800;margin-bottom:6px;">${essaysDone}/${essaysTotal}</div><div class="progress-bar"><div class="progress-fill" style="width:${essayPct}%;background:var(--c-accent);"></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:6px;">${essayPct}% complete</div>`
-    : `<div class="ins-empty">No essays tracked yet. <span class="ins-nav-link" onclick="setMode('college');showPage('c-essays')">Add one →</span></div>`;
-
-  const deadlineItems = [];
-  (DB.deadlines || []).forEach(d => { if (d.date) deadlineItems.push({ title: d.title, date: d.date, source: 'Deadline' }); });
-  DB.colleges.forEach(c => { if (c.deadline && c.applying !== false) deadlineItems.push({ title: c.name, date: c.deadline, source: 'College' }); });
-  (DB.caSchools || []).forEach(s => { if (s.deadline) deadlineItems.push({ title: s.name, date: s.deadline, source: 'Common App' }); });
-  const upcoming = deadlineItems.filter(d => d.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
-  const deadlinesHtml = upcoming.length
-    ? upcoming.map(d => {
-        const days = Math.ceil((new Date(d.date + 'T12:00:00') - new Date()) / 86400000);
-        const urgency = days < 14 ? 'var(--red)' : days < 45 ? 'var(--amber)' : 'var(--text-muted)';
-        return `<div class="ins-deadline-row"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">${d.title}</div><div style="font-size:11px;color:var(--text-muted);">${d.source}</div></div><div style="font-size:12px;font-weight:700;color:${urgency};">${days}d</div></div>`;
-      }).join('')
-    : `<div class="ins-empty">No upcoming deadlines.</div>`;
-
-  document.getElementById('ins-sat-chart').innerHTML = _insSatChart();
-  document.getElementById('ins-app-status').innerHTML = appStatusHtml;
-  document.getElementById('ins-essay-progress').innerHTML = essayHtml;
-  document.getElementById('ins-deadlines').innerHTML = deadlinesHtml;
-
-  // ---- Life & Productivity ----
-  const habitStreaks = (DB.habits || []).map(h => ({ ...h, streak: calcHabitStreak(h.id) })).sort((a, b) => b.streak - a.streak).slice(0, 5);
-  const longestStreak = habitStreaks.length ? habitStreaks[0].streak : 0;
-  const maxStreak = Math.max(1, ...habitStreaks.map(h => h.streak));
-  const habitsHtml = habitStreaks.length
-    ? habitStreaks.map(h => `<div class="ins-row"><div class="ins-row-label">${h.icon || '✅'} ${h.name}</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${h.streak/maxStreak*100}%;background:var(--l-accent);"></div></div><div class="ins-row-value">${h.streak}d</div></div>`).join('')
-    : `<div class="ins-empty">No habits tracked yet. <span class="ins-nav-link" onclick="setMode('life');showPage('l-habits')">Add one →</span></div>`;
-
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekAgoStr = dateStr(weekAgo);
-  const studySecondsWeek = (DB.timeSessions || []).filter(s => s.date >= weekAgoStr).reduce((a, s) => a + s.duration, 0);
-
-  const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
-  const monthAgoStr = dateStr(monthAgo);
-  const timeByActivity = {};
-  (DB.timeSessions || []).forEach(s => { if (s.date >= monthAgoStr) timeByActivity[s.activityName] = (timeByActivity[s.activityName] || 0) + s.duration; });
-  const timeEntries = Object.entries(timeByActivity).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const maxTime = Math.max(1, ...timeEntries.map(e => e[1]));
-  const timeHtml = timeEntries.length
-    ? timeEntries.map(([name, secs]) => `<div class="ins-row"><div class="ins-row-label">${name}</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${secs/maxTime*100}%;background:var(--c-accent);"></div></div><div class="ins-row-value">${_insFmtDuration(secs)}</div></div>`).join('')
-    : `<div class="ins-empty">No study sessions logged in the last 30 days.</div>`;
-
-  const goalsCompleted = (DB.goals || []).filter(g => g.completed).length;
-  const goalsTotal = (DB.goals || []).length;
-  const goalsPct = goalsTotal ? Math.round(goalsCompleted / goalsTotal * 100) : 0;
-  const upcomingGoals = (DB.goals || []).filter(g => !g.completed && g.targetDate && g.targetDate >= todayStr).sort((a, b) => a.targetDate.localeCompare(b.targetDate)).slice(0, 3);
-  const goalsHtml = goalsTotal
-    ? `<div style="font-size:22px;font-weight:800;margin-bottom:6px;">${goalsCompleted}/${goalsTotal}</div><div class="progress-bar" style="margin-bottom:10px;"><div class="progress-fill" style="width:${goalsPct}%;background:var(--l-accent);"></div></div>`
-      + (upcomingGoals.length ? upcomingGoals.map(g => `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">🎯 ${g.title} — ${new Date(g.targetDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>`).join('') : '')
-    : `<div class="ins-empty">No goals set yet. <span class="ins-nav-link" onclick="setMode('life');showPage('l-goals')">Add one →</span></div>`;
-
-  const thisYear = new Date().getFullYear().toString();
-  const yearEvents = (DB.timelineEvents || []).filter(e => e.date.startsWith(thisYear));
-  const catCounts = {};
-  yearEvents.forEach(e => { catCounts[e.category] = (catCounts[e.category] || 0) + 1; });
-  const timelineCatHtml = yearEvents.length
-    ? Object.entries(catCounts).map(([cat, count]) => {
-        const c = TIMELINE_CATEGORIES[cat] || TIMELINE_CATEGORIES.milestone;
-        return `<span class="ins-chip" style="background:${c.light};color:${c.color};">${c.icon} ${c.label} · ${count}</span>`;
-      }).join('')
-    : `<div class="ins-empty">No events logged this year yet. <span class="ins-nav-link" onclick="setMode('life');showPage('l-timeline')">Add one →</span></div>`;
-
-  document.getElementById('ins-habits').innerHTML = habitsHtml;
-  document.getElementById('ins-time').innerHTML = timeHtml;
-  document.getElementById('ins-goals').innerHTML = goalsHtml;
-  document.getElementById('ins-timeline-cats').innerHTML = timelineCatHtml;
-
-  // ---- Travel ----
-  const countriesN = (DB.countriesVisited || []).length;
-  const countriesPct = ((countriesN / TOTAL_COUNTRIES) * 100).toFixed(1);
-  const tripsN = (DB.trips || []).length;
-  const placesN = (DB.trips || []).reduce((a, t) => a + (t.places || []).length, 0);
-  document.getElementById('ins-travel').innerHTML = `
-    <div class="ins-row"><div class="ins-row-label">Countries visited</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${countriesPct}%;background:var(--blue);"></div></div><div class="ins-row-value">${countriesN}</div></div>
-    <div style="font-size:11px;color:var(--text-muted);margin:-3px 0 12px 128px;">${countriesPct}% of the world</div>
-    <div style="font-size:13px;color:var(--text-secondary);">🧭 ${tripsN} trip${tripsN!==1?'s':''} logged · ${placesN} place${placesN!==1?'s':''} visited</div>
-    <span class="ins-nav-link" onclick="setMode('life');showPage('l-countries')">Open Countries Visited →</span>`;
+    : empty('Nothing due in the next 14 days.');
 
   // ---- Business ----
-  const biz = window.bzSummary ? window.bzSummary() : { count: 0, revenue: 0, profit: 0, top: null };
-  const _bizFmt = n => '€' + (Math.round((n||0)*100)/100).toLocaleString('en-IE', {minimumFractionDigits:2, maximumFractionDigits:2});
-  const bizProfit = biz.profit;
-  const topItem = biz.top;
-  document.getElementById('ins-business').innerHTML = biz.count
-    ? `<div class="ins-row"><div class="ins-row-label">Revenue</div><div style="flex:1;font-size:18px;font-weight:800;">${_bizFmt(biz.revenue)}</div></div>
-       <div class="ins-row"><div class="ins-row-label">Your profit</div><div style="flex:1;font-size:18px;font-weight:800;color:${bizProfit>=0?'var(--green)':'var(--red)'};">${_bizFmt(bizProfit)}</div></div>
-       ${topItem ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;">🏆 Best seller: ${topItem[0]} (${_bizFmt(topItem[1])})</div>` : ''}
-       <span class="ins-nav-link" onclick="setMode('business');showPage('b-analytics')">Open Business Analytics →</span>`
-    : `<div class="ins-empty">No sales logged yet. <span class="ins-nav-link" onclick="setMode('business');showPage('b-sales')">Log a sale →</span></div>`;
+  const bz = window.bzInsights ? window.bzInsights() : null;
+  if (bz && (bz.hasSales || bz.stock || bz.fulf.length)) {
+    const diff = bz.cur.profit - bz.prev.profit;
+    document.getElementById('ins-biz-stats').innerHTML =
+      stat('💶', eur(bz.cur.profit), 'Profit This Month', bz.prev.profit || bz.cur.profit ? `${diff >= 0 ? '▲' : '▼'} ${eur(Math.abs(diff))} vs last month` : '', bz.cur.profit < 0 ? 'var(--red)' : '') +
+      stat('⏳', eur(bz.awaitingRevenue), 'Awaiting Payment', `${bz.pendingCount} sale${bz.pendingCount === 1 ? '' : 's'} not received`) +
+      stat('📦', eur(bz.stock), 'Stock On Hand', bz.lowStock ? `${bz.lowStock} item${bz.lowStock === 1 ? '' : 's'} running low` : 'at cost') +
+      stat('💸', eur(bz.owed), 'Owed To Investors', bz.unpaidInvestors ? `${bz.unpaidInvestors} unpaid` : 'all paid');
+    const maxP = Math.max(1, ...bz.months.map(m => Math.abs(m.profit)));
+    document.getElementById('ins-biz-months').innerHTML = bz.months.map(m =>
+      `<div class="ins-row"><div class="ins-row-label" style="width:40px;">${m.label}</div><div class="ins-row-bar"><div class="ins-row-fill" style="width:${Math.abs(m.profit) / maxP * 100}%;background:${m.profit < 0 ? 'var(--red)' : 'var(--b-accent)'};"></div></div><div class="ins-row-value" style="width:70px;">${eur(m.profit)}</div></div>`).join('')
+      + `<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">All-time profit (your share): <strong style="color:var(--text);">${eur(bz.profitAll)}</strong>${bz.topThisMonth ? ` · 🏆 Top seller this month: ${escapeHtml(bz.topThisMonth[0])}` : ''}</div>`;
+    document.getElementById('ins-biz-fulfil').innerHTML = bz.fulf.length
+      ? bz.fulf.slice(0, 5).map(f => `<div class="ins-deadline-row"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">${f.type === 'deliver' ? '🚚 Deliver' : '🤝 Collection'} · ${escapeHtml(f.items)}</div><div style="font-size:11px;color:var(--text-muted);">${_gcPretty(f.date)}${f.time ? ' at ' + f.time : ''}${f.buyer ? ' · ' + escapeHtml(f.buyer) : ''}</div></div><div style="font-size:12px;font-weight:700;color:${f.date < todayStr ? 'var(--red)' : 'var(--text-muted)'};">${window.bzFulfilWhen(f.date)}</div></div>`).join('')
+        + link('business', 'b-dashboard', 'Open Business Dashboard')
+      : empty('No deliveries or collections scheduled.', link('business', 'b-sales', 'Add one on a sale'));
+  } else {
+    ['ins-biz-stats', 'ins-biz-months', 'ins-biz-fulfil'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+    document.getElementById('ins-biz-stats').innerHTML = empty('No sales logged yet.', link('business', 'b-sales', 'Log a sale'));
+  }
 
-  // ---- Snapshot grid ----
-  document.getElementById('ins-snapshot').innerHTML = `
-    <div class="stat-card"><div class="stat-icon">🎓</div><div class="stat-value">${DB.colleges.length}</div><div class="stat-label">Colleges</div><div class="stat-sub">${collegesApplying} applying</div></div>
-    <div class="stat-card"><div class="stat-icon">✏️</div><div class="stat-value">${bestSat ? bestSat.total : '—'}</div><div class="stat-label">Best SAT</div><div class="stat-sub">${DB.sat.length ? DB.sat.length+' attempt'+(DB.sat.length!==1?'s':'') : 'No scores yet'}</div></div>
-    <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value">${essaysDone}/${essaysTotal}</div><div class="stat-label">Essays Done</div><div class="stat-sub">${essayPct}% complete</div></div>
-    <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value">${longestStreak}</div><div class="stat-label">Best Habit Streak</div><div class="stat-sub">days running</div></div>
-    <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${_insFmtDuration(studySecondsWeek)}</div><div class="stat-label">Study Time</div><div class="stat-sub">last 7 days</div></div>
-    <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${goalsCompleted}/${goalsTotal}</div><div class="stat-label">Goals</div><div class="stat-sub">completed</div></div>
-    <div class="stat-card"><div class="stat-icon">✈️</div><div class="stat-value">${countriesN}</div><div class="stat-label">Countries</div><div class="stat-sub">visited</div></div>
-    <div class="stat-card"><div class="stat-icon">💼</div><div class="stat-value">${_bizFmt(bizProfit)}</div><div class="stat-label">Business Profit</div><div class="stat-sub">all time</div></div>`;
+  // ---- College ----
+  const colleges = [...(DB.colleges || []).filter(c => c.applying !== false), ...(DB.intlColleges || []).filter(c => c.applying !== false)];
+  const finishedSt = ['Submitted', 'Accepted', 'Rejected', 'Waitlisted', 'Deferred'];
+  const submitted = colleges.filter(c => finishedSt.includes(c.status)).length;
+  const caEssays = (DB.caSchools || []).reduce((a, sc) => a.concat(sc.essays || []), []);
+  const essaysTotal = DB.essays.length + caEssays.length + 1; // +1 = Common App personal statement
+  const essaysDone = DB.essays.filter(e => e.status === 'Complete').length + caEssays.filter(e => e.status === 'done').length + ((DB.caProfile.commonEssayStatus || '') === 'done' ? 1 : 0);
+  const prep = colleges.reduce((a, c) => a.concat(c.prepTasks || []), []);
+  const prepDone = prep.filter(t => t.done).length;
+  const best = getBestSAT();
+  document.getElementById('ins-col-stats').innerHTML =
+    stat('📨', `${submitted}/${colleges.length}`, 'Applications Submitted', colleges.length ? `${Math.round(submitted / colleges.length * 100)}% done` : 'none added yet') +
+    stat('📝', `${essaysDone}/${essaysTotal}`, 'Essays Done', `${Math.round(essaysDone / essaysTotal * 100)}% complete`) +
+    stat('✏️', best ? best.total : '—', 'Best SAT', DB.sat.length ? `${DB.sat.length} attempt${DB.sat.length === 1 ? '' : 's'}` : 'no scores yet') +
+    stat('🗂️', prep.length ? `${prepDone}/${prep.length}` : '—', 'Prep Tasks Done', prep.length ? `${Math.round(prepDone / prep.length * 100)}% complete` : 'no prep plans yet');
+
+  const statusKey = { Submitted: 'green', Accepted: 'green', 'In Progress': 'blue', Interview: 'purple', Waitlisted: 'purple', Deferred: 'amber', 'Planning to Apply': 'amber', Rejected: 'red', Researching: 'gray' };
+  const counts = {};
+  colleges.forEach(c => { counts[c.status] = (counts[c.status] || 0) + 1; });
+  document.getElementById('ins-app-status').innerHTML = Object.keys(counts).length
+    ? Object.entries(counts).map(([st, n]) => { const [col, light] = _insColorPair(statusKey[st] || 'gray'); return `<span class="ins-chip" style="background:${light};color:${col};">${escapeHtml(st)} · ${n}</span>`; }).join('')
+    : empty('No colleges added yet.', link('college', 'c-colleges', 'Add one'));
+
+  const dls = all.filter(i => i.kind === 'deadline' && !i.done && i.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
+  document.getElementById('ins-deadlines').innerHTML = dls.length
+    ? dls.map(d => { const n = _gcDaysUntil(d.date); return `<div class="ins-deadline-row"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">${escapeHtml(d.title)}</div><div style="font-size:11px;color:var(--text-muted);">${_gcPretty(d.date)}</div></div><div style="font-size:12px;font-weight:700;color:${n < 14 ? 'var(--red)' : n < 45 ? 'var(--amber)' : 'var(--text-muted)'};">${n}d</div></div>`; }).join('')
+    : empty('No upcoming deadlines.');
+  document.getElementById('ins-sat-chart').innerHTML = _insSatChart();
+
+  // ---- School & study ----
+  const wk = (() => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); const a = dateStr(d); d.setDate(d.getDate() + 6); return [a, dateStr(d)]; })();
+  const plan = (DB.tests || []).reduce((a, t) => a.concat((t.studyPlan || []).map(sp => Object.assign({ test: t }, sp))), []);
+  const weekPlan = plan.filter(sp => sp.date >= wk[0] && sp.date <= wk[1]);
+  const weekDone = weekPlan.filter(sp => sp.done);
+  const hwOpen = (DB.homework || []).filter(h => !h.done);
+  const hwLate = hwOpen.filter(h => h.dueDate < todayStr).length;
+  const nextTest = (DB.tests || []).filter(t => t.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date))[0];
+  initSubjects();
+  const cao = calcCombinedCAOPoints(), c5 = calcCAOPointsForYear(5), c6 = calcCAOPointsForYear(6);
+  const weekMin = weekDone.reduce((a, sp) => a + (sp.minutes || 0), 0), weekMinTotal = weekPlan.reduce((a, sp) => a + (sp.minutes || 0), 0);
+  document.getElementById('ins-sch-stats').innerHTML =
+    stat('📝', nextTest ? _gcWhen(nextTest.date) : '—', 'Next Test', nextTest ? escapeHtml(nextTest.title) : 'none scheduled') +
+    stat('📘', hwOpen.length, 'Homework Open', hwLate ? `${hwLate} overdue` : 'none overdue', hwLate ? 'var(--red)' : '') +
+    stat('📖', weekPlan.length ? `${weekDone.length}/${weekPlan.length}` : '—', 'Study Sessions This Week', weekPlan.length ? `${_hwFmtMinutes(weekMin)} of ${_hwFmtMinutes(weekMinTotal)}` : 'nothing planned') +
+    stat('🏫', cao.withBonus || '—', 'Predicted CAO Points', cao.withBonus ? `5th ${c5.withBonus} · 6th ${c6.withBonus}` : 'add predicted grades');
+
+  const tests = (DB.tests || []).filter(t => t.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
+  document.getElementById('ins-tests').innerHTML = tests.length
+    ? tests.map(t => {
+        const sp = t.studyPlan || [], done = sp.filter(x => x.done).length;
+        const pct = sp.length ? Math.round(done / sp.length * 100) : 0;
+        return `<div class="ins-row" style="cursor:pointer;" onclick="gcalOpen('school','c-homework')"><div class="ins-row-label" style="width:170px;" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div><div class="ins-row-bar">${sp.length ? `<div class="ins-row-fill" style="width:${pct}%;background:var(--c-accent);"></div>` : ''}</div><div class="ins-row-value" style="width:150px;">${sp.length ? `${done}/${sp.length} sessions` : 'no plan yet'} · ${_gcWhen(t.date)}</div></div>`;
+      }).join('')
+    : empty('No upcoming tests.', link('college', 'c-homework', 'Add one'));
+}
+
+// ============================================================
+// CALENDAR — everything dated, month + week
+// ============================================================
+let _gcal = null;
+function _gcMonday(ds) { const d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return dateStr(d); }
+function _gcAddDays(ds, n) { const d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() + n); return dateStr(d); }
+function _gcInit() {
+  if (_gcal) return;
+  let off = {};
+  try { off = JSON.parse(localStorage.getItem('myHubGcalOff') || '{}') || {}; } catch (e) {}
+  const t = today();
+  _gcal = { view: 'month', month: t.slice(0, 7), week: _gcMonday(t), sel: t, off };
+}
+function gcalSetView(v) { _gcInit(); _gcal.view = v; if (v === 'week') _gcal.week = _gcMonday(_gcal.sel); else _gcal.month = _gcal.sel.slice(0, 7); renderGCal(); }
+function gcalToday() { _gcInit(); const t = today(); _gcal.sel = t; _gcal.month = t.slice(0, 7); _gcal.week = _gcMonday(t); renderGCal(); }
+function gcalNav(dir) {
+  _gcInit();
+  if (_gcal.view === 'week') _gcal.week = _gcAddDays(_gcal.week, 7 * dir);
+  else { const [y, m] = _gcal.month.split('-').map(Number); const d = new Date(y, m - 1 + dir, 1); _gcal.month = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+  renderGCal();
+}
+function gcalSelect(ds) { _gcInit(); _gcal.sel = ds; renderGCal(); }
+function gcalToggleGroup(g) {
+  _gcInit(); _gcal.off[g] = !_gcal.off[g];
+  try { localStorage.setItem('myHubGcalOff', JSON.stringify(_gcal.off)); } catch (e) {}
+  renderGCal();
+}
+function _gcByDate() {
+  const map = {};
+  gcalItems().forEach(i => {
+    if (_gcal.off[i.group]) return;
+    let last = i.endDate && i.endDate > i.date ? i.endDate : i.date;
+    if (_gcDaysSpan(i.date, last) > 60) last = _gcAddDays(i.date, 60);
+    for (let d = i.date, n = 0; d <= last && n < 62; d = _gcAddDays(d, 1), n++) (map[d] = map[d] || []).push(d === i.date ? i : Object.assign({}, i, { title: i.title + ' (cont.)' }));
+  });
+  Object.values(map).forEach(list => list.sort((a, b) => (a.done - b.done) || (a.pri - b.pri) || (a.time || '').localeCompare(b.time || '')));
+  return map;
+}
+function _gcDaysSpan(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000); }
+function _gcChip(i) {
+  const g = GCAL_GROUPS[i.group];
+  return `<div class="gcal-chip${i.done ? ' done' : ''}" style="--gc:${g.color};" title="${escapeHtml(i.title)}"><span>${i.icon}</span><span class="t">${i.time ? i.time + ' ' : ''}${escapeHtml(i.title)}</span></div>`;
+}
+function renderGCal() {
+  _gcInit();
+  const by = _gcByDate(), t = today();
+  const mn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  document.getElementById('gcal-btn-month').classList.toggle('active', _gcal.view === 'month');
+  document.getElementById('gcal-btn-week').classList.toggle('active', _gcal.view === 'week');
+  document.getElementById('gcal-filters').innerHTML = Object.entries(GCAL_GROUPS).map(([k, g]) =>
+    `<button class="gcal-filter${_gcal.off[k] ? '' : ' on'}" style="--gc:${g.color};" onclick="gcalToggleGroup('${k}')">${g.label}</button>`).join('');
+  const dows = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  let html = '';
+  if (_gcal.view === 'month') {
+    const [y, m] = _gcal.month.split('-').map(Number);
+    document.getElementById('gcal-label').textContent = `${mn[m - 1]} ${y}`;
+    const first = `${y}-${String(m).padStart(2, '0')}-01`;
+    let d = _gcMonday(first);
+    const lastDay = dateStr(new Date(y, m, 0));
+    html = '<div class="gcal-grid">' + dows.map(x => `<div class="gcal-dow">${x}</div>`).join('');
+    while (d <= lastDay || (new Date(d + 'T12:00:00').getDay() !== 1)) {
+      const list = by[d] || [];
+      html += `<div class="gcal-cell${d.slice(0, 7) !== _gcal.month ? ' other' : ''}${d === t ? ' today' : ''}${d === _gcal.sel ? ' sel' : ''}" onclick="gcalSelect('${d}')"><div class="gcal-num">${Number(d.slice(8))}</div><div class="chips">${list.slice(0, 3).map(_gcChip).join('')}${list.length > 3 ? `<div class="gcal-more">+${list.length - 3} more</div>` : ''}</div></div>`;
+      d = _gcAddDays(d, 1);
+    }
+    html += '</div>';
+  } else {
+    const a = _gcal.week, z = _gcAddDays(a, 6);
+    document.getElementById('gcal-label').textContent = `${_gcPretty(a)} – ${_gcPretty(z)}`;
+    html = '<div class="gcal-week">';
+    for (let i = 0; i < 7; i++) {
+      const d = _gcAddDays(a, i), list = by[d] || [];
+      html += `<div class="gcal-wcol${d === t ? ' today' : ''}${d === _gcal.sel ? ' sel' : ''}" onclick="gcalSelect('${d}')"><div class="gcal-whead">${dows[i]} ${Number(d.slice(8))}</div>${list.map(_gcChip).join('') || '<div style="font-size:11px;color:var(--text-muted);">—</div>'}</div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('gcal-main').innerHTML = html;
+
+  const day = by[_gcal.sel] || [];
+  document.getElementById('gcal-detail').innerHTML =
+    `<div class="card-title" style="margin-bottom:2px;">${_gcPretty(_gcal.sel, true)}</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${_gcal.sel === t ? 'Today' : _gcWhen(_gcal.sel)} · ${day.length} item${day.length === 1 ? '' : 's'}</div>`
+    + (day.length ? day.map(i => `<div class="gcal-item${i.done ? ' done' : ''}" style="--gc:${GCAL_GROUPS[i.group].color};"><div class="gcal-item-bar"></div><div style="min-width:0;flex:1;"><div class="gcal-item-title">${i.icon} ${i.time ? i.time + ' · ' : ''}${escapeHtml(i.title)}${i.done ? ' ✓' : ''}</div>${i.sub ? `<div class="gcal-item-sub">${escapeHtml(i.sub)}</div>` : ''}<div class="gcal-item-sub">${GCAL_GROUPS[i.group].label}</div><button class="gcal-open" onclick="gcalOpen('${i.group}','${i.page}')">Open →</button></div></div>`).join('')
+      : '<div class="ins-empty" style="padding:18px 0;">Nothing on this day.</div>');
 }
 
 // ============================================================
@@ -11899,6 +12086,16 @@ setInterval(initDateGreeting,60000);
       <div class="form-group"><label>Shipping Cost (€)</label><input type="number" id="sale-shipping" min="0" step="0.01" value="0" oninput="computeSalePreview()"></div>
     </div>
     <div class="form-group"><label>Notes</label><textarea id="sale-notes" rows="2" placeholder="Buyer, condition, etc."></textarea></div>
+    <div class="form-group"><label>Delivery / collection <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(optional)</span></label>
+      <div class="form-row">
+        <select id="sale-fulfil-type"><option value="">None</option><option value="deliver">🚚 I deliver / post it</option><option value="collect">🤝 They come to collect it</option></select>
+        <input type="date" id="sale-fulfil-date">
+      </div>
+      <div class="form-row" style="margin-top:8px;">
+        <input type="time" id="sale-fulfil-time">
+        <input type="text" id="sale-fulfil-note" placeholder="Where / who, e.g. Dublin 2, back door">
+      </div>
+    </div>
     <div class="insight" id="sale-preview" style="margin-top:4px;"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('sale-modal')">Cancel</button>
@@ -11930,6 +12127,16 @@ setInterval(initDateGreeting,60000);
     <button class="btn btn-secondary btn-sm" type="button" onclick="addMultiSaleItemRow()">+ Add Item</button>
 
     <div class="form-group" style="margin-top:14px;"><label>Notes</label><textarea id="msale-notes" rows="2" placeholder="Anything worth remembering about this sale"></textarea></div>
+    <div class="form-group"><label>Delivery / collection <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(optional)</span></label>
+      <div class="form-row">
+        <select id="msale-fulfil-type"><option value="">None</option><option value="deliver">🚚 I deliver / post it</option><option value="collect">🤝 They come to collect it</option></select>
+        <input type="date" id="msale-fulfil-date">
+      </div>
+      <div class="form-row" style="margin-top:8px;">
+        <input type="time" id="msale-fulfil-time">
+        <input type="text" id="msale-fulfil-note" placeholder="Where / who, e.g. Dublin 2, back door">
+      </div>
+    </div>
     <div class="insight" id="msale-preview" style="margin-top:4px;"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('multi-sale-modal')">Cancel</button>
@@ -12505,6 +12712,7 @@ function renderDashboard(){
   document.getElementById('stat-inv-value').textContent = fmtMoney(invValue);
   document.getElementById('stat-inv-sub').textContent = BZ.inventory.length + ' items';
   document.getElementById('stat-upcoming').textContent = in30;
+  renderFulfilmentsCard();
 
   const recent = [...BZ.sales].sort((a,b) => b.date.localeCompare(a.date)).slice(0,6);
   document.getElementById('dash-recent-sales').innerHTML = recent.length ? recent.map(s => `
@@ -12551,7 +12759,7 @@ function renderSales(){
   function saleRowHTML(s, extraClass, extraAttrs){
     return `<tr class="${extraClass||''}" ${extraAttrs||''}>
         <td>${fmtDate(s.date)}</td>
-        <td><strong>${escapeHtml(s.item)}</strong><br><span style="color:var(--text-muted);font-size:11px;">${escapeHtml(s.category)}</span></td>
+        <td><strong>${escapeHtml(s.item)}</strong><br><span style="color:var(--text-muted);font-size:11px;">${escapeHtml(s.category)}</span>${fulfilPillHTML(s)}</td>
         <td>${s.qty}</td>
         <td>${escapeHtml(s.platform)}</td>
         <td>${fmtMoney(saleRevenue(s))}</td>
@@ -12585,7 +12793,7 @@ function renderSales(){
         const itemNames = members.map(s => s.item).join(', ');
         return `<tr class="sale-group-toggle" onclick="toggleSaleGroup('${groupId}')" style="cursor:pointer;background:rgba(99,102,241,0.06);">
           <td>${fmtDate(members[0].date)}</td>
-          <td><strong><span id="sale-group-arrow-${groupId}">▸</span> ${members.length} items</strong><br><span style="color:var(--text-muted);font-size:11px;">${escapeHtml(itemNames)}</span></td>
+          <td><strong><span id="sale-group-arrow-${groupId}">▸</span> ${members.length} items</strong><br><span style="color:var(--text-muted);font-size:11px;">${escapeHtml(itemNames)}</span>${fulfilPillHTML(members[0], groupId)}</td>
           <td>${totalQty}</td>
           <td>${escapeHtml(members[0].platform)}</td>
           <td>${fmtMoney(totalRevenue)}</td>
@@ -12638,6 +12846,7 @@ function openSaleModal(id, prefillItem, orderId, dealId, orderItemId){
     document.getElementById('sale-fee').value = s.fee;
     document.getElementById('sale-shipping').value = s.shipping;
     document.getElementById('sale-notes').value = s.notes || '';
+    fillFulfil('sale', s);
     populateSaleOrderLinkSelect(s.orderId, s.orderItemId);
     updateSaleItemWarning(s.item);
     computeSalePreview();
@@ -12653,6 +12862,7 @@ function openSaleModal(id, prefillItem, orderId, dealId, orderItemId){
     document.getElementById('sale-fee').value = 0;
     document.getElementById('sale-shipping').value = 0;
     document.getElementById('sale-notes').value = '';
+    fillFulfil('sale', null);
     if (orderId) {
       const o = BZ.orders.find(x => x.id === orderId);
       const item = o && (orderItems(o).find(it => it.id === orderItemId) || orderItems(o)[0]);
@@ -12710,6 +12920,9 @@ function saveSale(){
   const qty = num(document.getElementById('sale-qty').value);
   if (qty <= 0) { alert('Quantity must be at least 1.'); return; }
 
+  const fulfil = readFulfil('sale', id ? (BZ.sales.find(x => x.id === id) || {}).fulfilDone : false);
+  if (fulfil.error) { alert(fulfil.error); return; }
+
   if (orderId && !id) {
     const o = BZ.orders.find(x => x.id === orderId);
     const orderItem = o && (orderItems(o).find(it => it.id === orderItemId) || orderItems(o)[0]);
@@ -12730,6 +12943,7 @@ function saveSale(){
     fee: num(document.getElementById('sale-fee').value),
     shipping: num(document.getElementById('sale-shipping').value),
     notes: document.getElementById('sale-notes').value.trim(),
+    ...fulfil.fields,
     orderId: orderId || '',
     orderItemId: orderItemId || '',
   };
@@ -12860,6 +13074,7 @@ function openMultiSaleModal(groupId){
     document.getElementById('msale-shipping').value = members.reduce((a,s) => a + num(s.shipping), 0);
     document.getElementById('msale-fee').value = members.reduce((a,s) => a + num(s.fee), 0);
     document.getElementById('msale-notes').value = members[0].notes || '';
+    fillFulfil('msale', members[0]);
     _multiSaleItemsDraft = members.map(s => ({
       item: s.item, qty: s.qty, cost: s.cost,
       orderKey: (s.orderId && s.orderItemId) ? `${s.orderId}::${s.orderItemId}` : '',
@@ -12874,6 +13089,7 @@ function openMultiSaleModal(groupId){
     document.getElementById('msale-shipping').value = 0;
     document.getElementById('msale-fee').value = 0;
     document.getElementById('msale-notes').value = '';
+    fillFulfil('msale', null);
     _multiSaleItemsDraft = [
       { item: '', qty: 1, cost: '', orderKey: '' },
       { item: '', qty: 1, cost: '', orderKey: '' },
@@ -12894,6 +13110,8 @@ function saveMultiSale(){
   const platform = document.getElementById('msale-platform').value;
   const buyer = document.getElementById('msale-buyer').value.trim();
   const notes = document.getElementById('msale-notes').value.trim();
+  const fulfil = readFulfil('msale', editGroupId ? BZ.sales.filter(s => s.groupId === editGroupId).every(s => s.fulfilDone) : false);
+  if (fulfil.error) { alert(fulfil.error); return; }
   const totalRevenue = num(document.getElementById('msale-revenue').value);
   const totalShipping = num(document.getElementById('msale-shipping').value);
   const totalFee = num(document.getElementById('msale-fee').value);
@@ -12930,7 +13148,7 @@ function saveMultiSale(){
       price, cost: r.cost,
       fee: feePerItem, shipping: shippingPerItem, notes,
       orderId: orderId || '', orderItemId: orderItemId || '',
-      groupId, __order: idx, loggedBy: currentUserEmail(), cashStatus, cashInDate, profitShare: 1,
+      groupId, __order: idx, loggedBy: currentUserEmail(), cashStatus, cashInDate, profitShare: 1, ...fulfil.fields,
     };
     if (!data.orderId) {
       const match = findAvailableOrderItem(r.item, r.qty, date);
@@ -13474,6 +13692,7 @@ function renderCalendar(){
       (byDate[o.arrival] = byDate[o.arrival] || []).push({type:'arrival', o});
     }
   });
+  fulfilList(true).forEach(f => (byDate[f.date] = byDate[f.date] || []).push({type:'fulfil', f}));
 
   const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
@@ -13483,7 +13702,7 @@ function renderCalendar(){
     const events = byDate[dateStr] || [];
     html += `<div class="cal-cell ${dateStr===todayStr?'today':''}">
       <div class="cal-date">${d}</div>
-      ${events.map(e => `<span class="cal-badge" style="background:${e.type==='order'?'#2563eb':'#0891b2'};" title="${escapeHtml(orderDisplayName(e.o))}">${e.type==='order'?'📤':'📦'} ${escapeHtml(orderDisplayName(e.o))}</span>`).join('')}
+      ${events.map(e => e.type==='fulfil' ? `<span class="cal-badge" style="background:${e.f.type==='deliver'?'#16a34a':'#d97706'};${e.f.done?'opacity:.5;':''}" title="${escapeHtml(e.f.items)}">${e.f.type==='deliver'?'🚚':'🤝'} ${escapeHtml(e.f.items)}</span>` : `<span class="cal-badge" style="background:${e.type==='order'?'#2563eb':'#0891b2'};" title="${escapeHtml(orderDisplayName(e.o))}">${e.type==='order'?'📤':'📦'} ${escapeHtml(orderDisplayName(e.o))}</span>`).join('')}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
@@ -14213,6 +14432,107 @@ function renderAnalytics(){
     </div>`;
 }
 
+// -------- Fulfilment: deliveries I make and collections people come for --------
+function fillFulfil(prefix, s) {
+  const g = id => document.getElementById(prefix + '-' + id);
+  g('fulfil-type').value = s ? (s.fulfilType || '') : '';
+  g('fulfil-date').value = s ? (s.fulfilDate || '') : '';
+  g('fulfil-time').value = s ? (s.fulfilTime || '') : '';
+  g('fulfil-note').value = s ? (s.fulfilNote || '') : '';
+}
+function readFulfil(prefix, prevDone) {
+  const g = id => document.getElementById(prefix + '-' + id).value;
+  const type = g('fulfil-type');
+  if (!type) return { fields: { fulfilType: '', fulfilDate: '', fulfilTime: '', fulfilNote: '', fulfilDone: false } };
+  const date = g('fulfil-date');
+  if (!date) return { error: 'Pick a date for the delivery / collection.' };
+  return { fields: { fulfilType: type, fulfilDate: date, fulfilTime: g('fulfil-time'), fulfilNote: g('fulfil-note').trim(), fulfilDone: !!prevDone } };
+}
+// One entry per sale (a multi-item sale counts once).
+function fulfilList(includeDone) {
+  const groups = {};
+  BZ.sales.forEach(s => { if (!s.fulfilType || !s.fulfilDate) return; const k = s.groupId || s.id; (groups[k] = groups[k] || []).push(s); });
+  return Object.entries(groups).map(([k, m]) => ({
+    key: k, ids: m.map(x => x.id), grouped: !!m[0].groupId, type: m[0].fulfilType, date: m[0].fulfilDate,
+    time: m[0].fulfilTime || '', note: m[0].fulfilNote || '', buyer: m[0].buyer || '',
+    done: m.every(x => x.fulfilDone), items: m.map(x => x.item + ' × ' + x.qty).join(', '),
+  })).filter(f => includeDone || !f.done).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+}
+function fulfilWhen(date) {
+  const d = Math.round((new Date(date + 'T12:00:00') - new Date(todayISO() + 'T12:00:00')) / 86400000);
+  return d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : d > 1 ? `in ${d} days` : `${-d} day${d === -1 ? '' : 's'} overdue`;
+}
+function toggleFulfilDone(id, groupId) {
+  const members = groupId ? BZ.sales.filter(s => s.groupId === groupId) : BZ.sales.filter(s => s.id === id);
+  if (!members.length) return;
+  const done = !members.every(s => s.fulfilDone);
+  members.forEach(s => { s.fulfilDone = done; });
+  logActivity(`${done ? 'Marked' : 'Unmarked'} ${members[0].fulfilType === 'deliver' ? 'delivered' : 'collected'}: ${members.map(s => s.item).join(', ')}`);
+  save();
+}
+function fulfilPillHTML(s, groupId) {
+  if (!s.fulfilType || !s.fulfilDate) return '';
+  const t = s.fulfilType === 'deliver' ? '🚚 Deliver' : '🤝 Collect';
+  const overdue = !s.fulfilDone && s.fulfilDate < todayISO();
+  const cls = s.fulfilDone ? 'pill-green' : overdue ? 'pill-red' : 'pill-blue';
+  const label = s.fulfilDone ? `${t} ✓` : `${t} · ${fmtDate(s.fulfilDate)}${s.fulfilTime ? ' ' + s.fulfilTime : ''}`;
+  return `<br><button class="pill ${cls} pay-pill" style="margin-top:4px;font-size:10px;" title="${escapeHtml(s.fulfilNote || 'Click to mark done / not done')}" onclick="event.stopPropagation();toggleFulfilDone('${s.id}','${groupId || ''}')">${label}</button>`;
+}
+function renderFulfilmentsCard() {
+  const el = document.getElementById('dash-fulfilments');
+  if (!el) return;
+  const list = fulfilList(false).slice(0, 8);
+  el.innerHTML = list.length ? list.map(f => {
+    const overdue = f.date < todayISO();
+    return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <div style="min-width:0;"><strong>${f.type === 'deliver' ? '🚚 Deliver' : '🤝 Collection'}</strong> · ${escapeHtml(f.items)}${f.buyer ? ` <span style="color:var(--text-muted);">— ${escapeHtml(f.buyer)}</span>` : ''}
+        <br><span style="color:var(--text-muted);font-size:11.5px;">${fmtDate(f.date)}${f.time ? ' at ' + f.time : ''}${f.note ? ' · ' + escapeHtml(f.note) : ''}</span></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;"><span class="pill ${overdue ? 'pill-red' : f.date === todayISO() ? 'pill-yellow' : 'pill-blue'}">${fulfilWhen(f.date)}</span>
+        <button class="btn btn-secondary btn-sm" onclick="toggleFulfilDone('${f.ids[0]}','${f.grouped ? f.key : ''}')">✓ Done</button></div>
+    </div>`;
+  }).join('') : `<div class="empty-state"><p>Nothing to deliver or hand over. Add a delivery / collection date when you log a sale.</p></div>`;
+}
+
+// -------- Feeds for the cross-mode Insights and Calendar pages --------
+function bzInsights() {
+  const now = new Date();
+  const key = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  const months = [];
+  for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push({ key: key(d), label: d.toLocaleString('default', { month: 'short' }), revenue: 0, profit: 0 }); }
+  BZ.sales.forEach(s => { const m = months.find(x => x.key === (s.date || '').slice(0, 7)); if (m) { m.revenue += saleRevenue(s); m.profit += saleMyProfit(s); } });
+  const cur = months[5], prev = months[4];
+  const pending = BZ.sales.filter(s => !saleCashReceived(s));
+  const monthSales = BZ.sales.filter(s => (s.date || '').slice(0, 7) === cur.key);
+  const byItem = {};
+  monthSales.forEach(s => { byItem[s.item] = (byItem[s.item] || 0) + saleRevenue(s); });
+  const unpaidInv = BZ.investments.filter(v => v.status !== 'Paid');
+  const fulf = fulfilList(false);
+  const in7 = new Date(); in7.setDate(in7.getDate() + 7);
+  return {
+    hasSales: BZ.sales.length > 0, months, cur, prev,
+    profitAll: BZ.sales.reduce((a, s) => a + saleMyProfit(s), 0),
+    pendingCount: pending.length,
+    awaitingRevenue: pending.reduce((a, s) => a + saleRevenue(s) - num(s.fee) - num(s.shipping), 0),
+    stock: BZ.inventory.reduce((a, i) => a + Math.max(0, i.qty) * i.cost, 0),
+    lowStock: BZ.inventory.filter(i => i.qty > 0 && i.qty <= i.threshold).length,
+    owed: unpaidInv.reduce((a, v) => a + investmentPayout(v).totalOwed, 0), unpaidInvestors: unpaidInv.length,
+    fulf, fulf7: fulf.filter(f => f.date <= dateStr(in7)).length,
+    topThisMonth: Object.entries(byItem).sort((a, b) => b[1] - a[1])[0] || null,
+  };
+}
+function bzCalendarItems() {
+  const items = [];
+  BZ.orders.forEach(o => {
+    if (o.status === 'Cancelled') return;
+    const nm = orderDisplayName(o);
+    if (o.date) items.push({ date: o.date, title: `Order placed: ${nm}`, sub: o.supplier || '', icon: '📤', page: 'b-calendar', done: o.status === 'Ordered' || o.status === 'Arrived' });
+    if (o.arrival) items.push({ date: o.arrival, title: `Stock arriving: ${nm}`, sub: `${o.supplier || ''} · ${fmtMoney(orderTotalCost(o))}`, icon: '📦', page: 'b-calendar', done: o.status === 'Arrived' });
+  });
+  fulfilList(true).forEach(f => items.push({ date: f.date, title: `${f.type === 'deliver' ? 'Deliver' : 'Collection'}: ${f.items}`, sub: [f.time, f.buyer, f.note].filter(Boolean).join(' · '), icon: f.type === 'deliver' ? '🚚' : '🤝', page: 'b-sales', done: f.done, time: f.time }));
+  return items;
+}
+
+
 // -------- expose what the HTML calls --------
 Object.assign(window, {
   addMultiSaleItemRow, addOrderItemRow, changeCalMonth, clearBalanceBaseline, computeMultiSalePreview, computeRefundPreview, computeSalePreview, deleteChannel, deleteInventoryItem, deleteInvestment, deleteOrder, deleteSale, deleteSaleGroup, markOrderArrived, markOrderPlaced, markSaleCashPending, markSaleCashReceived, markSaleShipped, onMultiSaleItemNameInput, openBalanceModal, openChannelModal, openInventoryModal, openInvestmentModal, openInvestorReportModal, openMultiSaleModal, openOrderModal, openRefundModal, openSaleModal, permanentlyDelete, removeMultiSaleItemRow, removeOrderItemRow, renderAnalytics, restoreFromTrash, saveBalanceBaseline, saveChannel, saveInventoryItem, saveInvestment, saveMultiSale, saveOrder, saveRefund, saveSale, setInvCatFilter, syncSaleItemFromInventory, toggleCfCompleted, toggleInvestmentPaid, toggleSaleGroup, undoRefund,
@@ -14222,6 +14542,7 @@ Object.assign(window, {
   performUndo, exportBackup, openTrashModal, openActivityModal, openChannelsManager,
   bzMsaleSet, bzOrderItemSet, bzEnsure, bzSummary, updateBizBadges,
   bzImportOldHub: importOldHub,
+  toggleFulfilDone, bzInsights, bzCalendarItems, bzFulfilments: fulfilList, bzFulfilWhen: fulfilWhen,
 });
 
 bzEnsure();
