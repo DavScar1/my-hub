@@ -12187,6 +12187,8 @@ function bzEnsure() {
 // Brings records over from an old-hub backup (the JSON "Export Backup" file). Anything already imported is
 // replaced only if it came from the legacy conversion above; records you've edited since are left alone.
 // Every imported sale is from the 50/50 period, so it counts at profitShare 0.5.
+// The 50/50 profit split ended on this date: sales dated on/after it are fully mine (profitShare 1).
+const SPLIT_ENDS = '2026-10-25';
 function importOldHub(p, opts) {
   opts = opts || {};
   const s = rawStore();
@@ -12202,7 +12204,7 @@ function importOldHub(p, opts) {
       if (existing && !existing._legacy && !opts.overwrite) return;
       s[k] = s[k].filter(x => x.id !== rec.id && !(bare && x.id === bare && x._legacy));
       const copy = clone(rec);
-      if (k === 'sales') copy.profitShare = (existing && existing.profitShare != null) ? existing.profitShare : (copy.profitShare !== undefined ? copy.profitShare : 0.5);
+      if (k === 'sales') copy.profitShare = (existing && existing.profitShare != null) ? existing.profitShare : (copy.profitShare !== undefined ? copy.profitShare : (copy.date >= SPLIT_ENDS ? 1 : 0.5));
       s[k].push(copy); added++;
     });
     counts[k] = added;
