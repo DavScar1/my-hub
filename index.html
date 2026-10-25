@@ -1084,9 +1084,29 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
 .bz table.tbl{font-size:12px;}
 .bz table.tbl th,.bz table.tbl td{padding:8px 6px;}
 .bz .cf-kpis{grid-template-columns:1fr;}}
+.txr{color:#1f2937;font-size:13px;line-height:1.5;}
+.txr h1{font-size:22px;margin:0 0 2px;}
+.txr h4{font-size:14px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid #e5e7eb;text-transform:uppercase;letter-spacing:.04em;color:#374151;}
+.txr .sub{color:#6b7280;font-size:12px;}
+.txr table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.txr th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#6b7280;padding:6px 8px;border-bottom:1px solid #d1d5db;}
+.txr td{padding:6px 8px;border-bottom:1px solid #f0f1f3;vertical-align:top;}
+.txr .num{text-align:right;font-family:var(--font-mono,monospace);white-space:nowrap;}
+.txr tr.tot td{font-weight:800;border-top:2px solid #9ca3af;border-bottom:none;}
+.txr tr.sec td{font-weight:700;background:#f9fafb;}
+.txr .note{background:#f9fafb;border-left:3px solid #9ca3af;padding:8px 12px;margin:10px 0;font-size:12px;color:#4b5563;}
+.txr .warn{background:#fffbeb;border-left-color:#d97706;}
+.txr .ok{background:#f0fdf4;border-left-color:#16a34a;}
+.txr ul{margin:6px 0 0 18px;padding:0;}
+.txr li{margin-bottom:3px;}
+.txr .tbl-wrap{overflow-x:auto;}
 @media print{
-  body > *:not(#investor-report-modal){display:none!important;}
-  #investor-report-modal{position:static!important;background:#fff!important;backdrop-filter:none!important;padding:0!important;display:block!important;}
+  body > *:not(#investor-report-modal):not(#tax-report-modal.open){display:none!important;}
+  #tax-report-modal.open{position:static!important;background:#fff!important;backdrop-filter:none!important;padding:0!important;display:block!important;}
+  #tax-report-modal .modal{box-shadow:none!important;max-width:100%!important;width:100%!important;max-height:none!important;overflow:visible!important;margin:0!important;animation:none!important;}
+  .txr h4{break-after:avoid;}
+  .txr tr{break-inside:avoid;}
+  #investor-report-modal.open{position:static!important;background:#fff!important;backdrop-filter:none!important;padding:0!important;display:block!important;}
   #investor-report-modal .modal{box-shadow:none!important;max-width:100%!important;width:100%!important;max-height:none!important;overflow:visible!important;margin:0!important;animation:none!important;}
   .no-print{display:none!important;}
 }
@@ -2575,7 +2595,7 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
 
   <!-- Business (ported from the old Pokémon Resell Hub) -->
 <div class="page bz" id="page-b-dashboard">
-      <div class="page-header"><h2><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Dashboard</h2><p>Your business at a glance — revenue, profit, stock and upcoming orders.</p></div>
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;"><div><h2><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Dashboard</h2><p>Your business at a glance — revenue, profit, stock and upcoming orders.</p></div><button class="btn btn-primary no-print" onclick="openTaxReport()">🧾 Tax Report</button></div>
       <div class="grid-4" style="margin-bottom:20px;">
         <div class="stat-card"><div class="stat-value" id="stat-revenue">€0</div><div class="stat-label">Total Revenue</div><div class="stat-sub">All time</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-profit">€0</div><div class="stat-label">Your Profit</div><div class="stat-sub">All time · your share</div></div>
@@ -2701,7 +2721,7 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
     </div>
 
 <div class="page bz" id="page-b-analytics">
-      <div class="page-header"><h2><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Analytics</h2><p>Sales performance, product mix and inventory health.</p></div>
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;"><div><h2><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Analytics</h2><p>Sales performance, product mix and inventory health.</p></div><button class="btn btn-primary no-print" onclick="openTaxReport()">🧾 Tax Report</button></div>
 
       <div class="card" style="margin-bottom:20px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -12303,6 +12323,21 @@ setInterval(initDateGreeting,60000);
   </div>
 </div>
 
+<div class="modal-overlay bz" id="tax-report-modal">
+  <div class="modal" style="max-width:900px;max-height:90vh;overflow-y:auto;">
+    <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;"><h3 style="margin:0;">Tax Report</h3>
+        <select id="tax-report-year" onchange="renderTaxReport()" style="width:auto;padding:6px 10px;"></select></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print / Save PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="taxReportCSV()">⬇ Sales CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('tax-report-modal')">Close</button>
+      </div>
+    </div>
+    <div id="tax-report-body" class="txr"></div>
+  </div>
+</div>
+
 <div class="modal-overlay bz" id="investor-report-modal">
   <div class="modal" style="max-width:700px;max-height:88vh;overflow-y:auto;">
     <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -14432,6 +14467,153 @@ function renderAnalytics(){
     </div>`;
 }
 
+// -------- Tax report (Ireland: sole trader, calendar tax year, earnings basis) --------
+function taxYears() {
+  const ys = new Set([String(new Date().getFullYear())]);
+  BZ.sales.forEach(x => x.date && ys.add(x.date.slice(0, 4)));
+  BZ.orders.forEach(x => x.date && ys.add(x.date.slice(0, 4)));
+  return [...ys].sort().reverse();
+}
+function openTaxReport() {
+  const sel = document.getElementById('tax-report-year');
+  const prev = sel.value;
+  sel.innerHTML = taxYears().map(y => `<option value="${y}">Tax year ${y}</option>`).join('');
+  if (prev) sel.value = prev;
+  renderTaxReport();
+  openModalEl('tax-report-modal');
+}
+function taxReportData(year) {
+  const sales = BZ.sales.filter(x => (x.date || '').slice(0, 4) === year).sort((a, b) => a.date.localeCompare(b.date));
+  const rows = sales.map(x => {
+    const gross = x.qty * x.price;
+    const refund = x.refunded ? num(x.refundAmount) : 0;
+    const restocked = !!(x.refunded && x.refundRestocked);
+    const cogs = restocked ? 0 : x.qty * x.cost;
+    const fee = num(x.fee), ship = num(x.shipping), retShip = x.refunded ? num(x.refundShippingCost) : 0;
+    const net = gross - refund - cogs - fee - ship - retShip;
+    return { s: x, gross, refund, cogs, fee, ship, retShip, net, share: saleShare(x), restockedCost: restocked ? x.qty * x.cost : 0 };
+  });
+  const sum = (k, f) => rows.reduce((a, r) => a + (f ? f(r) : r[k]), 0);
+  const t = { gross: sum('gross'), refund: sum('refund'), cogs: sum('cogs'), fee: sum('fee'), ship: sum('ship'), retShip: sum('retShip'), net: sum('net'),
+    mine: sum(null, r => r.net * r.share), restockedCost: sum('restockedCost') };
+  t.turnover = t.gross - t.refund;
+  t.gp = t.turnover - t.cogs;
+  t.expenses = t.fee + t.ship + t.retShip;
+  const keyOf = r => r.s.groupId || r.s.id;
+  t.count = new Set(rows.map(keyOf)).size;
+  const months = {};
+  rows.forEach(r => {
+    const k = r.s.date.slice(0, 7);
+    const m = months[k] = months[k] || { keys: new Set(), turnover: 0, cogs: 0, fee: 0, ship: 0, net: 0, mine: 0 };
+    m.keys.add(keyOf(r)); m.turnover += r.gross - r.refund; m.cogs += r.cogs; m.fee += r.fee; m.ship += r.ship + r.retShip; m.net += r.net; m.mine += r.net * r.share;
+  });
+  const platforms = {};
+  rows.forEach(r => {
+    const k = r.s.platform || 'Other';
+    const p = platforms[k] = platforms[k] || { keys: new Set(), turnover: 0, fee: 0, net: 0 };
+    p.keys.add(keyOf(r)); p.turnover += r.gross - r.refund; p.fee += r.fee; p.net += r.net;
+  });
+  const orders = BZ.orders.filter(o => (o.date || '').slice(0, 4) === year && o.status !== 'Cancelled' && o.status !== 'Not Ordered').sort((a, b) => a.date.localeCompare(b.date));
+  const invs = BZ.investments.filter(v => (v.date || '').slice(0, 4) === year).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const split = { full: rows.filter(r => r.share === 1).length, other: rows.filter(r => r.share !== 1).length };
+  return { year, rows, t, months, platforms, orders, invs, split };
+}
+function renderTaxReport() {
+  const year = document.getElementById('tax-report-year').value;
+  const d = taxReportData(year);
+  const t = d.t;
+  const m = n => (n < 0 ? '-' : '') + fmtMoney(Math.abs(n));
+  const stockValue = BZ.inventory.reduce((a, i) => a + Math.max(0, i.qty) * i.cost, 0);
+  const purchases = d.orders.reduce((a, o) => a + orderTotalCost(o), 0);
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const line = (label, val, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${label}</td><td class="num">${val}</td></tr>`;
+  let h = `<h1>Tax Summary — ${year}</h1>
+    <div class="sub">DD Collectables · Sole trader · Trading income (Form 11) · 1 Jan ${year} – 31 Dec ${year}<br>Generated ${fmtDate(todayISO())} from My Hub records · Sales counted on the date of sale (earnings basis)</div>`;
+  if (!d.rows.length) h += `<div class="note warn">No sales are logged for ${year}.</div>`;
+
+  h += `<h4>1. Trading summary</h4><table><tbody>
+    ${line('Gross sales (turnover before refunds)', m(t.gross))}
+    ${line('Less: refunds paid back to buyers', m(-t.refund))}
+    ${line('Net turnover', m(t.turnover), 'sec')}
+    ${line('Less: cost of goods sold (stock cost of items sold)', m(-t.cogs))}
+    ${line('Gross profit', m(t.gp), 'sec')}
+    ${line('Platform &amp; payment fees', m(-t.fee))}
+    ${line('Postage &amp; shipping paid', m(-t.ship))}
+    ${line('Return shipping labels (refunds)', m(-t.retShip))}
+    ${line('Total expenses recorded', m(-t.expenses), 'sec')}
+    ${line('Net trading profit (business total)', m(t.net), 'tot')}
+  </tbody></table>`;
+  if (t.restockedCost) h += `<div class="note">Cost of goods sold excludes ${m(t.restockedCost)} of stock returned to inventory through restocked refunds, because that stock is still yours. The Dashboard profit figure does not add this back, so it can be slightly lower.</div>`;
+
+  h += `<h4>2. Your share of the profit</h4><table><tbody>
+    ${line('Net trading profit (business total)', m(t.net))}
+    ${line('Attributable to you', m(t.mine), 'tot')}
+    ${line('Attributable to the other party (profit split)', m(t.net - t.mine))}
+  </tbody></table>
+  <div class="note ${d.split.other ? 'warn' : 'ok'}">${d.split.other
+    ? `${d.split.other} sale line${d.split.other === 1 ? '' : 's'} in ${year} were under the 50/50 profit split (sales before 25 Oct 2026); ${d.split.full} are 100% yours. If half the profit genuinely belongs to someone else, ask your accountant whether this should be treated as a <strong>partnership</strong> (Form 1 (Firms)) or whether you report the full figure and pay your partner out of it. Revenue's rules depend on how the arrangement actually works.`
+    : `All sales in ${year} are 100% your profit.`}</div>`;
+
+  const mk = Object.keys(d.months).sort();
+  h += `<h4>3. Month by month</h4><div class="tbl-wrap"><table><thead><tr><th>Month</th><th class="num">Sales</th><th class="num">Turnover</th><th class="num">Cost of goods</th><th class="num">Fees</th><th class="num">Shipping</th><th class="num">Net profit</th><th class="num">Your share</th></tr></thead><tbody>
+    ${mk.map(k => { const x = d.months[k]; return `<tr><td>${monthNames[Number(k.slice(5)) - 1]} ${k.slice(0, 4)}</td><td class="num">${x.keys.size}</td><td class="num">${m(x.turnover)}</td><td class="num">${m(x.cogs)}</td><td class="num">${m(x.fee)}</td><td class="num">${m(x.ship)}</td><td class="num">${m(x.net)}</td><td class="num">${m(x.mine)}</td></tr>`; }).join('') || '<tr><td colspan="8" style="color:#9ca3af;">No sales.</td></tr>'}
+    <tr class="tot"><td>Total</td><td class="num">${t.count}</td><td class="num">${m(t.turnover)}</td><td class="num">${m(t.cogs)}</td><td class="num">${m(t.fee)}</td><td class="num">${m(t.ship + t.retShip)}</td><td class="num">${m(t.net)}</td><td class="num">${m(t.mine)}</td></tr>
+  </tbody></table></div>`;
+
+  const pk = Object.keys(d.platforms).sort((a, b) => d.platforms[b].turnover - d.platforms[a].turnover);
+  h += `<h4>4. Sales by platform</h4><div class="tbl-wrap"><table><thead><tr><th>Platform</th><th class="num">Transactions</th><th class="num">Turnover</th><th class="num">Fees</th><th class="num">Net profit</th><th>Platform reports to Revenue?</th></tr></thead><tbody>
+    ${pk.map(k => { const p = d.platforms[k]; const rep = p.keys.size >= 30 || p.turnover >= 2000; return `<tr><td>${escapeHtml(k)}</td><td class="num">${p.keys.size}</td><td class="num">${m(p.turnover)}</td><td class="num">${m(p.fee)}</td><td class="num">${m(p.net)}</td><td>${k === 'Other' ? '—' : rep ? 'Likely (30+ sales or €2,000+)' : 'Probably not (under the limit)'}</td></tr>`; }).join('') || '<tr><td colspan="6" style="color:#9ca3af;">No sales.</td></tr>'}
+  </tbody></table></div>
+  <div class="note">Under the EU DAC7 rules, online marketplaces report sellers to Revenue once they reach 30 sales or €2,000 in a year. Revenue's page for goods sellers says "fewer than 30 transactions <em>and</em> €2,000" is excluded. Your platform summary (sent by 31 January) should roughly match the turnover above. If it doesn't, find out why before filing.</div>`;
+
+  h += `<h4>5. Stock &amp; purchases</h4><table><tbody>
+    ${line(`Supplier orders placed in ${year} (${d.orders.length})`, m(purchases))}
+    ${line('Stock currently on hand, valued at cost', m(stockValue))}
+  </tbody></table>`;
+  if (d.orders.length) h += `<div class="tbl-wrap"><table style="margin-top:8px;"><thead><tr><th>Date</th><th>Order</th><th>Supplier</th><th class="num">Units</th><th class="num">Cost</th></tr></thead><tbody>
+    ${d.orders.map(o => `<tr><td>${fmtDate(o.date)}</td><td>${escapeHtml(orderDisplayName(o))}</td><td>${escapeHtml(o.supplier || '')}</td><td class="num">${orderTotalQty(o)}</td><td class="num">${m(orderTotalCost(o))}</td></tr>`).join('')}</tbody></table></div>`;
+  h += `<div class="note warn">Stock on hand is as of today, not 31 Dec ${year}. If this isn't the current year, the closing-stock figure for 31 Dec ${year} must come from your own stocktake. Profit above uses cost of goods <em>sold</em>; your accountant may instead want opening stock + purchases − closing stock.</div>`;
+
+  if (d.invs.length) {
+    h += `<h4>6. Investor money</h4><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Investor</th><th class="num">Capital in</th><th>Status</th><th class="num">Profit share</th><th class="num">Total owed</th></tr></thead><tbody>
+      ${d.invs.map(v => { const p = investmentPayout(v); return `<tr><td>${fmtDate(v.date)}</td><td>${escapeHtml(v.name)}</td><td class="num">${m(v.amount)}</td><td>${escapeHtml(v.status || '')}</td><td class="num">${p.orderFound ? m(p.profitShare) : '—'}</td><td class="num">${m(p.totalOwed)}</td></tr>`; }).join('')}
+      <tr class="tot"><td colspan="2">Total</td><td class="num">${m(d.invs.reduce((a, v) => a + v.amount, 0))}</td><td></td><td class="num">${m(d.invs.reduce((a, v) => { const p = investmentPayout(v); return a + (p.orderFound ? p.profitShare : 0); }, 0))}</td><td class="num">${m(d.invs.reduce((a, v) => a + investmentPayout(v).totalOwed, 0))}</td></tr>
+    </tbody></table></div>
+    <div class="note">Money investors put in is a loan or capital, not income. Profit paid out to investors is <strong>not</strong> deducted in the figures above. Ask your accountant whether it can be treated as a business expense.</div>`;
+  }
+
+  const vatPct = t.turnover / 85000 * 100;
+  h += `<h4>${d.invs.length ? 7 : 6}. Thresholds &amp; things to check</h4><ul>
+    <li><strong>VAT:</strong> net turnover is ${m(t.turnover)}, which is ${vatPct.toFixed(1)}% of the €85,000 goods registration threshold. ${vatPct >= 100 ? '<strong>You are over it. You must register for VAT.</strong>' : vatPct >= 70 ? '<strong>Getting close.</strong> Registration is triggered by exceeding it in the current or previous calendar year.' : 'No VAT registration needed yet.'}</li>
+    <li><strong>Register as self-employed:</strong> Revenue says to register for self-assessment if your net income is above €5,000. Net profit for ${year} is ${m(t.net)} (${m(t.mine)} your share).</li>
+    <li><strong>Filing:</strong> the sole-trader return is Form 11, filed through ROS. The deadline is 31 October, usually extended to mid-November for ROS filers. Check the exact date on revenue.ie. Preliminary tax is due at the same time.</li>
+    <li><strong>Records:</strong> keep sales records, receipts, invoices and bank statements for at least 6 years.</li>
+  </ul>
+  <h4>Not tracked in My Hub</h4>
+  <div class="note">These expenses may be claimable but aren't in the figures above. Gather receipts for them: packaging and postage supplies bought in bulk, card sleeves and toploaders, storage, grading fees, the business share of phone and internet, travel to deliver or meet buyers, equipment (e.g. scales, label printer), and accountant fees. Capital allowances for equipment are separate.</div>`;
+
+  h += `<h4>Appendix: every sale in ${year} (${d.rows.length} lines)</h4><div class="tbl-wrap"><table style="font-size:11.5px;"><thead><tr><th>Date</th><th>Platform</th><th>Item</th><th class="num">Qty</th><th class="num">Sold</th><th class="num">Refund</th><th class="num">Cost</th><th class="num">Fees</th><th class="num">Ship</th><th class="num">Net</th><th class="num">Share</th></tr></thead><tbody>
+    ${d.rows.map(r => `<tr><td>${fmtDate(r.s.date)}</td><td>${escapeHtml(r.s.platform || '')}</td><td>${escapeHtml(r.s.item)}</td><td class="num">${r.s.qty}</td><td class="num">${m(r.gross)}</td><td class="num">${r.refund ? m(-r.refund) : ''}</td><td class="num">${m(r.cogs)}</td><td class="num">${m(r.fee)}</td><td class="num">${m(r.ship + r.retShip)}</td><td class="num">${m(r.net)}</td><td class="num">${Math.round(r.share * 100)}%</td></tr>`).join('') || '<tr><td colspan="11" style="color:#9ca3af;">No sales.</td></tr>'}
+  </tbody></table></div>
+  <p class="sub" style="margin-top:18px;">This report summarises your own records to help you prepare your return. It is not tax advice. Have your accountant or Revenue confirm the treatment of anything unusual.</p>`;
+
+  document.getElementById('tax-report-body').innerHTML = h;
+}
+function taxReportCSV() {
+  const year = document.getElementById('tax-report-year').value;
+  const d = taxReportData(year);
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const head = ['Date', 'Platform', 'Item', 'Category', 'Buyer', 'Qty', 'Unit price', 'Sale total', 'Refund', 'Unit cost', 'Cost of goods sold', 'Platform fee', 'Shipping', 'Return shipping', 'Net profit', 'Your share %', 'Your profit', 'Order ID'];
+  const lines = [head.map(q).join(',')].concat(d.rows.map(r => [r.s.date, r.s.platform, r.s.item, r.s.category, r.s.buyer, r.s.qty, r.s.price, r.gross.toFixed(2), r.refund.toFixed(2), r.s.cost, r.cogs.toFixed(2), r.fee.toFixed(2), r.ship.toFixed(2), r.retShip.toFixed(2), r.net.toFixed(2), Math.round(r.share * 100), (r.net * r.share).toFixed(2), r.s.orderId || ''].map(q).join(',')));
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `sales-${year}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // -------- Fulfilment: deliveries I make and collections people come for --------
 function fillFulfil(prefix, s) {
   const g = id => document.getElementById(prefix + '-' + id);
@@ -14542,7 +14724,7 @@ Object.assign(window, {
   performUndo, exportBackup, openTrashModal, openActivityModal, openChannelsManager,
   bzMsaleSet, bzOrderItemSet, bzEnsure, bzSummary, updateBizBadges,
   bzImportOldHub: importOldHub,
-  toggleFulfilDone, bzInsights, bzCalendarItems, bzFulfilments: fulfilList, bzFulfilWhen: fulfilWhen,
+  openTaxReport, renderTaxReport, taxReportCSV, toggleFulfilDone, bzInsights, bzCalendarItems, bzFulfilments: fulfilList, bzFulfilWhen: fulfilWhen,
 });
 
 bzEnsure();
