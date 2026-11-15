@@ -804,6 +804,87 @@ a:hover{text-decoration:underline;}
 .ins-row-fill{height:100%;border-radius:4px;}
 .ins-row-value{width:46px;flex-shrink:0;text-align:right;font-size:11.5px;font-weight:700;color:var(--text-muted);}
 
+/* Essay workspace */
+.ew-progress{min-width:230px;font-size:12px;color:var(--text-secondary);}
+.ew-progress .progress-bar{margin-top:5px;}
+.ew-upcoming{margin-bottom:6px;}
+.ew{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;align-items:start;}
+.ew-list{position:sticky;top:12px;max-height:calc(100vh - 28px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.ew-list-head{padding:10px;border-bottom:1px solid var(--border-light);}
+.ew-list-head input{width:100%;}
+#ew-list-body{overflow-y:auto;padding:4px 8px 10px;flex:1;min-height:120px;}
+.ew-list-foot{padding:8px 10px;border-top:1px solid var(--border-light);display:flex;gap:6px;flex-wrap:wrap;}
+.ew-sec{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:12px 6px 4px;}
+.ew-ghead{display:flex;align-items:center;gap:6px;padding:7px 6px;cursor:pointer;border-radius:6px;margin-top:6px;}
+.ew-ghead:hover{background:var(--bg);}
+.ew-ghead .caret{font-size:9px;color:var(--text-muted);display:inline-block;transition:transform .15s;}
+.ew-gname{font-weight:800;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ew-gmeta{font-size:11px;font-weight:700;white-space:nowrap;}
+.ew-gadd{border:none;background:none;color:var(--c-accent);font-size:15px;font-weight:700;cursor:pointer;padding:0 4px;line-height:1;}
+.ew-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;margin:1px 0;}
+.ew-row:hover{background:var(--bg);}
+.ew-row.sel{background:var(--c-accent-light);border-color:var(--c-accent);}
+.ew-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.ew-tick{color:var(--green);font-size:12px;font-weight:800;width:9px;text-align:center;flex-shrink:0;}
+.ew-row-body{flex:1;min-width:0;}
+.ew-row-title{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ew-row-sub{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ew-mini{height:3px;background:var(--border-light);border-radius:2px;overflow:hidden;margin-top:4px;}
+.ew-mini>div{height:100%;}
+.ew-row-wc{font-size:10.5px;color:var(--text-muted);font-weight:700;white-space:nowrap;}
+.ew-row-wc.over{color:var(--red);}
+.ew-none{font-size:12px;color:var(--text-muted);padding:2px 10px 6px 26px;}
+.ew-done-toggle{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--green);padding:10px 6px 4px;cursor:pointer;}
+.ew-main{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px 24px;min-height:70vh;min-width:0;}
+.ew-empty{text-align:center;color:var(--text-muted);padding:80px 20px;font-size:14px;}
+.ew-crumb{font-size:12px;color:var(--text-muted);font-weight:600;}
+.ew-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:2px 0 14px;}
+.ew-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;}
+.ew-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.ew-actions .ca-status-pill{margin-top:0;}
+.ew-actions .ca-status-btn{padding:6px 12px;font-size:11.5px;}
+.ew-back{display:none;margin-bottom:10px;}
+.ew-plabel{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;}
+.ew-split{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start;margin-top:14px;}
+.ew-split.nonotes{grid-template-columns:minmax(0,1fr);}
+.ew-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.ew-count{font-size:13px;font-weight:800;}
+.ew-count.near{color:var(--amber);}
+.ew-count.over{color:var(--red);}
+.ew-bar{height:6px;border-radius:3px;background:var(--border-light);overflow:hidden;margin-top:5px;width:220px;max-width:100%;}
+.ew-bar>div{height:100%;background:var(--c-accent);transition:width .15s;}
+.ew-bar>div.near{background:var(--amber);}
+.ew-bar>div.over{background:var(--red);}
+.ew-meta{font-size:11px;color:var(--text-muted);}
+.ew-tools{display:flex;gap:4px;flex-wrap:wrap;}
+.ew-text{width:100%;min-height:54vh;border:1px solid var(--border);border-radius:10px;padding:18px 22px;font-size:16.5px;line-height:1.8;font-family:Georgia,'Times New Roman',serif;resize:vertical;background:var(--surface);color:var(--text);}
+.ew-text:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 3px var(--c-accent-light);}
+.ew-notes{background:var(--surface-warm);border:1px solid var(--border-light);border-radius:10px;padding:12px;}
+.ew-notes textarea{width:100%;font-size:12.5px;line-height:1.55;min-height:130px;resize:vertical;}
+.ew-fb{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:12px;}
+.ew-fb.done .ew-fb-note{text-decoration:line-through;color:var(--text-muted);}
+.ew-fb-who{font-weight:700;}
+.ew-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .2s;z-index:9999;}
+.ew-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.ew-reuse-item{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.ew-reuse-item .prev{font-size:12px;color:var(--text-secondary);margin:6px 0;line-height:1.5;font-family:Georgia,serif;}
+.ca-done-line{font-size:11.5px;font-weight:700;color:var(--green);padding:6px 0 2px;cursor:pointer;}
+#page-c-essays.ew-focus .ew-head,#page-c-essays.ew-focus .ew-upcoming,#page-c-essays.ew-focus .ew-list,#page-c-essays.ew-focus .ew-notes,#page-c-essays.ew-focus .ew-plabel,#page-c-essays.ew-focus .ew-tools .hide-focus{display:none!important;}
+#page-c-essays.ew-focus .ew{grid-template-columns:minmax(0,1fr);}
+#page-c-essays.ew-focus .ew-main{border:none;box-shadow:none;background:transparent;padding:0;}
+#page-c-essays.ew-focus .ew-split{grid-template-columns:minmax(0,760px);justify-content:center;}
+#page-c-essays.ew-focus .ew-text{min-height:75vh;font-size:18px;}
+#page-c-essays.ew-focus .ew-title-row,#page-c-essays.ew-focus .ew-crumb,#page-c-essays.ew-focus .essay-prompt-lg{max-width:760px;margin-left:auto;margin-right:auto;}
+#page-c-essays.ew-focus .essay-prompt-lg{font-size:13px;padding:8px 12px;}
+@media(max-width:1180px){.ew-split{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:900px){
+  .ew{grid-template-columns:minmax(0,1fr);}
+  .ew-list{position:static;max-height:none;}
+  .ew .ew-main{display:none;}
+  .ew.has-sel .ew-list{display:none;}
+  .ew.has-sel .ew-main{display:block;padding:14px;}
+  .ew-back{display:inline-flex;}
+}
 /* Cross-mode calendar */
 .gcal-viewtoggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface);}
 .gcal-viewtoggle button{border:none;background:none;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-secondary);font-family:inherit;}
@@ -1835,39 +1916,22 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
 
   <!-- Essays -->
   <div class="page" id="page-c-essays">
-    <div class="page-header"><h2>Essays</h2><p>Your Common App essay, then supplemental essays grouped by university.</p></div>
-
-    <div id="essays-upcoming"></div>
-
-    <div class="card" id="essays-common-card"></div>
-
-    <div id="essays-schools-list"></div>
-
-    <div class="page-header" style="margin-top:26px;"><h3 style="margin:0;">Other Essays</h3><p>Anything not tied to a Common App school.</p></div>
-    <div class="section-header">
-      <select id="essay-college-filter" onchange="renderEssays()" style="width:auto;padding:6px 10px;"><option value="">All Colleges</option></select>
-      <button class="btn btn-primary" onclick="openModal('essay-modal')">+ Add Essay</button>
+    <div class="page-header ew-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+      <div><h2>Essays</h2><p>Every essay in one workspace. Pick a prompt, write it, mark it complete.</p></div>
+      <div class="ew-progress" id="ew-progress"></div>
     </div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <table><thead><tr><th>College</th><th>Type</th><th>Prompt</th><th>Word Limit</th><th>Status</th><th></th></tr></thead>
-      <tbody id="essays-table"><tr><td colspan="6"><div class="empty-state"><div class="ei">📝</div><p>Add essays above.</p></div></td></tr></tbody></table>
-    </div>
-  </div>
-
-  <div class="page" id="page-c-essay-writer">
-    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
-      <div>
-        <button class="btn btn-secondary btn-sm" onclick="showPage('c-essays')" style="margin-bottom:8px;">← Back to Essays</button>
-        <h2 id="essay-writer-title">Essay</h2>
-        <p id="essay-writer-prompt" style="white-space:pre-wrap;"></p>
-      </div>
-      <div style="text-align:right;">
-        <div id="essay-writer-count" style="font-size:13px;font-weight:700;"></div>
-        <div id="essay-writer-saved" style="font-size:11px;color:var(--text-muted);margin-top:2px;"></div>
-      </div>
-    </div>
-    <div class="card" style="padding:0;">
-      <textarea id="essay-writer-content" oninput="onEssayWriterInput()" placeholder="Start writing your essay here…" style="width:100%;min-height:60vh;border:none;border-radius:var(--radius-lg);padding:20px;font-size:15px;line-height:1.7;font-family:inherit;resize:vertical;background:transparent;"></textarea>
+    <div id="essays-upcoming" class="ew-upcoming"></div>
+    <div class="ew" id="ew">
+      <aside class="ew-list">
+        <div class="ew-list-head"><input type="text" id="ew-search" placeholder="Search essays, prompts and text…" oninput="ewSearch(this.value)"></div>
+        <div id="ew-list-body"></div>
+        <div class="ew-list-foot">
+          <button class="btn btn-secondary btn-sm" onclick="openCaSchoolModal()">+ University</button>
+          <button class="btn btn-secondary btn-sm" onclick="ewAddOther('')">+ Other essay</button>
+          <button class="btn btn-secondary btn-sm" onclick="ewExportAll()" title="Download every essay as one text file">⬇ Export all</button>
+        </div>
+      </aside>
+      <section class="ew-main" id="ew-main"></section>
     </div>
   </div>
 
@@ -3317,6 +3381,18 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
     <div class="form-group"><label>Brainstorm Ideas</label><textarea id="essay-ideas" placeholder="Different ideas/angles for this essay — one per line…"></textarea></div>
     <div class="form-group"><label>Notes</label><textarea id="essay-notes" placeholder="Feedback received, next steps…"></textarea></div>
     <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('essay-modal')">Cancel</button><button class="btn btn-primary" onclick="saveEssay()">Save</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ew-reuse-modal">
+  <div class="modal" style="max-width:660px;">
+    <div class="modal-header">
+      <div class="modal-title">♻️ Reuse an essay</div>
+      <button class="modal-close" onclick="closeModal('ew-reuse-modal')">×</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-secondary);margin:0 0 10px;">Start from something you've already written. Best matches for this prompt are listed first. Trim it to the new word limit and rewrite the specifics for this school.</p>
+    <input type="text" id="ew-reuse-q" placeholder="Search by keyword, e.g. community, why us…" oninput="renderEwReuse()">
+    <div id="ew-reuse-list" style="max-height:52vh;overflow-y:auto;margin-top:10px;"></div>
   </div>
 </div>
 
@@ -7591,180 +7667,336 @@ function renderEssaysUpcoming() {
       }).join('')}
     </div>`;
 }
-function renderEssaysCommonAndSchools() {
-  renderEssaysUpcoming();
-  const commonCard = document.getElementById('essays-common-card');
-  const schoolsList = document.getElementById('essays-schools-list');
-  if (!commonCard || !schoolsList) return;
+// ============================================================
+// ESSAY WORKSPACE (two-pane: list on the left, writing on the right)
+// ============================================================
+const _EW_STATUSES = [['not_started', 'Not started'], ['drafting', 'Drafting'], ['reviewing', 'Reviewing'], ['done', 'Done ✓']];
+const _EW_DOT = { not_started: '#c9c4bd', drafting: '#d97706', reviewing: '#7c3aed', done: '#16a34a' };
+const _EW_FLAT_FROM_STATE = { not_started: 'Not Started', drafting: 'First Draft', reviewing: 'Revising', done: 'Complete' };
+const _EW_FIELDS = {
+  common: { content: 'commonEssayContent', brainstorm: 'commonEssayNotes', feedback: 'commonEssayFeedback', status: 'commonEssayStatus' },
+  school: { content: 'content', brainstorm: 'brainstorm', feedback: 'feedback', status: 'status' },
+  flat:   { content: 'content', brainstorm: 'ideas', feedback: 'feedback', status: 'status' },
+};
+let _ewSel = null, _ewQuery = '', _ewShowDone = false, _ewCollapsed = {}, _ewNotesOpen = true, _ewFocus = false, _ewMobileEditor = false, _ewSaveTimer = null;
 
-  const p = DB.caProfile;
-  const essayStatus = p.commonEssayStatus || 'not_started';
-  const promptLabel = p.commonEssayPrompt ? _CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] : null;
-  const earliestDeadline = _essaysEarliestDeadline();
-  const earliestLbl = earliestDeadline ? new Date(earliestDeadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : null;
+function essayWordCount(text) {
+  return (text || '').trim().split(/\s+/).filter(Boolean).length;
+}
+function _ewFlatToState(st) {
+  return st === 'Complete' ? 'done' : (st === 'Revising' || st === 'Final Review') ? 'reviewing' : (st === 'Brainstorming' || st === 'Outlining' || st === 'First Draft') ? 'drafting' : 'not_started';
+}
+function _ewItems() {
+  const p = DB.caProfile, items = [];
+  items.push({ key: 'common', kind: 'common', ref: p, group: 'Common App', schoolId: '', deadline: _essaysEarliestDeadline() || '', title: 'Common App Essay',
+    status: p.commonEssayStatus || 'not_started', prompt: p.commonEssayPrompt ? (_CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] || '') : '', limit: 650,
+    content: p.commonEssayContent || '', brainstorm: p.commonEssayNotes || '' });
+  DB.caSchools.forEach(sc => (sc.essays || []).forEach(e => items.push({ key: 's:' + sc.id + ':' + e.id, kind: 'school', ref: e, group: sc.name, schoolId: sc.id, deadline: sc.deadline || '',
+    title: e.title, status: e.status || 'not_started', prompt: e.prompt || '', limit: parseInt(e.wordLimit) || 0, content: e.content || '', brainstorm: e.brainstorm || '' })));
+  DB.essays.forEach(e => {
+    const col = DB.colleges.find(c => c.name === e.college);
+    items.push({ key: 'f:' + e.id, kind: 'flat', ref: e, group: e.college || 'Other', schoolId: '', deadline: (col && col.deadline) || '', title: e.type || 'Essay',
+      status: _ewFlatToState(e.status), prompt: e.prompt || '', limit: parseInt(e.wordLimit) || 0, content: e.content || '', brainstorm: e.ideas || '' });
+  });
+  return items;
+}
+function _ewSet(it, field, v) {
+  const f = _EW_FIELDS[it.kind][field];
+  if (field === 'status' && it.kind === 'flat') { if (_ewFlatToState(it.ref.status) !== v) it.ref.status = _EW_FLAT_FROM_STATE[v]; return; }
+  it.ref[f] = v;
+  if (field === 'content' && it.kind !== 'common') it.ref.wordCount = String(essayWordCount(v));
+}
+function _ewFeedback(it) {
+  const k = _EW_FIELDS[it.kind].feedback;
+  if (!Array.isArray(it.ref[k])) it.ref[k] = [];
+  return it.ref[k];
+}
+function _ewCur() { return _ewItems().find(i => i.key === _ewSel) || null; }
+function _ewGKey(name) { return 'g:' + encodeURIComponent(name).replace(/'/g, '%27'); }
+function _ewGroups(items) {
+  const map = new Map();
+  items.filter(i => i.kind !== 'common').forEach(i => {
+    const k = i.kind === 'school' ? 'g:s' + i.schoolId : _ewGKey(i.group);
+    if (!map.has(k)) map.set(k, { key: k, name: i.group, deadline: i.deadline, schoolId: i.schoolId, items: [] });
+    map.get(k).items.push(i);
+  });
+  DB.caSchools.forEach(sc => { const k = 'g:s' + sc.id; if (!map.has(k)) map.set(k, { key: k, name: sc.name, deadline: sc.deadline || '', schoolId: sc.id, items: [] }); });
+  return [...map.values()].sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999') || a.name.localeCompare(b.name));
+}
+function _ewPendingOrder(items) {
+  const out = [];
+  const common = items.find(i => i.key === 'common');
+  if (common && common.status !== 'done') out.push(common);
+  _ewGroups(items).forEach(g => g.items.filter(i => i.status !== 'done').forEach(i => out.push(i)));
+  return out;
+}
+function _ewDue(ds) {
+  if (!ds) return null;
+  const d = Math.ceil((new Date(ds + 'T12:00:00') - new Date()) / 86400000);
+  return { days: d, label: new Date(ds + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' }),
+    color: d < 14 ? 'var(--red)' : d < 45 ? 'var(--amber)' : 'var(--text-muted)', text: d >= 0 ? d + 'd left' : 'past due' };
+}
+function _ewToast(msg) {
+  let t = document.getElementById('ew-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'ew-toast'; t.className = 'ew-toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function _ewFlush() { if (_ewSaveTimer) { clearTimeout(_ewSaveTimer); _ewSaveTimer = null; save(); } }
 
-  commonCard.innerHTML = `
-    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span>🎓 Common App Essay</span>
-      <button class="btn btn-secondary btn-sm" onclick="openCommonEssayWriter()">✍️ Write</button>
-    </div>
-    <div class="ca-essay-title" style="margin-top:8px;">
-      ${essayStatus==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
-      ${promptLabel || 'No prompt chosen yet'}
-      <span style="font-size:10px;color:var(--text-muted);font-weight:400;">650w</span>
-    </div>
-    ${p.commonEssayNotes ? `<div class="ca-essay-prompt">"${p.commonEssayNotes}"</div>` : ''}
-    ${_caCommonEssayPill(essayStatus)}
-    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Shared with every school you apply to${earliestLbl?` · earliest due ${earliestLbl}`:''}</div>`;
-
-  if (DB.caSchools.length === 0) {
-    schoolsList.innerHTML = `<div class="empty-state card essays-school-card" style="text-align:center;padding:20px;">
-      <div class="ei">🏫</div><p>No universities added yet.<br><span style="font-size:12px;color:var(--text-muted);">Add schools in the Common App section to see their supplemental essays here.</span></p>
-      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="setMode('college');showPage('c-commonapp')">Go to Common App →</button>
-    </div>`;
-    return;
+function _ewRow(it, withGroup) {
+  const wc = essayWordCount(it.content), over = it.limit && wc > it.limit, pct = it.limit ? Math.min(100, wc / it.limit * 100) : 0;
+  return `<div class="ew-row${_ewSel === it.key ? ' sel' : ''}" onclick="ewSelect('${it.key}')">
+    ${it.status === 'done' ? '<span class="ew-tick">✓</span>' : `<span class="ew-dot" style="background:${_EW_DOT[it.status]};"></span>`}
+    <div class="ew-row-body"><div class="ew-row-title">${escapeHtml(it.title)}</div>${withGroup ? `<div class="ew-row-sub">${escapeHtml(it.group)}</div>` : ''}${it.limit ? `<div class="ew-mini"><div style="width:${pct}%;background:${over ? 'var(--red)' : it.status === 'done' ? 'var(--green)' : 'var(--c-accent)'};"></div></div>` : ''}</div>
+    <div class="ew-row-wc${over ? ' over' : ''}">${wc}${it.limit ? '/' + it.limit : ''}</div></div>`;
+}
+function renderEwList() {
+  const el = document.getElementById('ew-list-body');
+  if (!el) return;
+  const items = _ewItems(), q = _ewQuery.trim().toLowerCase();
+  let h = '';
+  if (q) {
+    const hits = items.filter(i => (i.title + ' ' + i.group + ' ' + i.prompt + ' ' + i.content + ' ' + i.brainstorm).toLowerCase().includes(q))
+      .sort((a, b) => (a.status === 'done') - (b.status === 'done'));
+    h = `<div class="ew-sec">${hits.length} result${hits.length === 1 ? '' : 's'}</div>` + (hits.map(i => _ewRow(i, true)).join('') || '<div class="ew-none">Nothing matches.</div>');
+    el.innerHTML = h; return;
   }
-
-  const anyOpen = DB.caSchools.some(s => _caSchoolOpen[s.id]);
-  schoolsList.innerHTML = `<div style="display:flex;justify-content:flex-end;gap:6px;margin:10px 0 4px;">
-      <button class="btn-ghost" style="font-size:12px;" onclick="${anyOpen?'collapseAllCaSchools()':'expandAllCaSchools()'}">${anyOpen?'Collapse all':'Expand all'}</button>
-    </div>` + DB.caSchools.map(school => {
-    const deadlineLbl = school.deadline ? new Date(school.deadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : null;
-    const daysLeft = school.deadline ? Math.ceil((new Date(school.deadline+'T12:00:00')-new Date())/86400000) : null;
-    const urgency = daysLeft !== null ? (daysLeft < 30 ? 'var(--red)' : daysLeft < 90 ? 'var(--amber)' : 'var(--text-muted)') : 'var(--text-muted)';
-    const essays = school.essays || [];
-    const isOpen = !!_caSchoolOpen[school.id];
-    const essaysDone = essays.filter(e => e.status === 'done').length;
-    return `<div class="ca-school-card essays-school-card" id="essays-school-${school.id}">
-      <div class="ca-school-head" style="cursor:pointer;" onclick="toggleCaSchoolCard('${school.id}')">
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:7px;">
-            <span style="font-size:11px;color:var(--text-muted);transition:transform .15s;display:inline-block;transform:rotate(${isOpen?90:0}deg);">▶</span>
-            <span style="font-weight:800;font-size:14px;">${school.name}</span>
-          </div>
-          <div style="font-size:11px;font-weight:600;color:${urgency};margin-top:2px;margin-left:18px;">
-            ${deadlineLbl ? `Due ${deadlineLbl}${daysLeft!==null?` · ${daysLeft>=0?daysLeft+'d left':'past due'}`:''}` : 'No deadline set'}
-            ${!isOpen?`<span style="color:var(--text-muted);font-weight:400;">&nbsp;· ${essaysDone}/${essays.length} essays done</span>`:''}
+  const common = items[0];
+  if (common.status !== 'done') h += `<div class="ew-sec">Common App</div>` + _ewRow(common, false);
+  const groups = _ewGroups(items);
+  let any = false;
+  groups.forEach(g => {
+    const pend = g.items.filter(i => i.status !== 'done');
+    if (g.items.length && !pend.length) return;
+    any = true;
+    const due = _ewDue(g.deadline), open = !_ewCollapsed[g.key];
+    h += `<div class="ew-ghead" onclick="ewToggleGroup('${g.key}')"><span class="caret" style="transform:rotate(${open ? 90 : 0}deg);">▶</span>
+      <span class="ew-gname">${escapeHtml(g.name)}</span>
+      ${due ? `<span class="ew-gmeta" style="color:${due.color};" title="Due ${due.label}">${due.text}</span>` : ''}
+      <button class="ew-gadd" title="Add a prompt" onclick="event.stopPropagation();${g.schoolId ? `openCaEssayModal('${g.schoolId}')` : `ewAddOther(decodeURIComponent('${g.key.slice(2)}'))`}">+</button></div>`;
+    if (open) h += g.items.length ? pend.map(i => _ewRow(i, false)).join('') : `<div class="ew-none">No supplemental essays.</div>`;
+  });
+  if (!any && common.status === 'done') h += `<div class="ew-none" style="padding:24px 10px;text-align:center;">🎉 Nothing left to write.</div>`;
+  const done = items.filter(i => i.status === 'done');
+  if (done.length) {
+    h += `<div class="ew-done-toggle" onclick="ewToggleDoneList()"><span style="font-size:9px;display:inline-block;transform:rotate(${_ewShowDone ? 90 : 0}deg);">▶</span> ✓ Completed (${done.length})</div>`;
+    if (_ewShowDone) h += done.map(i => _ewRow(i, true)).join('');
+  }
+  el.innerHTML = h;
+}
+function renderEwNotes() {
+  const el = document.getElementById('ew-notes');
+  const it = _ewCur();
+  if (!el || !it) return;
+  const fb = _ewFeedback(it);
+  el.innerHTML = `<div class="ew-plabel" style="margin-bottom:6px;">💡 Brainstorm &amp; outline</div>
+    <textarea id="ew-brain" placeholder="Ideas, angle, structure, key moments, hook…" oninput="ewBrainTyping()">${escapeHtml(it.brainstorm)}</textarea>
+    <div class="ew-plabel" style="margin:14px 0 4px;">💬 Feedback log</div>
+    ${fb.map(f => `<div class="ew-fb${f.done ? ' done' : ''}"><input type="checkbox" ${f.done ? 'checked' : ''} onchange="ewToggleFeedback('${f.id}')" title="Mark as dealt with">
+      <div style="flex:1;min-width:0;"><span class="ew-fb-who">${escapeHtml(f.who || 'Someone')}</span> <span class="ew-fb-note">${escapeHtml(f.note)}</span></div>
+      <button class="btn-ghost" style="padding:0 4px;" onclick="ewDelFeedback('${f.id}')" title="Remove">×</button></div>`).join('') || '<div class="ew-meta" style="padding:4px 0;">Note who has read this and what they said.</div>'}
+    <div style="display:flex;gap:6px;margin-top:8px;"><input type="text" id="ew-fb-who" placeholder="Who" style="width:82px;font-size:12px;padding:6px 8px;"><input type="text" id="ew-fb-note" placeholder="Their feedback" style="flex:1;min-width:0;font-size:12px;padding:6px 8px;" onkeydown="if(event.key==='Enter')ewAddFeedback()"><button class="btn btn-secondary btn-sm" onclick="ewAddFeedback()">Add</button></div>`;
+}
+function renderEwMain() {
+  const el = document.getElementById('ew-main');
+  if (!el) return;
+  const it = _ewCur();
+  if (!it) { el.innerHTML = `<div class="ew-empty">Select an essay on the left, or add a university to get started.</div>`; return; }
+  const due = _ewDue(it.deadline), done = it.status === 'done';
+  const promptBlock = it.kind === 'common'
+    ? `<select onchange="ewSetCommonPrompt(this.value)" style="width:100%;margin:6px 0;"><option value="">— Choose one of the 7 prompts —</option>${Object.entries(_CA_COMMON_PROMPT_LABELS).map(([k, v]) => `<option value="${k}" ${DB.caProfile.commonEssayPrompt === k ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('')}</select>${it.prompt ? `<div class="essay-prompt-lg">${escapeHtml(it.prompt)}</div>` : ''}`
+    : `<div class="essay-prompt-lg" style="white-space:pre-wrap;">${it.prompt ? escapeHtml(it.prompt) : '<span style="color:var(--text-muted);">No prompt text saved yet. Use “Edit prompt” to paste it in.</span>'}</div>`;
+  el.innerHTML = `
+    <button class="btn btn-secondary btn-sm ew-back" onclick="ewBack()">← All essays</button>
+    <div class="ew-crumb">${escapeHtml(it.group)}${due ? ` · due ${due.label} · <span style="color:${due.color};font-weight:800;">${due.text}</span>` : ''}</div>
+    <div class="ew-title-row">
+      <h3 class="ew-title">${escapeHtml(it.title)}</h3>
+      <div class="ew-actions">
+        <div class="ca-status-pill">${_EW_STATUSES.filter(x => x[0] !== 'done').map(([k, l]) => `<button class="ca-status-btn${it.status === k ? ' ' + _CA_ESSAY_CLASSES[k] : ''}" onclick="ewSetStatus('${k}')">${l}</button>`).join('')}</div>
+        <button class="btn ${done ? 'btn-secondary' : 'btn-primary'}" onclick="ewToggleDone()">${done ? '↺ Reopen' : '✓ Mark complete'}</button>
+      </div>
+    </div>
+    <div class="ew-plabel"><span>Prompt</span>${it.kind === 'common' ? '' : `<button class="btn-ghost" style="font-size:11px;" onclick="ewEditPrompt()">✏️ Edit prompt</button>`}</div>
+    ${promptBlock}
+    <div class="ew-split${_ewNotesOpen ? '' : ' nonotes'}">
+      <div>
+        <div class="ew-toolbar">
+          <div><div class="ew-count" id="ew-count"></div><div class="ew-bar"><div id="ew-bar"></div></div><div class="ew-meta" id="ew-meta"></div></div>
+          <div class="ew-tools">
+            <button class="btn btn-secondary btn-sm hide-focus" onclick="ewOpenReuse()" title="Start from an essay you already wrote">♻️ Reuse</button>
+            <button class="btn btn-secondary btn-sm" onclick="ewCopy()" title="Copy text">📋 Copy</button>
+            <button class="btn btn-secondary btn-sm" onclick="ewToggleFocus()" title="Distraction-free writing (Esc to exit)">⛶ ${_ewFocus ? 'Exit focus' : 'Focus'}</button>
+            <button class="btn btn-secondary btn-sm hide-focus" onclick="ewToggleNotes()">📝 Notes</button>
+            ${it.kind === 'common' ? '' : `<button class="btn btn-secondary btn-sm hide-focus" onclick="ewDelete()" title="Delete this prompt" style="color:var(--red);">🗑</button>`}
           </div>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaEssayModal('${school.id}')">+ Add Prompt</button>
+        <textarea id="ew-text" class="ew-text" placeholder="Start writing here. It saves as you type." oninput="ewTyping()"></textarea>
+        <div class="ew-meta" id="ew-saved" style="margin-top:6px;"></div>
       </div>
-      <div class="ca-school-body" style="display:${isOpen?'block':'none'};">
-      ${essays.length === 0
-        ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">None</div>`
-        : essays.map(e => `<div class="ca-essay-row">
-            <div class="ca-essay-title">
-              ${e.status==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
-              ${e.title}
-              ${e.wordLimit?`<span style="font-size:10px;color:var(--text-muted);font-weight:400;">${e.wordLimit}w</span>`:''}
-              <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="openSchoolEssayWriter('${school.id}','${e.id}')" title="Write">✍️</button>
-              <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="openCaEssayModal('${school.id}','${e.id}')" title="Edit">✏️</button>
-            </div>
-            ${e.prompt?`<div class="essay-prompt-lg">${e.prompt}</div>`:''}
-            ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
-          </div>`).join('')
-      }
-      </div>
+      <div class="ew-notes" id="ew-notes" style="${_ewNotesOpen ? '' : 'display:none;'}"></div>
     </div>`;
-  }).join('');
+  document.getElementById('ew-text').value = it.content;
+  _ewUpdateCount(it, it.content);
+  renderEwNotes();
 }
-function renderEssays() {
-  renderEssaysCommonAndSchools();
-  updateEssayCollegeFilter();
-  const filter=document.getElementById('essay-college-filter').value;
-  const list=filter?DB.essays.filter(e=>e.college===filter):DB.essays;
-  const tbody=document.getElementById('essays-table');
-  if(list.length===0){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📝</div><p>Add your essays above.</p></div></td></tr>`;return;}
-  tbody.innerHTML=list.map(e=>{
-    const wl=e.wordLimit?parseInt(e.wordLimit):null;const wc=e.wordCount?parseInt(e.wordCount):0;const pct=wl?Math.min(100,Math.round(wc/wl*100)):0;
-    return `<tr><td><strong>${e.college}</strong></td><td><span class="badge badge-gray">${e.type}</span></td><td style="max-width:220px;font-size:12px;color:var(--text-secondary);">${e.prompt?e.prompt.slice(0,60)+(e.prompt.length>60?'…':''):'—'}</td><td>${wl?`<div style="font-size:12px;">${wc}/${wl}</div><div class="progress-bar" style="margin-top:4px;width:80px;"><div class="progress-fill${pct>=100?' green':''}" style="width:${pct}%"></div></div>`:'—'}</td><td>${statusBadge(e.status)}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm btn-icon" onclick="openEssayWriter('${e.id}')" title="Write">✍️</button><button class="btn btn-secondary btn-sm btn-icon" onclick="editEssay('${e.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deleteEssay('${e.id}')">🗑</button></div></td></tr>`;
-  }).join('');
+function _ewUpdateCount(it, text) {
+  const wc = essayWordCount(text), lim = it.limit;
+  const st = lim && wc > lim ? 'over' : lim && wc >= lim * 0.9 ? 'near' : '';
+  const c = document.getElementById('ew-count'), b = document.getElementById('ew-bar'), m = document.getElementById('ew-meta');
+  if (!c) return;
+  c.className = 'ew-count ' + st;
+  c.textContent = lim ? `${wc} / ${lim} words${wc > lim ? ` (${wc - lim} over)` : ''}` : `${wc} words`;
+  b.className = st; b.style.width = (lim ? Math.min(100, wc / lim * 100) : 0) + '%';
+  m.textContent = wc ? `~${Math.max(1, Math.round(wc / 200))} min read · ${text.length} characters` : '';
+}
+function renderEssayWorkspace() {
+  if (!document.getElementById('ew')) return;
+  renderEssaysUpcoming();
+  const items = _ewItems(), done = items.filter(i => i.status === 'done').length;
+  document.getElementById('ew-progress').innerHTML = `<strong style="color:var(--text);">${done}</strong> of ${items.length} essays complete<div class="progress-bar"><div class="progress-fill${done === items.length ? ' green' : ''}" style="width:${items.length ? done / items.length * 100 : 0}%"></div></div>`;
+  if (!items.some(i => i.key === _ewSel)) { const first = _ewPendingOrder(items)[0] || items.find(i => i.status === 'done'); _ewSel = first ? first.key : null; }
+  renderEwList();
+  renderEwMain();
+  _ewApplyClasses();
+}
+function _ewApplyClasses() {
+  document.getElementById('ew').classList.toggle('has-sel', _ewMobileEditor);
+  document.getElementById('page-c-essays').classList.toggle('ew-focus', _ewFocus);
+}
+function renderEssays() { renderEssayWorkspace(); }
+function renderEssaysCommonAndSchools() { renderEssayWorkspace(); }
+
+function ewSelect(key) { _ewFlush(); _ewSel = key; _ewMobileEditor = true; renderEwList(); renderEwMain(); _ewApplyClasses(); window.scrollTo(0, 0); }
+function ewBack() { _ewFlush(); _ewMobileEditor = false; _ewApplyClasses(); }
+function ewSearch(v) { _ewQuery = v; renderEwList(); }
+function ewToggleGroup(k) { _ewCollapsed[k] = !_ewCollapsed[k]; renderEwList(); }
+function ewToggleDoneList() { _ewShowDone = !_ewShowDone; renderEwList(); }
+function ewToggleNotes() { _ewNotesOpen = !_ewNotesOpen; renderEwMain(); }
+function ewToggleFocus() { _ewFocus = !_ewFocus; _ewApplyClasses(); renderEwMain(); const t = document.getElementById('ew-text'); if (t) t.focus(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _ewFocus && currentPageId === 'c-essays') ewToggleFocus(); });
+
+// open the workspace on a given essay from anywhere in the app
+function ewOpen(key) { _ewSel = key; _ewMobileEditor = true; _ewQuery = ''; const q = document.getElementById('ew-search'); if (q) q.value = ''; showPage('c-essays'); renderEssayWorkspace(); }
+function openEssayWriter(id) { ewOpen('f:' + id); }
+function openSchoolEssayWriter(schoolId, essayId) { ewOpen('s:' + schoolId + ':' + essayId); }
+function openCommonEssayWriter() { ewOpen('common'); }
+function jumpToEssaysSchool(schoolId) {
+  const sc = DB.caSchools.find(x => x.id === schoolId);
+  const e = sc && ((sc.essays || []).find(x => x.status !== 'done') || (sc.essays || [])[0]);
+  if (e) ewOpen('s:' + schoolId + ':' + e.id); else showPage('c-essays');
 }
 
-let _essayWriterSource = { type: 'flat', id: null };
-let _essayWriterSaveTimer = null;
-function openEssayWriter(id) {
-  const e = DB.essays.find(e => e.id === id); if (!e) return;
-  _essayWriterSource = { type: 'flat', id };
-  document.getElementById('essay-writer-title').textContent = `${e.college} — ${e.type}`;
-  document.getElementById('essay-writer-prompt').textContent = e.prompt || '';
-  document.getElementById('essay-writer-content').value = e.content || '';
-  document.getElementById('essay-writer-saved').textContent = '';
-  updateEssayWriterCount();
-  showPage('c-essay-writer');
-  document.getElementById('essay-writer-content').focus();
+function ewTyping() {
+  const it = _ewCur(); if (!it) return;
+  const v = document.getElementById('ew-text').value;
+  _ewSet(it, 'content', v);
+  _ewUpdateCount(it, v);
+  document.getElementById('ew-saved').textContent = 'Saving…';
+  clearTimeout(_ewSaveTimer);
+  _ewSaveTimer = setTimeout(() => {
+    _ewSaveTimer = null; save(); renderEwList();
+    const s = document.getElementById('ew-saved'); if (s) s.textContent = 'Saved at ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }, 600);
 }
-function openSchoolEssayWriter(schoolId, essayId) {
-  const school = DB.caSchools.find(s => s.id === schoolId); if (!school) return;
-  const e = school.essays.find(x => x.id === essayId); if (!e) return;
-  _essayWriterSource = { type: 'school', schoolId, id: essayId };
-  document.getElementById('essay-writer-title').textContent = `${school.name} — ${e.title}`;
-  document.getElementById('essay-writer-prompt').textContent = e.prompt || '';
-  document.getElementById('essay-writer-content').value = e.content || '';
-  document.getElementById('essay-writer-saved').textContent = '';
-  updateEssayWriterCount();
-  showPage('c-essay-writer');
-  document.getElementById('essay-writer-content').focus();
+function ewBrainTyping() {
+  const it = _ewCur(); if (!it) return;
+  _ewSet(it, 'brainstorm', document.getElementById('ew-brain').value);
+  clearTimeout(_ewSaveTimer); _ewSaveTimer = setTimeout(() => { _ewSaveTimer = null; save(); }, 600);
 }
-function openCommonEssayWriter() {
-  const p = DB.caProfile;
-  _essayWriterSource = { type: 'common' };
-  document.getElementById('essay-writer-title').textContent = 'Common App Essay';
-  document.getElementById('essay-writer-prompt').textContent = p.commonEssayPrompt
-    ? (_CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] || '')
-    : 'No prompt chosen yet — pick one in the Common App section.';
-  document.getElementById('essay-writer-content').value = p.commonEssayContent || '';
-  document.getElementById('essay-writer-saved').textContent = '';
-  updateEssayWriterCount();
-  showPage('c-essay-writer');
-  document.getElementById('essay-writer-content').focus();
+function ewSetStatus(st) {
+  const it = _ewCur(); if (!it) return;
+  _ewFlush(); _ewSet(it, 'status', st); save(); renderEssayWorkspace();
 }
-function _essayWriterWordLimit() {
-  const src = _essayWriterSource;
-  if (src.type === 'common') return 650;
-  if (src.type === 'flat') { const e = DB.essays.find(e => e.id === src.id); return e && e.wordLimit ? parseInt(e.wordLimit) : null; }
-  if (src.type === 'school') {
-    const school = DB.caSchools.find(s => s.id === src.schoolId);
-    const e = school ? school.essays.find(x => x.id === src.id) : null;
-    return e && e.wordLimit ? parseInt(e.wordLimit) : null;
-  }
-  return null;
+function ewToggleDone() {
+  const it = _ewCur(); if (!it) return;
+  _ewFlush();
+  if (it.status === 'done') { _ewSet(it, 'status', 'drafting'); save(); renderEssayWorkspace(); _ewToast('Reopened. Back on your to-do list.'); return; }
+  const order = _ewPendingOrder(_ewItems()), i = order.findIndex(x => x.key === it.key);
+  _ewSet(it, 'status', 'done'); save();
+  const sameGroup = order.filter(x => x.key !== it.key && x.group === it.group);
+  const next = sameGroup[0] || order[i + 1] || order[i - 1];
+  if (next) { _ewSel = next.key; _ewToast(`✓ ${it.title} complete. Next up: ${next.title}`); }
+  else _ewToast('🎉 Every essay is complete!');
+  renderEssayWorkspace();
 }
-function essayWordCount(text) {
-  const words = (text || '').trim().split(/\s+/).filter(Boolean);
-  return words.length;
+function ewSetCommonPrompt(v) { DB.caProfile.commonEssayPrompt = v; save(); renderEssayWorkspace(); }
+function ewEditPrompt() {
+  const it = _ewCur(); if (!it) return;
+  if (it.kind === 'school') openCaEssayModal(it.schoolId, it.ref.id); else if (it.kind === 'flat') editEssay(it.ref.id);
 }
-function updateEssayWriterCount() {
-  const text = document.getElementById('essay-writer-content').value;
-  const wc = essayWordCount(text);
-  const wl = _essayWriterWordLimit();
-  document.getElementById('essay-writer-count').textContent = wl ? `${wc} / ${wl} words` : `${wc} words`;
+function ewAddOther(college) {
+  openModal('essay-modal');
+  document.getElementById('essay-modal-title').textContent = 'Add Essay';
+  document.getElementById('essay-college').value = college || '';
 }
-function onEssayWriterInput() {
-  updateEssayWriterCount();
-  document.getElementById('essay-writer-saved').textContent = 'Saving…';
-  clearTimeout(_essayWriterSaveTimer);
-  _essayWriterSaveTimer = setTimeout(saveEssayWriterContent, 800);
+function ewDelete() {
+  const it = _ewCur(); if (!it || it.kind === 'common') return;
+  if (!confirm(`Delete “${it.title}” for ${it.group}? Its text will be lost.`)) return;
+  if (it.kind === 'school') { const sc = DB.caSchools.find(x => x.id === it.schoolId); sc.essays = sc.essays.filter(x => x.id !== it.ref.id); }
+  else DB.essays = DB.essays.filter(x => x.id !== it.ref.id);
+  _ewSel = null; _ewMobileEditor = false; save(); renderEssayWorkspace();
 }
-function saveEssayWriterContent() {
-  const src = _essayWriterSource;
-  const content = document.getElementById('essay-writer-content').value;
-  const wordCount = String(essayWordCount(content));
-  if (src.type === 'flat') {
-    const e = DB.essays.find(e => e.id === src.id); if (!e) return;
-    e.content = content; e.wordCount = wordCount;
-    renderEssays();
-  } else if (src.type === 'school') {
-    const school = DB.caSchools.find(s => s.id === src.schoolId); if (!school) return;
-    const e = school.essays.find(x => x.id === src.id); if (!e) return;
-    e.content = content; e.wordCount = wordCount;
-    renderEssaysCommonAndSchools();
-  } else if (src.type === 'common') {
-    DB.caProfile.commonEssayContent = content;
-    renderEssaysCommonAndSchools();
-  }
-  save();
-  document.getElementById('essay-writer-saved').textContent = 'Saved at ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+function ewCopy() {
+  const it = _ewCur(); if (!it) return;
+  const text = document.getElementById('ew-text').value;
+  const ok = () => _ewToast('Copied to clipboard');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, () => { document.getElementById('ew-text').select(); document.execCommand('copy'); ok(); });
+  else { document.getElementById('ew-text').select(); document.execCommand('copy'); ok(); }
+}
+function ewExportAll() {
+  const items = _ewItems().filter(i => i.content.trim());
+  if (!items.length) { _ewToast('No essay text to export yet'); return; }
+  const label = Object.fromEntries(_EW_STATUSES);
+  const txt = items.map(i => `${i.group} — ${i.title}\n${i.prompt ? 'Prompt: ' + i.prompt + '\n' : ''}${essayWordCount(i.content)}${i.limit ? ' / ' + i.limit : ''} words · ${label[i.status].replace(' ✓', '')}\n\n${i.content.trim()}\n`).join('\n' + '='.repeat(60) + '\n\n');
+  const url = URL.createObjectURL(new Blob([txt], { type: 'text/plain;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = `essays-${today()}.txt`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  _ewToast(`Exported ${items.length} essay${items.length === 1 ? '' : 's'}`);
+}
+
+// feedback log
+function ewAddFeedback() {
+  const it = _ewCur(); if (!it) return;
+  const note = document.getElementById('ew-fb-note').value.trim(); if (!note) return;
+  _ewFeedback(it).push({ id: uid(), who: document.getElementById('ew-fb-who').value.trim(), note, done: false });
+  save(); renderEwNotes();
+}
+function ewToggleFeedback(id) { const it = _ewCur(); if (!it) return; const f = _ewFeedback(it).find(x => x.id === id); if (f) { f.done = !f.done; save(); renderEwNotes(); } }
+function ewDelFeedback(id) { const it = _ewCur(); if (!it) return; const k = _EW_FIELDS[it.kind].feedback; it.ref[k] = _ewFeedback(it).filter(x => x.id !== id); save(); renderEwNotes(); }
+
+// reuse an essay you've already written
+function ewOpenReuse() {
+  document.getElementById('ew-reuse-q').value = '';
+  renderEwReuse();
+  document.getElementById('ew-reuse-modal').classList.add('open');
+}
+function renderEwReuse() {
+  const cur = _ewCur(); if (!cur) return;
+  const q = document.getElementById('ew-reuse-q').value.trim().toLowerCase();
+  const tok = t => new Set((t || '').toLowerCase().match(/[a-z]{4,}/g) || []);
+  const mine = tok(cur.title + ' ' + cur.prompt);
+  const list = _ewItems().filter(i => i.key !== cur.key && i.content.trim().length > 40)
+    .filter(i => !q || (i.title + ' ' + i.group + ' ' + i.prompt + ' ' + i.content).toLowerCase().includes(q))
+    .map(i => { const o = tok(i.title + ' ' + i.prompt); let sc = 0; o.forEach(w => { if (mine.has(w)) sc++; }); return { i, sc }; })
+    .sort((a, b) => b.sc - a.sc || (b.i.status === 'done') - (a.i.status === 'done'));
+  document.getElementById('ew-reuse-list').innerHTML = list.length ? list.map(({ i, sc }) => `<div class="ew-reuse-item">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><strong style="font-size:13px;">${escapeHtml(i.group)} — ${escapeHtml(i.title)}</strong>
+        <span class="ew-meta">${sc ? '⭐ likely match · ' : ''}${essayWordCount(i.content)} words${i.status === 'done' ? ' · ✓ done' : ''}</span></div>
+      <div class="prev">${escapeHtml(i.content.trim().slice(0, 240))}${i.content.length > 240 ? '…' : ''}</div>
+      <button class="btn btn-secondary btn-sm" onclick="ewReuse('${i.key}','replace')">Replace my text</button>
+      <button class="btn btn-secondary btn-sm" onclick="ewReuse('${i.key}','append')">Add below</button></div>`).join('')
+    : '<div class="ins-empty">No other essays with text yet. Once you have written a few, you can reuse them here.</div>';
+}
+function ewReuse(key, mode) {
+  const cur = _ewCur(), src = _ewItems().find(i => i.key === key); if (!cur || !src) return;
+  const t = document.getElementById('ew-text');
+  if (mode === 'replace' && t.value.trim() && !confirm('Replace what you have written so far?')) return;
+  t.value = mode === 'append' && t.value.trim() ? t.value.trimEnd() + '\n\n' + src.content : src.content;
+  ewTyping();
+  closeModal('ew-reuse-modal');
+  _ewToast(`Copied from ${src.group}. Tailor it to ${cur.group}.`);
+  t.focus();
 }
 
 // ============================================================
@@ -11091,6 +11323,25 @@ function _caSchoolCompletion(school) {
   return Math.round(done / total * 100);
 }
 
+let _caDoneOpen = {};
+function toggleCaDone(id) { _caDoneOpen[id] = !_caDoneOpen[id]; renderCommonApp(); }
+function _caSchoolEssaysHTML(school) {
+  const ess = school.essays || [];
+  if (!ess.length) return `<div style="font-size:12px;color:var(--text-muted);padding:4px 0 8px;">No supplemental essays for this school.</div>`;
+  const pend = ess.filter(e => e.status !== 'done'), fin = ess.filter(e => e.status === 'done');
+  const sid = school.id;
+  const row = (e, done) => `<div class="ca-essay-row" style="display:flex;align-items:center;gap:8px;">
+    <div class="ca-essay-title" style="flex:1;min-width:0;">${done ? '<span style="color:var(--green);">✓</span>' : `<span style="color:${_EW_DOT[e.status || 'not_started']};">●</span>`}
+      <span${done ? ' style="color:var(--text-muted);"' : ''}>${escapeHtml(e.title)}</span>
+      <span style="font-size:10px;color:var(--text-muted);font-weight:400;">${essayWordCount(e.content || '')}${e.wordLimit ? '/' + e.wordLimit : ''}w${!done && e.status === 'drafting' ? ' · drafting' : !done && e.status === 'reviewing' ? ' · reviewing' : ''}</span></div>
+    ${done ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();setCaSchoolEssayStatus('${sid}','${e.id}','drafting')">↺ Reopen</button>`
+           : `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openSchoolEssayWriter('${sid}','${e.id}')">✍️ Write</button>
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();setCaSchoolEssayStatus('${sid}','${e.id}','done')">✓ Complete</button>`}
+  </div>`;
+  return (pend.length ? pend.map(e => row(e, false)).join('') : `<div style="font-size:12px;color:var(--green);font-weight:700;padding:4px 0;">🎉 All supplemental essays done.</div>`)
+    + (fin.length ? `<div class="ca-done-line" onclick="event.stopPropagation();toggleCaDone('${sid}')">${_caDoneOpen[sid] ? '▾' : '▸'} ${fin.length} completed</div>${_caDoneOpen[sid] ? fin.map(e => row(e, true)).join('') : ''}` : '');
+}
+
 let _caTab = 'profile';
 function setCaTab(tab) { _caTab = tab; renderCommonApp(); }
 
@@ -11238,27 +11489,28 @@ function renderCommonApp() {
   }
 
   else if (_caTab === 'essay') {
-    tabHtml = `
+    const plabel = _CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] || 'No prompt chosen yet';
+    const wcCommon = essayWordCount(p.commonEssayContent || '');
+    if (essayStatus === 'done') {
+      tabHtml = `<div class="ca-linked-row" style="border:none;">
+          <div><div class="ca-check-title" style="color:var(--green);">✓ Common App essay complete</div><div class="ca-check-sub">${wcCommon} words · ${escapeHtml(plabel)}</div></div>
+          <div style="display:flex;gap:8px;"><button class="btn btn-secondary btn-sm" onclick="openCommonEssayWriter()">View</button><button class="btn btn-secondary btn-sm" onclick="setCaCommonEssayStatus('drafting')">↺ Reopen</button></div>
+        </div>`;
+    } else {
+      tabHtml = `
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">650 words max · shared with every school you apply to · choose one of 7 prompts</div>
       <div class="ca-check-title" style="margin-bottom:6px;">Prompt</div>
       <select style="width:100%;margin-bottom:16px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;background:var(--surface);" onchange="DB.caProfile.commonEssayPrompt=this.value;save()">
         <option value="" ${!p.commonEssayPrompt?'selected':''}>— Choose a prompt —</option>
-        <option value="1" ${p.commonEssayPrompt==='1'?'selected':''}>1. Background, identity, interest, or talent</option>
-        <option value="2" ${p.commonEssayPrompt==='2'?'selected':''}>2. Obstacle, challenge, or failure and what you learned</option>
-        <option value="3" ${p.commonEssayPrompt==='3'?'selected':''}>3. Questioned or challenged a belief or idea</option>
-        <option value="4" ${p.commonEssayPrompt==='4'?'selected':''}>4. Something someone did for you — gratitude and paying it forward</option>
-        <option value="5" ${p.commonEssayPrompt==='5'?'selected':''}>5. Accomplishment or realisation that sparked personal growth</option>
-        <option value="6" ${p.commonEssayPrompt==='6'?'selected':''}>6. Topic or idea that makes you lose track of time</option>
-        <option value="7" ${p.commonEssayPrompt==='7'?'selected':''}>7. Free choice — topic of your own design</option>
+        ${Object.entries(_CA_COMMON_PROMPT_LABELS).map(([k, v]) => `<option value="${k}" ${p.commonEssayPrompt===k?'selected':''}>${escapeHtml(v)}</option>`).join('')}
       </select>
-      <div class="ca-check-title" style="margin-bottom:6px;">Status</div>
+      <div class="ca-check-title" style="margin-bottom:6px;">Status · ${wcCommon}/650 words</div>
       ${_caCommonEssayPill(essayStatus)}
-      <div style="margin-top:14px;">
-        <div class="ca-check-title" style="margin-bottom:6px;">Notes / Brainstorm</div>
-        <textarea style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;resize:vertical;background:var(--surface);" rows="3"
-          placeholder="Ideas, thesis, key moments, hook…" onchange="DB.caProfile.commonEssayNotes=this.value;save()">${p.commonEssayNotes||''}</textarea>
-      </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="showPage('c-essays')">Manage all essays →</button>`;
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="openCommonEssayWriter()">✍️ Write it in Essays</button>
+        <button class="btn btn-primary btn-sm" onclick="setCaCommonEssayStatus('done')">✓ Mark complete</button>
+      </div>`;
+    }
   }
 
   else if (_caTab === 'recs') {
@@ -11324,17 +11576,7 @@ function renderCommonApp() {
             <span>Supplement Essays (${essaysDone}/${school.essays.length} done)</span>
             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaEssayModal('${school.id}')">+ Add Prompt</button>
           </div>
-          ${school.essays.length === 0 ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0 8px;">No supplemental prompts added yet.</div>` : ''}
-          ${school.essays.map(e => `<div class="ca-essay-row">
-              <div class="ca-essay-title">
-                ${e.status==='done'?'<span style="color:var(--green);">✓</span>':'<span style="color:var(--border);">○</span>'}
-                ${e.title}
-                ${e.wordLimit?`<span style="font-size:10px;color:var(--text-muted);font-weight:400;">${e.wordLimit}w</span>`:''}
-                <button class="btn-ghost" style="font-size:11px;padding:2px 6px;" onclick="event.stopPropagation();openCaEssayModal('${school.id}','${e.id}')">✏️</button>
-              </div>
-              ${e.prompt?`<div class="ca-essay-prompt">"${e.prompt}"</div>`:''}
-              ${_caEssayStatusPill(school.id, e.id, e.status||'not_started')}
-            </div>`).join('')}
+          ${_caSchoolEssaysHTML(school)}
 
           <div class="ca-school-section">Requirements Checklist (${reqsDone}/${school.requirements.length} done)</div>
           ${school.requirements.map(r => `<div class="ca-req-row">
