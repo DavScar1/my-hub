@@ -7562,8 +7562,20 @@ const _CA_COMMON_PROMPT_LABELS = {
   '6': '6. Topic or idea that makes you lose track of time',
   '7': '7. Free choice — topic of your own design',
 };
+// A school is archived once its deadline has passed, unless you restored it (archived === false)
+// or archived it yourself early (archived === true).
+function caIsArchived(sc) {
+  if (sc.archived === true) return true;
+  if (sc.archived === false) return false;
+  return !!sc.deadline && sc.deadline < today();
+}
+function toggleCaArchive(id) {
+  const sc = DB.caSchools.find(x => x.id === id); if (!sc) return;
+  sc.archived = !caIsArchived(sc);
+  save(); renderCommonApp(); renderEssaysCommonAndSchools();
+}
 function _essaysEarliestDeadline() {
-  const dates = DB.caSchools.map(s => s.deadline).filter(Boolean).sort();
+  const dates = DB.caSchools.filter(s => !caIsArchived(s)).map(s => s.deadline).filter(Boolean).sort();
   return dates.length ? dates[0] : null;
 }
 function _essaysUpcomingDeadlines() {
@@ -7575,7 +7587,7 @@ function _essaysUpcomingDeadlines() {
   }
   DB.caSchools.forEach(s => {
     const essays = s.essays || [];
-    if (!s.deadline || essays.length === 0) return;
+    if (caIsArchived(s) || !s.deadline || essays.length === 0) return;
     const remaining = essays.filter(e => e.status !== 'done').length;
     if (remaining === 0) return;
     items.push({ date: s.deadline, icon: '🏫', title: s.name, sub: `${remaining} essay${remaining>1?'s':''} left`, onclick: `jumpToEssaysSchool('${s.id}')` });
@@ -7598,7 +7610,7 @@ function _essaysDueByDate(dateStr) {
     items.push({ date: earliest, school: 'Common App', title: 'Personal Statement', status: p.commonEssayStatus || 'not_started', writer: 'openCommonEssayWriter()' });
   }
   DB.caSchools.forEach(s => {
-    if (!s.deadline || new Date(s.deadline + 'T12:00:00') > cutoff) return;
+    if (caIsArchived(s) || !s.deadline || new Date(s.deadline + 'T12:00:00') > cutoff) return;
     (s.essays || []).forEach(e => {
       items.push({ date: s.deadline, school: s.name, title: e.title, status: e.status || 'not_started', writer: `openSchoolEssayWriter('${s.id}','${e.id}')` });
     });
@@ -7678,7 +7690,7 @@ const _EW_FIELDS = {
   school: { content: 'content', brainstorm: 'brainstorm', feedback: 'feedback', status: 'status' },
   flat:   { content: 'content', brainstorm: 'ideas', feedback: 'feedback', status: 'status' },
 };
-let _ewSel = null, _ewQuery = '', _ewShowDone = false, _ewCollapsed = {}, _ewNotesOpen = true, _ewFocus = false, _ewMobileEditor = false, _ewSaveTimer = null;
+let _ewSel = null, _ewQuery = '', _ewShowDone = false, _ewCollapsed = {}, _ewNotesOpen = true, _ewFocus = false, _ewShowArch = false, _ewMobileEditor = false, _ewSaveTimer = null;
 
 function essayWordCount(text) {
   return (text || '').trim().split(/\s+/).filter(Boolean).length;
@@ -7691,7 +7703,7 @@ function _ewItems() {
   items.push({ key: 'common', kind: 'common', ref: p, group: 'Common App', schoolId: '', deadline: _essaysEarliestDeadline() || '', title: 'Common App Essay',
     status: p.commonEssayStatus || 'not_started', prompt: p.commonEssayPrompt ? (_CA_COMMON_PROMPT_LABELS[p.commonEssayPrompt] || '') : '', limit: 650,
     content: p.commonEssayContent || '', brainstorm: p.commonEssayNotes || '' });
-  DB.caSchools.forEach(sc => (sc.essays || []).forEach(e => items.push({ key: 's:' + sc.id + ':' + e.id, kind: 'school', ref: e, group: sc.name, schoolId: sc.id, deadline: sc.deadline || '',
+  DB.caSchools.forEach(sc => (sc.essays || []).forEach(e => items.push({ key: 's:' + sc.id + ':' + e.id, kind: 'school', ref: e, group: sc.name, schoolId: sc.id, deadline: sc.deadline || '', archived: caIsArchived(sc),
     title: e.title, status: e.status || 'not_started', prompt: e.prompt || '', limit: parseInt(e.wordLimit) || 0, content: e.content || '', brainstorm: e.brainstorm || '' })));
   DB.essays.forEach(e => {
     const col = DB.colleges.find(c => c.name === e.college);
@@ -7717,17 +7729,17 @@ function _ewGroups(items) {
   const map = new Map();
   items.filter(i => i.kind !== 'common').forEach(i => {
     const k = i.kind === 'school' ? 'g:s' + i.schoolId : _ewGKey(i.group);
-    if (!map.has(k)) map.set(k, { key: k, name: i.group, deadline: i.deadline, schoolId: i.schoolId, items: [] });
+    if (!map.has(k)) map.set(k, { key: k, name: i.group, deadline: i.deadline, schoolId: i.schoolId, archived: !!i.archived, items: [] });
     map.get(k).items.push(i);
   });
-  DB.caSchools.forEach(sc => { const k = 'g:s' + sc.id; if (!map.has(k)) map.set(k, { key: k, name: sc.name, deadline: sc.deadline || '', schoolId: sc.id, items: [] }); });
+  DB.caSchools.forEach(sc => { const k = 'g:s' + sc.id; if (!map.has(k)) map.set(k, { key: k, name: sc.name, deadline: sc.deadline || '', schoolId: sc.id, archived: caIsArchived(sc), items: [] }); });
   return [...map.values()].sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999') || a.name.localeCompare(b.name));
 }
 function _ewPendingOrder(items) {
   const out = [];
   const common = items.find(i => i.key === 'common');
   if (common && common.status !== 'done') out.push(common);
-  _ewGroups(items).forEach(g => g.items.filter(i => i.status !== 'done').forEach(i => out.push(i)));
+  _ewGroups(items).filter(g => !g.archived).forEach(g => g.items.filter(i => i.status !== 'done').forEach(i => out.push(i)));
   return out;
 }
 function _ewDue(ds) {
@@ -7764,7 +7776,7 @@ function renderEwList() {
   }
   const common = items[0];
   if (common.status !== 'done') h += `<div class="ew-sec">Common App</div>` + _ewRow(common, false);
-  const groups = _ewGroups(items);
+  const allGroups = _ewGroups(items), groups = allGroups.filter(g => !g.archived), archivedGroups = allGroups.filter(g => g.archived);
   let any = false;
   groups.forEach(g => {
     const pend = g.items.filter(i => i.status !== 'done');
@@ -7778,10 +7790,15 @@ function renderEwList() {
     if (open) h += g.items.length ? pend.map(i => _ewRow(i, false)).join('') : `<div class="ew-none">No supplemental essays.</div>`;
   });
   if (!any && common.status === 'done') h += `<div class="ew-none" style="padding:24px 10px;text-align:center;">🎉 Nothing left to write.</div>`;
-  const done = items.filter(i => i.status === 'done');
+  const done = items.filter(i => i.status === 'done' && !i.archived);
   if (done.length) {
     h += `<div class="ew-done-toggle" onclick="ewToggleDoneList()"><span style="font-size:9px;display:inline-block;transform:rotate(${_ewShowDone ? 90 : 0}deg);">▶</span> ✓ Completed (${done.length})</div>`;
     if (_ewShowDone) h += done.map(i => _ewRow(i, true)).join('');
+  }
+  const archItems = archivedGroups.reduce((n, g) => n + g.items.length, 0);
+  if (archivedGroups.length) {
+    h += `<div class="ew-done-toggle" style="color:var(--text-muted);" onclick="ewToggleArchList()"><span style="font-size:9px;display:inline-block;transform:rotate(${_ewShowArch ? 90 : 0}deg);">▶</span> 🗄 Past deadline (${archivedGroups.length})</div>`;
+    if (_ewShowArch) h += archivedGroups.map(g => `<div class="ew-ghead" style="cursor:default;"><span class="ew-gname" style="color:var(--text-muted);">${escapeHtml(g.name)}</span><span class="ew-gmeta" style="color:var(--text-muted);">${g.deadline ? _ewDue(g.deadline).label : ''}</span></div>` + (g.items.length ? g.items.map(i => _ewRow(i, false)).join('') : '<div class="ew-none">No supplemental essays.</div>')).join('');
   }
   el.innerHTML = h;
 }
@@ -7853,9 +7870,9 @@ function _ewUpdateCount(it, text) {
 function renderEssayWorkspace() {
   if (!document.getElementById('ew')) return;
   renderEssaysUpcoming();
-  const items = _ewItems(), done = items.filter(i => i.status === 'done').length;
+  const all = _ewItems(), items = all.filter(i => !i.archived), done = items.filter(i => i.status === 'done').length;
   document.getElementById('ew-progress').innerHTML = `<strong style="color:var(--text);">${done}</strong> of ${items.length} essays complete<div class="progress-bar"><div class="progress-fill${done === items.length ? ' green' : ''}" style="width:${items.length ? done / items.length * 100 : 0}%"></div></div>`;
-  if (!items.some(i => i.key === _ewSel)) { const first = _ewPendingOrder(items)[0] || items.find(i => i.status === 'done'); _ewSel = first ? first.key : null; }
+  if (!all.some(i => i.key === _ewSel)) { const first = _ewPendingOrder(all)[0] || items.find(i => i.status === 'done'); _ewSel = first ? first.key : null; }
   renderEwList();
   renderEwMain();
   _ewApplyClasses();
@@ -7871,6 +7888,7 @@ function ewSelect(key) { _ewFlush(); _ewSel = key; _ewMobileEditor = true; rende
 function ewBack() { _ewFlush(); _ewMobileEditor = false; _ewApplyClasses(); }
 function ewSearch(v) { _ewQuery = v; renderEwList(); }
 function ewToggleGroup(k) { _ewCollapsed[k] = !_ewCollapsed[k]; renderEwList(); }
+function ewToggleArchList() { _ewShowArch = !_ewShowArch; renderEwList(); }
 function ewToggleDoneList() { _ewShowDone = !_ewShowDone; renderEwList(); }
 function ewToggleNotes() { _ewNotesOpen = !_ewNotesOpen; renderEwMain(); }
 function ewToggleFocus() { _ewFocus = !_ewFocus; _ewApplyClasses(); renderEwMain(); const t = document.getElementById('ew-text'); if (t) t.focus(); }
@@ -11323,6 +11341,8 @@ function _caSchoolCompletion(school) {
   return Math.round(done / total * 100);
 }
 
+let _caArchOpen = false;
+function toggleCaArchList() { _caArchOpen = !_caArchOpen; renderCommonApp(); }
 let _caDoneOpen = {};
 function toggleCaDone(id) { _caDoneOpen[id] = !_caDoneOpen[id]; renderCommonApp(); }
 function _caSchoolEssaysHTML(school) {
@@ -11538,9 +11558,8 @@ function renderCommonApp() {
     </div>`;
   } else {
     const anyOpen = DB.caSchools.some(s => _caSchoolOpen[s.id]);
-    schoolsEl.innerHTML = `<div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;">
-        <button class="btn-ghost" style="font-size:12px;" onclick="${anyOpen?'collapseAllCaSchools()':'expandAllCaSchools()'}">${anyOpen?'Collapse all':'Expand all'}</button>
-      </div>` + DB.caSchools.map(school => {
+    const renderSchoolCard = school => {
+      const archived = caIsArchived(school);
       const pct = _caSchoolCompletion(school);
       const pillCls = 'ca-pill-'+school.dtype.toLowerCase().replace(/\d/g,'');
       const deadlineLbl = school.deadline ? new Date(school.deadline+'T12:00:00').toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}) : '—';
@@ -11549,7 +11568,7 @@ function renderCommonApp() {
       const isOpen = !!_caSchoolOpen[school.id];
       const essaysDone = school.essays.filter(e=>e.status==='done').length;
       const reqsDone = school.requirements.filter(r=>r.done).length;
-      return `<div class="ca-school-card">
+      return `<div class="ca-school-card"${archived ? ' style="opacity:.72;"' : ''}>
         <div class="ca-school-head" style="cursor:pointer;" onclick="toggleCaSchoolCard('${school.id}')">
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:7px;">
@@ -11569,6 +11588,7 @@ function renderCommonApp() {
               <div class="ca-school-progress"><div class="ca-school-progress-fill" style="width:${pct}%"></div></div>
             </div>
             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openCaSchoolModal('${school.id}')">Edit</button>
+            <button class="btn btn-secondary btn-sm" title="${archived ? 'Move back to your active schools' : 'Move to Past deadline'}" onclick="event.stopPropagation();toggleCaArchive('${school.id}')">${archived ? '↩ Restore' : '🗄 Archive'}</button>
           </div>
         </div>
         <div class="ca-school-body" style="display:${isOpen?'block':'none'};">
@@ -11585,7 +11605,12 @@ function renderCommonApp() {
           </div>`).join('')}
         </div>
       </div>`;
-    }).join('');
+    };
+    const active = DB.caSchools.filter(sc => !caIsArchived(sc)), archivedList = DB.caSchools.filter(sc => caIsArchived(sc));
+    schoolsEl.innerHTML = (active.length ? `<div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;">
+        <button class="btn-ghost" style="font-size:12px;" onclick="${anyOpen?'collapseAllCaSchools()':'expandAllCaSchools()'}">${anyOpen?'Collapse all':'Expand all'}</button>
+      </div>` + active.map(renderSchoolCard).join('') : `<div class="empty-state card" style="text-align:center;padding:20px;"><div class="ei">🎉</div><p>No active schools. Everything left is past its deadline.</p></div>`)
+      + (archivedList.length ? `<div class="ca-done-line" style="color:var(--text-muted);margin-top:14px;font-size:12.5px;" onclick="toggleCaArchList()">${_caArchOpen ? '▾' : '▸'} 🗄 Past deadline (${archivedList.length})</div>${_caArchOpen ? archivedList.map(renderSchoolCard).join('') : ''}` : '');
   }
 }
 
@@ -11881,7 +11906,7 @@ function renderInsights() {
   const colleges = [...(DB.colleges || []).filter(c => c.applying !== false), ...(DB.intlColleges || []).filter(c => c.applying !== false)];
   const finishedSt = ['Submitted', 'Accepted', 'Rejected', 'Waitlisted', 'Deferred'];
   const submitted = colleges.filter(c => finishedSt.includes(c.status)).length;
-  const caEssays = (DB.caSchools || []).reduce((a, sc) => a.concat(sc.essays || []), []);
+  const caEssays = (DB.caSchools || []).filter(sc => !caIsArchived(sc)).reduce((a, sc) => a.concat(sc.essays || []), []);
   const essaysTotal = DB.essays.length + caEssays.length + 1; // +1 = Common App personal statement
   const essaysDone = DB.essays.filter(e => e.status === 'Complete').length + caEssays.filter(e => e.status === 'done').length + ((DB.caProfile.commonEssayStatus || '') === 'done' ? 1 : 0);
   const prep = colleges.reduce((a, c) => a.concat(c.prepTasks || []), []);
