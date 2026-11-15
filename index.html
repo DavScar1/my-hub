@@ -868,6 +868,10 @@ a:hover{text-decoration:underline;}
 .ew-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .ew-reuse-item{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
 .ew-reuse-item .prev{font-size:12px;color:var(--text-secondary);margin:6px 0;line-height:1.5;font-family:Georgia,serif;}
+.ca-req-group{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin:10px 0 2px;}
+.ca-req-tag{font-size:9.5px;font-weight:700;color:var(--text-muted);background:var(--bg);border-radius:99px;padding:1px 7px;margin-left:6px;white-space:nowrap;}
+.ca-portal-note{font-size:11.5px;color:var(--text-secondary);background:var(--bg);border-radius:8px;padding:8px 10px;margin:6px 0 4px;line-height:1.5;}
+.ca-portal-note a{color:var(--c-accent);font-weight:700;white-space:nowrap;}
 .ca-done-line{font-size:11.5px;font-weight:700;color:var(--green);padding:6px 0 2px;cursor:pointer;}
 #page-c-essays.ew-focus .ew-head,#page-c-essays.ew-focus .ew-upcoming,#page-c-essays.ew-focus .ew-list,#page-c-essays.ew-focus .ew-notes,#page-c-essays.ew-focus .ew-plabel,#page-c-essays.ew-focus .ew-tools .hide-focus{display:none!important;}
 #page-c-essays.ew-focus .ew{grid-template-columns:minmax(0,1fr);}
@@ -2108,6 +2112,7 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
             <option value="EA">EA — Early Action</option>
             <option value="REA">REA — Restrictive EA</option>
             <option value="CAO">CAO (Ireland)</option>
+            <option value="UCAS">UCAS (UK)</option>
           </select>
         </div>
       </div>
@@ -11230,9 +11235,79 @@ function renderTodayTab() {
 // ============================================================
 // COMMON APP
 // ============================================================
+// Portal checklist building blocks: [group, text, flag]. flag: 'opt' = optional, 'later' = only if admitted.
+const _RQ = {
+  portal: ['Portal', 'Activate your applicant portal (login details are emailed after you submit)'],
+  fee:    ['Portal', 'Application fee paid, or fee waiver approved'],
+  check:  ['Portal', 'Every item on your portal checklist shows as received'],
+  sr:     ['From your school', 'School Report + transcript received (your counsellor sends these)'],
+  cr:     ['From your school', 'Counsellor recommendation received'],
+  t1:     ['From your school', 'Teacher recommendation #1 received'],
+  t2:     ['From your school', 'Teacher recommendation #2 received'],
+  mid:    ['From your school', 'Mid-Year Report sent by your counsellor (Christmas exam results)'],
+  sat:    c => ['Tests', `SAT scores sent (code ${c})`],
+  satOpt: c => ['Tests', `SAT scores sent, optional (code ${c})`, 'opt'],
+  css:    c => ['Financial aid', `CSS Profile submitted (code ${c})`],
+  tax:    ['Financial aid', "Parents' income documents uploaded (via IDOC or the university's aid portal)"],
+  interview: ['Optional', 'Interview, if you are invited (the invitation comes by email)', 'opt'],
+  update: ['Optional', 'Send any update (new award, result or essay) through the portal, never by email', 'opt'],
+  final:  ['If admitted', 'Final School Report + Leaving Cert results sent', 'later'],
+};
+const _CA_DEFAULT_REQS = [_RQ.portal, _RQ.fee, _RQ.sr, _RQ.cr, _RQ.t1, _RQ.t2, _RQ.mid,
+  ['Tests', 'Test scores sent, if this school requires them'], ['Financial aid', 'Financial aid forms submitted, if you are applying for aid'], _RQ.final];
+function _caMakeReqs(list) {
+  return list.map(([group, name, flag]) => ({ id: uid(), name, group, done: false, ...(flag === 'opt' ? { optional: true } : flag === 'later' ? { later: true } : {}) }));
+}
+// Which old/new checklist lines mean the same thing, so ticks survive an update
+function _caReqKey(name) {
+  const n = name.toLowerCase();
+  if (/counsel.*rec/.test(n)) return 'cr';
+  if (/teacher.*#1|#1/.test(n)) return 't1';
+  if (/teacher.*#2|#2/.test(n)) return 't2';
+  if (/school report|transcript/.test(n)) return 'sr';
+  if (/sat|act score/.test(n)) return 'sat';
+  if (/fee/.test(n)) return 'fee';
+  if (/mid/.test(n)) return 'mid';
+  if (/cao application/.test(n)) return 'cao';
+  return n;
+}
+function _caApplyTemplateReqs(sc) {
+  const t = _CA_TEMPLATES[sc.name];
+  if (!t) return false;
+  const doneKeys = new Set((sc.requirements || []).filter(r => r.done).map(r => _caReqKey(r.name)));
+  const fresh = _caMakeReqs(t.requirements);
+  fresh.forEach(r => { if (doneKeys.has(_caReqKey(r.name))) r.done = true; });
+  sc.requirements = fresh;
+  return true;
+}
+function caUpdateChecklist(id) {
+  const sc = DB.caSchools.find(x => x.id === id); if (!sc) return;
+  if (!confirm('Replace this checklist with the latest portal checklist? Items you ticked that match are kept.')) return;
+  _caApplyTemplateReqs(sc); save(); renderCommonApp();
+}
+function _caMigrateReqsOnce() {
+  if ((DB.caReqVersion || 0) >= 2) return;
+  DB.caSchools.forEach(sc => _caApplyTemplateReqs(sc));
+  DB.caReqVersion = 2; save();
+}
+function _caReqCore(sc) { return (sc.requirements || []).filter(r => !r.optional && !r.later); }
+function _caReqsHTML(school, done, total) {
+  const t = _CA_TEMPLATES[school.name];
+  let h = `<div class="ca-school-section" style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>Portal checklist (${done}/${total} done)</span>${t ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();caUpdateChecklist('${school.id}')" title="Replace with the latest portal checklist (keeps matching ticks)">↻ Update checklist</button>` : ''}</div>`;
+  if (t && t.portal) h += `<div class="ca-portal-note">🔗 ${escapeHtml(t.portal.note)}${t.portal.url ? ` <a href="${t.portal.url}" target="_blank" rel="noopener">Official page ↗</a>` : ''}</div>`;
+  let last = null;
+  (school.requirements || []).forEach(r => {
+    const g = r.group || '';
+    if (g && g !== last) { h += `<div class="ca-req-group">${escapeHtml(g)}</div>`; last = g; }
+    h += `<div class="ca-req-row"><input type="checkbox" ${r.done ? 'checked' : ''} onchange="toggleCaReq('${school.id}','${r.id}')">
+      <span style="font-size:12px;${r.done ? 'text-decoration:line-through;color:var(--text-muted);' : ''}">${escapeHtml(r.name)}</span>${r.optional ? '<span class="ca-req-tag">optional</span>' : ''}${r.later ? '<span class="ca-req-tag">if admitted</span>' : ''}</div>`;
+  });
+  return h;
+}
+
 const _CA_TEMPLATES = {
   'Stanford University': {
-    deadline:'2026-01-02', dtype:'RD', code:'4704', fee:'$90',
+    deadline:'', dtype:'RD', code:'4704', fee:'$90',
     essays:[
       {title:'Roommate Essay',wordLimit:250,prompt:"Write a note to your future roommate that reveals something about you or that will help your roommate — and us — know you better."},
       {title:'Intellectual Vitality',wordLimit:250,prompt:"Stanford students are widely known for their genuine engagement in their surroundings. What is important to you, and why?"},
@@ -11242,18 +11317,20 @@ const _CA_TEMPLATES = {
       {title:'Short Essay — Historical Moment (50w)',wordLimit:50,prompt:"What historical moment or event do you wish you could have witnessed?"},
       {title:'Short Essay — Your Choice (50w)',wordLimit:50,prompt:"What five words best describe you? Or: describe what you would want a fellow student to know about you."},
     ],
-    requirements:['School Report (from counsellor)','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 4704)','Application Fee ($90) or Fee Waiver','Official High School Transcript','Mid-Year School Report (sent Jan/Feb)']
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,_RQ.sat('4704'),_RQ.css('4704'),_RQ.tax,_RQ.update,['If admitted','Final transcript (with graduation date) and exam results sent by July 1','later']],
+    portal:{note:"Stanford's portal shows whether your transcripts and recommendations have arrived, lets you correct your address, and later shows your decision.",url:'https://admit.stanford.edu/faqs'}
   },
   'Harvard University': {
-    deadline:'2026-01-01', dtype:'RD', code:'3434', fee:'$85',
+    deadline:'', dtype:'RD', code:'3434', fee:'$85',
     essays:[
       {title:'Extracurricular Elaboration',wordLimit:150,prompt:"Briefly elaborate on one of your extracurricular activities or work experiences."},
       {title:'Harvard Supplement Essay',wordLimit:0,prompt:"You may wish to include an additional essay if you feel the application does not provide sufficient opportunity to convey important information. This is optional."},
     ],
-    requirements:['School Report (from counsellor)','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 3434)','Application Fee ($85) or Fee Waiver','Official Transcript','Mid-Year Report']
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,_RQ.sat('3434'),_RQ.css('3434'),_RQ.tax,['Optional','Upload scholarly or creative work in the portal (Upload Materials); media goes through SlideRoom','opt'],_RQ.update,['If admitted','Final School Report + transcript sent by July 1','later']],
+    portal:{note:'Harvard emails a PIN for your Applicant Portal about a day after you submit. Corrections and additions go through the portal; do not resubmit.',url:'https://college.harvard.edu/admissions/apply/first-year-applicants/application-requirements'}
   },
   'MIT': {
-    deadline:'2026-01-01', dtype:'EA', code:'3514', fee:'$75',
+    deadline:'', dtype:'EA', code:'3514', fee:'$75',
     essays:[
       {title:'We know you lead a busy life… (100w)',wordLimit:100,prompt:"We know you lead a busy life, full of activities, many of which are required of you. Tell us about something you do simply for the pleasure of it."},
       {title:'Describe the world you come from (250w)',wordLimit:250,prompt:"Describe the world you come from; for example, your family, clubs, school, community, city, or town. How has that world shaped your dreams and aspirations?"},
@@ -11261,49 +11338,55 @@ const _CA_TEMPLATES = {
       {title:'What you do for the love of it (250w)',wordLimit:250,prompt:"How has the challenge you chose above affected you?"},
       {title:'MIT appeals (250w)',wordLimit:250,prompt:"Describe how you have taken advantage of a significant educational opportunity or worked to overcome an educational barrier you have faced."},
     ],
-    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1 (Math/Science preferred)','Teacher Recommendation #2','Teacher Recommendation #3 (MIT requests 3)','Send SAT Scores (College Code: 3514)','Application Fee ($75) or Fee Waiver','Official Transcript']
+    requirements:[['Portal','Complete your MyMIT application (MIT does not use the Common App)'],_RQ.fee,['Portal','Check your MyMIT checklist (it appears about two weeks after the deadline)'],_RQ.sr,_RQ.cr,['From your school','Teacher recommendation #1 received (math or science)'],['From your school','Teacher recommendation #2 received (humanities, social science or language)'],_RQ.mid,_RQ.sat('3514'),_RQ.css('3514'),_RQ.tax,['Financial aid','Aid documents show in your MyMIT portal (contact Student Financial Services if missing after about 15 working days)'],['Optional','Interview with an Educational Counsellor, if you are contacted','opt'],['If admitted','Final transcript + results sent','later']],
+    portal:{note:'MIT uses its own MyMIT portal. Financial aid needs the CSS Profile and parental income documents via IDOC (Early Action Nov 30, Regular Feb 15).',url:'https://sfs.mit.edu/undergraduate-students/apply-for-aid/deadlines-requirements'}
   },
   'Yale University': {
-    deadline:'2026-01-02', dtype:'RD', code:'3987', fee:'$80',
+    deadline:'', dtype:'RD', code:'3987', fee:'$80',
     essays:[
       {title:'Why Yale? (125w)',wordLimit:125,prompt:"What is it about Yale that has led you to apply? (125 words)"},
       {title:'Short Takes — Books, films, etc. (200w)',wordLimit:200,prompt:"Short-answer questions about your favourite books, websites, quote, school subject, etc."},
       {title:'Yale Essays (3 × ~200w)',wordLimit:200,prompt:"Three essay questions: (1) reflect on your engagement with an intellectual topic; (2) describe a place or community you call home; (3) what is something about you that is not elsewhere on your application?"},
     ],
-    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 3987)','Application Fee ($80) or Fee Waiver','Official Transcript']
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,['Tests','Test scores sent (SAT or ACT, or AP / IB / A-Level results, which Yale also accepts)'],['From your school','Mid-Year Report, only if you receive new grades (most international applicants do not need one)','opt'],_RQ.css('3987'),_RQ.tax,['Financial aid','Check the personalised financial aid checklist in your portal; Yale can add documents during review'],_RQ.update,['If admitted','Final Report with final grades and exam results sent in the summer','later']],
+    portal:{note:'Yale emails a temporary PIN within three days. The status portal shows your checklist, a financial aid checklist, and lets you submit updates.',url:'https://admissions.yale.edu/yale-admissions-status-portal'}
   },
   'Princeton University': {
-    deadline:'2026-01-01', dtype:'RD', code:'2672', fee:'$75',
+    deadline:'', dtype:'RD', code:'2672', fee:'$75',
     essays:[
       {title:'Intellectual Interests (250w)',wordLimit:250,prompt:"Please briefly elaborate on one of your extracurricular activities or work experiences."},
       {title:'Why Princeton? (250w)',wordLimit:250,prompt:"As Princeton seeks a student body that is diverse in many ways, we would like to know more about you. Please reflect on a meaningful life experience that has shaped who you are."},
       {title:'Short Essay A (150w)',wordLimit:150,prompt:"Princeton has a longstanding commitment to service and civic engagement. Tell us how your story intersects with or compels you to participate in these efforts at Princeton and beyond."},
       {title:'Short Essay B (150w)',wordLimit:150,prompt:"Tell us about a person who has influenced you in a significant way."},
     ],
-    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 2672)','Application Fee ($75) or Fee Waiver','Official Transcript']
+    requirements:[_RQ.portal,_RQ.fee,['Portal','Graded written paper submitted (English or history preferred)'],_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,['Tests','SAT or ACT sent, optional for fall 2027 entry (SAT code 2672)','opt'],['Tests','English proficiency test, only if your school was not English-medium for 3+ years','opt'],_RQ.css('2672'),_RQ.tax,['Optional','Arts Supplement uploaded in the portal (Regular Decision: Jan 8)','opt'],['Optional','Alumni interview, if invited (you can opt out without penalty)','opt'],['If admitted','Final transcript + results sent','later']],
+    portal:{note:'Princeton confirms receipt in 24 to 48 hours and shows your checklist from mid-October. Financial aid can only be applied for after you apply for admission.',url:'https://admission.princeton.edu/apply/application-checklist'}
   },
   'Columbia University': {
-    deadline:'2026-01-01', dtype:'RD', code:'2116', fee:'$85',
+    deadline:'', dtype:'RD', code:'2116', fee:'$85',
     essays:[
       {title:'Why Columbia? (200w)',wordLimit:200,prompt:"Why are you interested in attending Columbia University? We encourage you to consider the aspect(s) that you find unique and compelling about Columbia."},
       {title:'Intellectual Passions (200w)',wordLimit:200,prompt:"A hallmark of the Columbia experience is being able to explore beyond your major. We, therefore, ask that you share with us three to five intellectual interests."},
       {title:'Community/Belonging (200w)',wordLimit:200,prompt:"Columbia students value community. Reflect on your place in a community — whether that's a family, a team, a friend group, or something else."},
       {title:'Diversity (200w)',wordLimit:200,prompt:"How do you or your background contribute to the Columbia community?"},
     ],
-    requirements:['School Report','Counsellor Recommendation','Teacher Recommendation #1','Teacher Recommendation #2','Send SAT Scores (College Code: 2116)','Application Fee ($85) or Fee Waiver','Official Transcript']
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,_RQ.satOpt('2116'),_RQ.css('2116'),_RQ.tax,_RQ.update,_RQ.final],
+    portal:{note:"Columbia's applicant portal tracks your submitted materials, and any updates to a submitted application go through it. Columbia is test-optional for 2026-27.",url:'https://undergrad.admissions.columbia.edu/'}
   },
   'University College Dublin (UCD)': {
-    deadline:'2026-02-01', dtype:'CAO', code:'', fee:'€45 (CAO)',
+    deadline:'', dtype:'CAO', code:'', fee:'€45 (CAO)',
     essays:[],
-    requirements:['CAO Application (cao.ie)','Leaving Certificate Results','CAO Personal Statement (if required)','Application Fee (€45 via CAO)']
+    requirements:[['Portal','CAO application submitted and fee paid'],['Portal','Check your CAO account and Statement of Application Details'],['Portal','Review your course choices; use Change of Mind (May to July 1) if needed'],['Optional','HEAR / DARE supporting documents received by CAO (early March)','opt'],['If admitted','Accept your offer when it is released and register on the university portal','later']],
+    portal:{note:'Irish applicants go through the CAO. You can change course choices free in the Change of Mind window.',url:'https://www.cao.ie/'}
   },
   'Trinity College Dublin': {
-    deadline:'2026-02-01', dtype:'CAO', code:'', fee:'€45 (CAO)',
+    deadline:'', dtype:'CAO', code:'', fee:'€45 (CAO)',
     essays:[],
-    requirements:['CAO Application (cao.ie)','Leaving Certificate Results','CAO Personal Statement (if required)','Application Fee (€45 via CAO)']
+    requirements:[['Portal','CAO application submitted and fee paid'],['Portal','Check your CAO account and Statement of Application Details'],['Portal','Review your course choices; use Change of Mind (May to July 1) if needed'],['Optional','HEAR / DARE supporting documents received by CAO (early March)','opt'],['If admitted','Accept your offer when it is released and register on the university portal','later']],
+    portal:{note:'Irish applicants go through the CAO. You can change course choices free in the Change of Mind window.',url:'https://www.cao.ie/'}
   },
   'Notre Dame': {
-    deadline:'2026-01-01', dtype:'RD', code:'1840', fee:'$75',
+    deadline:'', dtype:'RD', code:'1841', fee:'$75',
     essays:[
       {title:'Why Notre Dame / Area of Study', wordLimit:100,  prompt:'Briefly share what draws you to the area(s) of study you listed.'},
       {title:'Non-Negotiable Factor',          wordLimit:150,  prompt:"Everyone has different priorities when considering their higher education options and building their college or university list. Tell us about your 'non-negotiable' factor(s) when searching for your future college home."},
@@ -11311,7 +11394,68 @@ const _CA_TEMPLATES = {
       {title:'Short Answer — choose 1 of 5',  wordLimit:100,  prompt:'(Choose a second prompt from the five options above)'},
       {title:'Short Answer — choose 1 of 5',  wordLimit:100,  prompt:'(Choose a third prompt from the five options above)'},
     ],
-    requirements:['Common App submitted','School Report & Counsellor Rec','2 Teacher Recommendations','Official Transcript','SAT/ACT scores (optional — test flexible)','Application Fee ($75)','Interviews (optional — alumni interview)']
+    requirements:[['Portal','Application fee paid, which unlocks your Notre Dame applicant status portal'],_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,['Tests','SAT or ACT sent (testing returns from the 2027-28 cycle; check your portal)','opt'],_RQ.css('1841'),_RQ.tax,['Optional','Interview, if offered','opt'],_RQ.final],
+    portal:{note:'International applicants who want need-based aid must submit the CSS Profile (code 1841). Notre Dame cannot waive that fee.',url:'https://admissions.nd.edu/apply/resources-for/international-applicants/'}
+  },
+  'UPenn': {
+    deadline:'', dtype:'RD', code:'2926', fee:'',
+    essays:[],
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,['Tests','SAT or ACT sent (check Penn\'s current testing policy)','opt'],_RQ.css('2926'),['Financial aid','Upload aid documents using the financial aid checklist link in your Penn portal'],_RQ.interview,_RQ.final],
+    portal:{note:'Your Penn portal link arrives by email. Decisions are released there and it holds the financial aid document checklist.',url:'https://admissions.upenn.edu/how-to-apply/for-applicants'}
+  },
+  'Cornell University': {
+    deadline:'', dtype:'RD', code:'2098', fee:'',
+    essays:[],
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,['Tests','Add or update SAT / ACT scores with the Self-Reported Testing Form in the portal','opt'],_RQ.css('2098'),_RQ.tax,['Financial aid','Check the separate Financial Aid Status page (processing takes 3 to 5 days)'],_RQ.update,_RQ.final],
+    portal:{note:'Cornell emails portal setup within 1 to 2 days of submitting. Checklist updates can take 3 to 5 business days, up to two weeks near the deadline.',url:'https://admissions.cornell.edu/applicant-portal'}
+  },
+  'Dartmouth College': {
+    deadline:'', dtype:'RD', code:'3351', fee:'',
+    essays:[],
+    requirements:[_RQ.portal,_RQ.fee,['Portal','Ask a peer to submit your peer recommendation (it lives in your Dartmouth portal)'],_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,['From your school','Mid-Year Report sent as soon as first-semester grades exist (about Feb 15)'],_RQ.sat('3351'),_RQ.css('3351'),_RQ.tax,_RQ.update,_RQ.final],
+    portal:{note:'After mid-January your Dartmouth portal shows what has arrived and what is missing. New essays or awards can be uploaded there.',url:'https://admissions.dartmouth.edu/apply/check-your-application'}
+  },
+  'Brown University': {
+    deadline:'', dtype:'RD', code:'3094', fee:'',
+    essays:[],
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,['From your school','Midyear Report Form + midyear transcript sent through the Common App (about Feb 23)'],['Tests','SAT or ACT sent (check Brown\'s current testing policy)','opt'],_RQ.css('3094'),_RQ.tax,['Optional','Upload supplementary material in the portal (updates are not accepted by email)','opt'],_RQ.final],
+    portal:{note:'Brown emails portal logins on a rolling basis. Use it to check completeness and upload optional material.',url:'https://admission.brown.edu/first-year/application-checklist'}
+  },
+  'Duke University': {
+    deadline:'', dtype:'RD', code:'5156', fee:'',
+    essays:[],
+    requirements:[_RQ.portal,_RQ.fee,['Financial aid','Financial aid interest answered "yes" on your application (international applicants who say no cannot get aid later)'],_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,['Tests','Test scores sent, if you are submitting them (check Duke\'s current policy)','opt'],_RQ.css('5156'),['Financial aid','Institutional CSS fee waiver requested in the portal, if needed','opt'],_RQ.tax,_RQ.interview,_RQ.final],
+    portal:{note:'Duke emails access to your Application Checklist once it receives your part of the application. Aid applicants must use the CSS Profile (code 5156).',url:'https://admissions.duke.edu/checklist/'}
+  },
+  'Northwestern University': {
+    deadline:'', dtype:'RD', code:'1565', fee:'',
+    essays:[],
+    requirements:[_RQ.portal,_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,_RQ.mid,_RQ.satOpt('1565'),['Financial aid','CSS Profile submitted (code 1565): Early Decision Dec 1, Regular Decision Feb 1'],_RQ.tax,['Financial aid','Data Confirmation Report received after the CSS Profile (send corrections straight to the aid office)'],_RQ.interview,_RQ.final],
+    portal:{note:'Decisions and status appear in your Northwestern applicant portal. International aid applicants file the CSS Profile and upload tax documents via IDOC.',url:'https://undergradaid.northwestern.edu/apply-for-aid/prospective-students/international-students-application-instructions.html'}
+  },
+  'Georgetown University': {
+    deadline:'', dtype:'RD', code:'5244', fee:'',
+    essays:[],
+    requirements:[['Portal','Georgetown Application Status Portal activated'],_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,_RQ.t1,_RQ.t2,['From your school','Midyear School Report received (due Feb 10, or as soon as grades exist)'],['Tests','SAT or ACT sent (check Georgetown\'s current testing policy)','opt'],['Financial aid','CSS Profile submitted (code 5244) by Feb 1; the FAFSA is only for US citizens and permanent residents'],_RQ.tax,['Optional','Alumni interview, if offered','opt'],_RQ.final],
+    portal:{note:"Georgetown's status portal is where you check materials and updates. Its deadlines differ between pages, so confirm them on the official site.",url:'https://uadmissions.georgetown.edu/?p=501'}
+  },
+  'Boston College': {
+    deadline:'', dtype:'RD', code:'3083', fee:'',
+    essays:[],
+    requirements:[['Portal','EagleID received after you apply (it identifies you in every BC system)'],_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,['From your school','Teacher recommendation received'],['From your school','Mid-Year Grade Report sent as soon as it is available'],_RQ.satOpt('3083'),['Financial aid','Confirm your aid eligibility with BC (its need-based aid page says US citizens and permanent residents)'],['Financial aid','CSS Profile submitted (code 3083), if you are eligible for need-based aid','opt'],_RQ.final],
+    portal:{note:'BC gives you an EagleID after you apply. Check the financial aid page for what international applicants can claim.',url:'https://www.bc.edu/bc-web/admission/apply.html'}
+  },
+  'New York University (NYU)': {
+    deadline:'', dtype:'RD', code:'2785', fee:'',
+    essays:[],
+    requirements:[['Portal','Activate your NYU admissions portal; you can upload unofficial documents there (or email admissions.docs@nyu.edu)'],_RQ.fee,_RQ.check,_RQ.sr,_RQ.cr,['From your school','Teacher recommendation received'],['From your school','Mid-Year Report sent by your counsellor (about Mar 1)'],_RQ.satOpt('2785'),_RQ.css('2785'),_RQ.tax,['Financial aid','Fee payment code requested in the portal, if the application fee is a hardship','opt'],_RQ.final],
+    portal:{note:'NYU requires the CSS Profile from all aid applicants (code 2785). For international applicants, financial need can be considered in admissions.',url:'https://www.nyu.edu/admissions/undergraduate-admissions/how-to-apply/all-freshmen-applicants.html'}
+  },
+  'University of Edinburgh': {
+    deadline:'', dtype:'UCAS', code:'', fee:'',
+    essays:[],
+    requirements:[['Portal','Check UCAS Track for your offer and its conditions'],['Portal','Log in to your EUCLID applicant portal (details arrive by email after you apply)'],['Portal','Upload supporting documents in EUCLID (Documents tab, files under 2MB)'],['Portal','Check your EUCLID messages for anything outstanding'],['Portal','Reply to your offer in UCAS Track by the reply date (firm and insurance)'],['If admitted','Upload your Leaving Cert results and meet the offer conditions by the date on your offer','later']],
+    portal:{note:'Edinburgh handles offer conditions through EUCLID. You can upload documents later when they become available.',url:'https://registryservices.ed.ac.uk/student-systems/support-guidance/applicants/post-online-application-help/document-uploading'}
   }
 };
 
@@ -11334,10 +11478,11 @@ function _caCommonEssayPill(currentStatus) {
 }
 
 function _caSchoolCompletion(school) {
-  const total = school.essays.length + school.requirements.length;
+  const core = _caReqCore(school);
+  const total = school.essays.length + core.length;
   if (total === 0) return 100;
   const done = school.essays.filter(e => e.status === 'done').length
-             + school.requirements.filter(r => r.done).length;
+             + core.filter(r => r.done).length;
   return Math.round(done / total * 100);
 }
 
@@ -11371,6 +11516,7 @@ function expandAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = 
 function collapseAllCaSchools() { DB.caSchools.forEach(s => _caSchoolOpen[s.id] = false); renderCommonApp(); renderEssaysCommonAndSchools(); }
 
 function renderCommonApp() {
+  _caMigrateReqsOnce();
   const p = DB.caProfile;
 
   // ---- Data ----
@@ -11567,7 +11713,7 @@ function renderCommonApp() {
       const urgency  = daysLeft !== null ? (daysLeft < 30 ? 'var(--red)' : daysLeft < 90 ? 'var(--amber)' : 'var(--text-muted)') : 'var(--text-muted)';
       const isOpen = !!_caSchoolOpen[school.id];
       const essaysDone = school.essays.filter(e=>e.status==='done').length;
-      const reqsDone = school.requirements.filter(r=>r.done).length;
+      const reqsCore = _caReqCore(school), reqsDone = reqsCore.filter(r=>r.done).length;
       return `<div class="ca-school-card"${archived ? ' style="opacity:.72;"' : ''}>
         <div class="ca-school-head" style="cursor:pointer;" onclick="toggleCaSchoolCard('${school.id}')">
           <div style="flex:1;min-width:0;">
@@ -11579,7 +11725,7 @@ function renderCommonApp() {
               <span class="ca-pill ${pillCls}">${school.dtype}</span>
               &nbsp;${deadlineLbl}
               ${daysLeft!==null?`<span style="color:${urgency};font-weight:700;margin-left:6px;">${daysLeft>0?daysLeft+'d left':'Passed'}</span>`:''}
-              ${!isOpen?`<span style="margin-left:6px;">· ${essaysDone}/${school.essays.length} essays · ${reqsDone}/${school.requirements.length} reqs</span>`:''}
+              ${!isOpen?`<span style="margin-left:6px;">· ${essaysDone}/${school.essays.length} essays · ${reqsDone}/${reqsCore.length} reqs</span>`:''}
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
@@ -11598,11 +11744,7 @@ function renderCommonApp() {
           </div>
           ${_caSchoolEssaysHTML(school)}
 
-          <div class="ca-school-section">Requirements Checklist (${reqsDone}/${school.requirements.length} done)</div>
-          ${school.requirements.map(r => `<div class="ca-req-row">
-            <input type="checkbox" ${r.done?'checked':''} onchange="toggleCaReq('${school.id}','${r.id}')">
-            <span style="font-size:12px;${r.done?'text-decoration:line-through;color:var(--text-muted);':''}">${r.name}</span>
-          </div>`).join('')}
+          ${_caReqsHTML(school, reqsDone, reqsCore.length)}
         </div>
       </div>`;
     };
@@ -11669,7 +11811,7 @@ function openCaSchoolModal(editId) {
 function prefillCaSchool(name) {
   const t = _CA_TEMPLATES[name];
   if (!t) return;
-  document.getElementById('ca-school-deadline').value = t.deadline || '';
+  if (t.deadline) document.getElementById('ca-school-deadline').value = t.deadline;
   document.getElementById('ca-school-dtype').value    = t.dtype || 'RD';
   document.getElementById('ca-school-code').value     = t.code || '';
   document.getElementById('ca-school-fee').value      = t.fee || '';
@@ -11693,14 +11835,7 @@ function saveCaSchool() {
     s.satCode = satCode; s.fee = fee; s.notes = notes;
   } else {
     const essays = tmpl ? tmpl.essays.map(e => ({ ...e, id: uid(), status: 'not_started', content: '', wordCount: '0' })) : [];
-    const requirements = tmpl ? tmpl.requirements.map(r => ({ id: uid(), name: r, done: false })) : [
-      {id:uid(),name:'School Report',done:false},
-      {id:uid(),name:'Counsellor Recommendation',done:false},
-      {id:uid(),name:'Teacher Recommendation #1',done:false},
-      {id:uid(),name:'Teacher Recommendation #2',done:false},
-      {id:uid(),name:'Application Fee',done:false},
-      {id:uid(),name:'Official Transcript',done:false},
-    ];
+    const requirements = _caMakeReqs(tmpl ? tmpl.requirements : _CA_DEFAULT_REQS);
     const newId = uid();
     DB.caSchools.push({ id: newId, name, deadline, dtype, satCode, fee, notes, essays, requirements });
     _caSchoolOpen[newId] = true;
