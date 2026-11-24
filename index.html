@@ -804,6 +804,65 @@ a:hover{text-decoration:underline;}
 .ins-row-fill{height:100%;border-radius:4px;}
 .ins-row-value{width:46px;flex-shrink:0;text-align:right;font-size:11.5px;font-weight:700;color:var(--text-muted);}
 
+/* Looksmaxxing */
+.lk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+.lk-hero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;background:linear-gradient(135deg,var(--l-accent-light),var(--surface) 60%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:20px 24px;margin-bottom:16px;}
+.lk-ring{position:relative;width:118px;height:118px;}
+.lk-ring svg{transform:rotate(-90deg);}
+.lk-ring-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.lk-ring-txt b{font-size:26px;font-weight:800;letter-spacing:-.5px;}
+.lk-ring-txt span{font-size:11px;color:var(--text-muted);font-weight:600;}
+.lk-stats{display:flex;gap:28px;flex-wrap:wrap;}
+.lk-stat b{display:block;font-size:22px;font-weight:800;}
+.lk-stat span{font-size:11.5px;color:var(--text-secondary);font-weight:600;}
+.lk-strip{display:flex;gap:4px;margin-top:14px;align-items:flex-end;}
+.lk-hero>div{min-width:0;}
+.lk-day{flex:0 1 22px;min-width:0;height:30px;border-radius:6px;background:var(--border-light);position:relative;overflow:hidden;cursor:pointer;border:1.5px solid transparent;padding:0;}
+.lk-day i{position:absolute;left:0;right:0;bottom:0;background:var(--l-accent);}
+.lk-day.sel{border-color:var(--text);}
+.lk-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:16px;overflow-x:auto;overflow-y:hidden;}
+.lk-tabs button{border:none;background:none;padding:10px 16px;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-family:inherit;}
+.lk-tabs button.on{color:var(--l-accent);border-bottom-color:var(--l-accent);}
+.lk-datebar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.lk-datebar strong{font-size:15px;margin-left:4px;}
+.lk-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start;}
+.lk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;}
+.lk-card.now{border-color:var(--l-accent);box-shadow:0 0 0 3px var(--l-accent-light);}
+.lk-card-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.lk-card-head h4{margin:0;font-size:14.5px;font-weight:800;flex:1;}
+.lk-now{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:var(--l-accent);color:#fff;border-radius:99px;padding:2px 8px;}
+.lk-count{font-size:11.5px;font-weight:700;color:var(--text-muted);}
+.lk-bar{height:4px;border-radius:2px;background:var(--border-light);overflow:hidden;margin-bottom:8px;}
+.lk-bar i{display:block;height:100%;background:var(--l-accent);transition:width .2s;}
+.lk-item{display:flex;gap:11px;align-items:flex-start;padding:9px 6px;border-radius:10px;cursor:pointer;}
+.lk-item:hover{background:var(--bg);}
+.lk-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800;margin-top:1px;transition:all .12s;}
+.lk-item.done .lk-check{background:var(--l-accent);border-color:var(--l-accent);}
+.lk-item.done .lk-name{text-decoration:line-through;color:var(--text-muted);}
+.lk-item-body{flex:1;min-width:0;}
+.lk-name{font-size:13.5px;font-weight:600;line-height:1.35;}
+.lk-detail{font-size:11.5px;color:var(--text-muted);line-height:1.4;margin-top:1px;}
+.lk-chip{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:99px;padding:1px 7px;color:var(--lkc);background:color-mix(in srgb,var(--lkc) 12%,transparent);white-space:nowrap;}
+.lk-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center;}
+.lk-info{border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px;}
+.lk-why{font-size:11.5px;color:var(--text-secondary);background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:6px;line-height:1.5;}
+.lk-allbtn{width:100%;margin-top:8px;}
+.lk-plan-row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--border-light);}
+.lk-plan-row:last-child{border-bottom:none;}
+.lk-days{display:flex;gap:5px;flex-wrap:wrap;}
+.lk-days button,.lk-seg button{border:1.5px solid var(--border);background:var(--surface);border-radius:99px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-muted);font-family:inherit;}
+.lk-days button.on{background:var(--l-accent);border-color:var(--l-accent);color:#fff;}
+.lk-seg{display:flex;gap:4px;flex-wrap:wrap;}
+.lk-seg button.on{color:#fff;border-color:transparent;}
+.lk-suggest{display:flex;gap:5px;flex-wrap:wrap;}
+.lk-suggest button{border:1px dashed var(--border);background:none;border-radius:99px;padding:4px 10px;font-size:11.5px;cursor:pointer;color:var(--text-secondary);font-family:inherit;}
+.lk-suggest button:hover{border-color:var(--l-accent);color:var(--l-accent);}
+.lk-warning{background:#fffbeb;border-left:3px solid #d97706;border-radius:0 8px 8px 0;padding:9px 12px;font-size:12.5px;color:#92400e;margin-bottom:12px;line-height:1.5;}
+.lk-safe{margin-top:18px;font-size:12px;color:var(--text-secondary);background:var(--surface-warm);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:14px 16px;line-height:1.6;}
+.lk-three{grid-template-columns:repeat(3,minmax(0,1fr));}
+.lk-trends{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px;}
+@media(max-width:1100px){.lk-cols{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:700px){.lk-hero{grid-template-columns:minmax(0,1fr);padding:16px;gap:14px;}.lk-ring{margin:0 auto;}.lk-strip{gap:3px;}.lk-trends,.lk-three{grid-template-columns:minmax(0,1fr);}.lk-tabs{flex-wrap:wrap;}.lk-tabs button{padding:9px 10px;}}
 /* Essay workspace */
 .ew-progress{min-width:230px;font-size:12px;color:var(--text-secondary);}
 .ew-progress .progress-bar{margin-top:5px;}
@@ -1282,6 +1341,7 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
     <button class="nav-item" onclick="showPage('l-ideas')"><span class="icon">💡</span>Ideas</button>
 
     <div class="nav-section">Routines</div>
+    <button class="nav-item" onclick="showPage('l-looks')"><span class="icon">✨</span>Looksmaxxing</button>
     <button class="nav-item" onclick="showPage('l-morning')"><span class="icon">🌅</span>Morning</button>
     <button class="nav-item" onclick="showPage('l-evening')"><span class="icon">🌙</span>Evening</button>
     <button class="nav-item" onclick="showPage('l-gym')"><span class="icon">💪</span>Gym</button>
@@ -2262,6 +2322,16 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
   </div>
 
   <!-- Morning -->
+  <div class="page" id="page-l-looks">
+    <div class="page-header lk-head">
+      <div><h2>✨ Looksmaxxing</h2><p>Your daily stack: what you take and what you do, from waking up to lights out.</p></div>
+      <button class="btn btn-primary" onclick="lkOpenItem()">+ Add item</button>
+    </div>
+    <div id="lk-hero"></div>
+    <div class="lk-tabs" id="lk-tabs"></div>
+    <div id="lk-body"></div>
+  </div>
+
   <div class="page" id="page-l-morning">
     <div class="page-header"><h2>🌅 Morning Routine</h2><p>Steps reset each day automatically.</p></div>
     <div id="morning-content"></div>
@@ -3401,6 +3471,32 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
   </div>
 </div>
 
+<div class="modal-overlay" id="lk-item-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="lk-modal-title">Add item</div>
+      <button class="modal-close" onclick="closeModal('lk-item-modal')">×</button>
+    </div>
+    <input type="hidden" id="lk-id">
+    <div class="form-group" id="lk-suggest-wrap"><label>Quick add</label><div id="lk-suggest" class="lk-suggest"></div></div>
+    <div class="form-group"><label>What is it?</label><input type="text" id="lk-name" placeholder="e.g. Sunscreen SPF 50, Vitamin D, Stretching" oninput="lkCheckSafety()"></div>
+    <div id="lk-warning" class="lk-warning" style="display:none;"></div>
+    <div class="form-row">
+      <div class="form-group"><label>When</label><select id="lk-slot"><option value="morning">☀️ Morning</option><option value="day">🌤️ During the day</option><option value="evening">🌙 Evening</option></select></div>
+      <div class="form-group"><label>Area</label><select id="lk-cat"></select></div>
+    </div>
+    <div class="form-group"><label>How / how much <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="lk-detail" placeholder="e.g. 2 finger lengths, last step"></div>
+    <div class="form-group"><label>Which days</label><div id="lk-days" class="lk-days"></div></div>
+    <div class="form-group"><label>Why / notes <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(optional)</span></label><textarea id="lk-notes" rows="2" placeholder="Why you do it, brand, how it's going"></textarea></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;text-transform:none;"><input type="checkbox" id="lk-track" style="width:auto;margin:0;"> Track product stock for this</label>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="lkSaveItem()">Save</button>
+      <button class="btn btn-secondary" onclick="closeModal('lk-item-modal')">Cancel</button>
+      <button class="btn btn-danger" id="lk-delete" onclick="lkDeleteItem()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- Rec modal -->
 <div class="modal-overlay" id="rec-modal">
   <div class="modal">
@@ -4328,6 +4424,7 @@ function renderPage(id) {
   if (id === 'c-mindmap') initMindmap();
   // Life pages (prefixed l-)
   if (id === 'l-today') renderToday();
+  if (id === 'l-looks') renderLooks();
   if (id === 'l-todo') renderTodo();
   if (id === 'l-goals') renderGoals();
   if (id === 'l-timeline') renderTimeline();
@@ -7684,6 +7781,334 @@ function renderEssaysUpcoming() {
       }).join('')}
     </div>`;
 }
+// ============================================================
+// LOOKSMAXXING (Life) — daily stack, streaks, product stock, weekly check-in
+// ============================================================
+const LK_SLOTS = [['morning', '☀️ Morning'], ['day', '🌤️ During the day'], ['evening', '🌙 Evening']];
+const LK_CATS = { skin: ['Skin', '#0d9488'], hair: ['Hair & grooming', '#7c3aed'], teeth: ['Teeth', '#0284c7'], body: ['Body & posture', '#ea580c'], food: ['Food & supplements', '#4d7c0f'], sleep: ['Sleep & mind', '#4f46e5'] };
+const LK_STOCK = [['full', 'Stocked', '#16a34a'], ['medium', 'Half', '#ca8a04'], ['low', 'Running low', '#ea580c'], ['empty', 'Empty', '#dc2626']];
+const LK_DOW = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu'], [5, 'Fri'], [6, 'Sat'], [0, 'Sun']];
+const LK_STREAK_AT = 0.8;
+// Starter routine: simple, mainstream advice (dermatology, dental, sleep, activity and Irish vitamin D guidance).
+const LK_STARTER = [
+  ['morning', 'skin', 'Gentle face cleanser', 'Lukewarm water, pat dry', 'Dermatologists suggest a gentle cleanser as the base of a simple routine.', null, true],
+  ['morning', 'skin', 'Fragrance-free moisturiser', 'On slightly damp skin', 'Helps lock in moisture and supports the skin barrier.', null, true],
+  ['morning', 'skin', 'Sunscreen SPF 30+', 'Broad-spectrum, last step, even when cloudy', 'Daily sunscreen is the best-supported habit for how skin ages.', null, true],
+  ['morning', 'teeth', 'Brush teeth', '2 minutes, fluoride paste (1,350–1,500 ppm). Spit, don\'t rinse', 'Rinsing washes away the fluoride left on your teeth.', null, true],
+  ['morning', 'food', 'Vitamin D', '15 µg daily, end of Oct to March (all year if darker skin)', 'Irish food safety guidance (FSAI). Check with a pharmacist if you take other supplements or medicines.', null, true],
+  ['morning', 'food', 'Breakfast with protein', 'Eggs, yoghurt, milk, beans', 'Teenagers can usually get enough protein from food without powders.', null, false],
+  ['day', 'food', 'Drink water through the day', 'Water or milk over sugary or energy drinks', 'Energy drinks carry a lot of sugar and caffeine, and caffeine can disturb sleep.', null, false],
+  ['day', 'body', '60 minutes of movement', 'Walking, sport, cycling', 'The WHO figure for under-18s is an average of 60 minutes a day.', null, false],
+  ['day', 'body', 'Strength training', 'Learn good form first', 'Muscle strengthening about 3 days a week builds posture and physique.', [1, 3, 5], false],
+  ['day', 'body', 'Posture and screen breaks', 'Stand and stretch about every hour when studying', 'Breaking up long sitting is part of activity guidance.', null, false],
+  ['day', 'food', 'Two balanced meals with veg and protein', '', 'Steady, regular meals beat restrictive diets.', null, false],
+  ['day', 'hair', 'Wash hair', 'Shampoo the scalp, conditioner on the ends', 'Wash as often as your hair gets oily or dirty. Change these days to suit you.', [1, 4, 6], true],
+  ['day', 'hair', 'Grooming', 'Nails, brows, shave or trim', 'A weekly tidy-up.', [0], false],
+  ['evening', 'skin', 'Cleanse face', 'Gentle cleanser, especially after sport', 'Washing morning and night is the usual advice.', null, false],
+  ['evening', 'skin', 'Moisturiser', '', 'Keeps the skin barrier comfortable overnight.', null, false],
+  ['evening', 'teeth', 'Floss or interdental brush', 'Once a day, between every tooth', 'Cleans where the toothbrush can\'t reach.', null, true],
+  ['evening', 'teeth', 'Brush teeth', 'Last thing at night. Spit, don\'t rinse', 'The night-time brush matters most.', null, false],
+  ['evening', 'sleep', 'Screens away 30 minutes before bed', '', 'A sleep medicine body suggests this for teenagers.', null, false],
+  ['evening', 'sleep', 'Lights out for 8–10 hours of sleep', 'Set a bedtime that leaves at least 8 hours', 'The recommended range for ages 13–18. Sleep shows in skin, mood and training.', null, false],
+];
+const LK_SUGGEST = [
+  ['evening', 'skin', 'Acne treatment (only if needed)', 'Ask a pharmacist, e.g. benzoyl peroxide. Start slowly', true],
+  ['morning', 'skin', 'Lip balm with SPF', '', true],
+  ['evening', 'skin', 'Change pillowcase', '', false],
+  ['day', 'skin', 'Reapply sunscreen outdoors', 'Every couple of hours in strong sun', false],
+  ['evening', 'body', 'Stretch / mobility', '10 minutes', false],
+  ['morning', 'sleep', 'Wake at the same time', '', false],
+  ['evening', 'sleep', 'Wind-down: read or journal', '', false],
+  ['day', 'hair', 'Book a haircut', 'Every few weeks', false],
+  ['evening', 'teeth', 'Mouthwash', 'At a different time from brushing', true],
+];
+const LK_WARNINGS = [
+  [/steroid|\bsarms?\b|peptide|\btren\b|anavar|testosterone|\bhgh\b|growth hormone|clen|\bdnp\b|melanotan|fat burner|diet pill/i, 'This can cause serious and sometimes permanent harm, especially while you may still be growing. Please talk to your GP before using anything like this.'],
+  [/bone ?smash|jaw ?hammer|hardmax/i, 'Hitting or forcing your face causes real injuries (including nerve damage) and does not improve bone structure. Please don\'t.'],
+  [/accutane|isotretinoin|roaccutane|ozempic|semaglutide|wegovy|finasteride|minoxidil|tretinoin/i, 'This is a medicine. Only use it if a doctor or pharmacist has advised it for you.'],
+  [/creatine/i, 'Paediatric guidance advises against creatine under 18. Check with your GP first.'],
+  [/\bmew(ing)?\b/i, 'There is no good evidence that mewing changes jaw shape, and pushing the jaw can cause discomfort.'],
+];
+
+let _lkTab = 'today', _lkDate = '', _lkOpenWhy = {};
+
+function lkData() {
+  if (!DB.looks) {
+    const t = today();
+    DB.looks = { items: LK_STARTER.map(([slot, cat, name, detail, notes, days, track]) => ({ id: uid(), slot, cat, name, detail, notes, days: days || [], track, stock: track ? 'full' : '', created: t, removed: '' })), log: {}, checkins: [] };
+    save();
+  }
+  if (!DB.looks.log) DB.looks.log = {};
+  if (!DB.looks.checkins) DB.looks.checkins = [];
+  return DB.looks;
+}
+function _lkAdd(ds, n) { const d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() + n); return dateStr(d); }
+function _lkStart() { const items = lkData().items; return items.reduce((m, i) => (i.created < m ? i.created : m), today()); }
+function _lkScheduled(ds) {
+  const dow = new Date(ds + 'T12:00:00').getDay();
+  return lkData().items.filter(i => i.created <= ds && (!i.removed || ds < i.removed) && (!i.days.length || i.days.includes(dow)));
+}
+function _lkScore(ds) {
+  const list = _lkScheduled(ds), log = lkData().log[ds] || {};
+  const done = list.filter(i => log[i.id]).length;
+  return { done, total: list.length, pct: list.length ? done / list.length : null };
+}
+function _lkStreak() {
+  const start = _lkStart();
+  let d = today(), n = 0;
+  if (_lkScore(d).pct >= LK_STREAK_AT) n++;
+  for (d = _lkAdd(d, -1); d >= start; d = _lkAdd(d, -1)) {
+    const p = _lkScore(d).pct;
+    if (p === null) continue;
+    if (p < LK_STREAK_AT) break;
+    n++;
+  }
+  return n;
+}
+function _lkAverage(days) {
+  const start = _lkStart();
+  let sum = 0, n = 0;
+  for (let i = 0; i < days; i++) {
+    const d = _lkAdd(today(), -i);
+    if (d < start) break;
+    const p = _lkScore(d).pct;
+    if (p !== null) { sum += p; n++; }
+  }
+  return n ? Math.round(sum / n * 100) : null;
+}
+
+function renderLooks() {
+  if (!document.getElementById('lk-body')) return;
+  lkData();
+  if (!_lkDate || _lkDate > today()) _lkDate = today();
+  renderLkHero();
+  const due = _lkTrackedItems().filter(i => ['low', 'empty'].includes(lkStockOf(i))).length;
+  const last = _lkLastCheckin();
+  const checkDue = !last || (new Date(today() + 'T12:00:00') - new Date(last.date + 'T12:00:00')) / 86400000 >= 7;
+  document.getElementById('lk-tabs').innerHTML = [['today', 'Today'], ['plan', 'My routine'], ['checkin', 'Weekly check-in' + (checkDue ? ' •' : '')], ['stock', 'Product stock' + (due ? ` (${due})` : '')]]
+    .map(([k, l]) => `<button class="${_lkTab === k ? 'on' : ''}" onclick="lkSetTab('${k}')">${l}</button>`).join('');
+  document.getElementById('lk-body').innerHTML = _lkTab === 'plan' ? _lkPlanHTML() : _lkTab === 'checkin' ? _lkCheckinHTML() : _lkTab === 'stock' ? _lkStockHTML() : _lkTodayHTML();
+}
+function lkSetTab(t) { _lkTab = t; renderLooks(); }
+function lkSetDate(d) { if (d > today() || d < _lkStart()) return; _lkDate = d; _lkTab = 'today'; renderLooks(); }
+function renderLkHero() {
+  const sc = _lkScore(today()), pct = sc.total ? Math.round(sc.done / sc.total * 100) : 0;
+  const C = 2 * Math.PI * 50, a7 = _lkAverage(7), a30 = _lkAverage(30), streak = _lkStreak();
+  let strip = '';
+  for (let i = 13; i >= 0; i--) {
+    const d = _lkAdd(today(), -i), s2 = _lkScore(d), before = d < _lkStart(), p = before || s2.pct === null ? 0 : Math.round(s2.pct * 100);
+    strip += `<button class="lk-day${d === _lkDate ? ' sel' : ''}" ${before ? 'disabled style="opacity:.45;cursor:default;"' : ''} onclick="lkSetDate('${d}')" title="${new Date(d + 'T12:00:00').toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' })}: ${before ? 'not started' : s2.done + '/' + s2.total + ' done'}"><i style="height:${p}%;"></i></button>`;
+  }
+  document.getElementById('lk-hero').innerHTML = `<div class="lk-hero">
+    <div class="lk-ring"><svg width="118" height="118" viewBox="0 0 118 118"><circle cx="59" cy="59" r="50" fill="none" stroke="var(--border-light)" stroke-width="11"/><circle cx="59" cy="59" r="50" fill="none" stroke="var(--l-accent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}" opacity="${pct ? 1 : 0}"/></svg>
+      <div class="lk-ring-txt"><b>${pct}%</b><span>${sc.done} of ${sc.total} today</span></div></div>
+    <div><div class="lk-stats">
+      <div class="lk-stat"><b>🔥 ${streak}</b><span>day streak</span></div>
+      <div class="lk-stat"><b>${a7 === null ? '—' : a7 + '%'}</b><span>last 7 days</span></div>
+      <div class="lk-stat"><b>${a30 === null ? '—' : a30 + '%'}</b><span>last 30 days</span></div></div>
+      <div class="lk-strip">${strip}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Last 14 days. A day counts towards your streak at ${LK_STREAK_AT * 100}% or more. Tap a day to view or fill it in.</div></div>
+  </div>`;
+}
+function _lkChip(cat) { const c = LK_CATS[cat] || LK_CATS.skin; return `<span class="lk-chip" style="--lkc:${c[1]};">${c[0]}</span>`; }
+function _lkTodayHTML() {
+  const t = today(), list = _lkScheduled(_lkDate), log = lkData().log[_lkDate] || {};
+  const h = new Date().getHours(), now = _lkDate === t ? (h < 12 ? 'morning' : h < 18 ? 'day' : 'evening') : '';
+  const label = _lkDate === t ? 'Today' : _lkDate === _lkAdd(t, -1) ? 'Yesterday' : new Date(_lkDate + 'T12:00:00').toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long' });
+  return `<div class="lk-datebar">
+      <button class="btn btn-secondary btn-sm" onclick="lkSetDate('${_lkAdd(_lkDate, -1)}')" ${_lkDate <= _lkStart() ? 'disabled' : ''}>‹</button>
+      <button class="btn btn-secondary btn-sm" onclick="lkSetDate('${t}')">Today</button>
+      <button class="btn btn-secondary btn-sm" onclick="lkSetDate('${_lkAdd(_lkDate, 1)}')" ${_lkDate >= t ? 'disabled' : ''}>›</button>
+      <strong>${label}</strong></div>
+    <div class="lk-cols">${LK_SLOTS.map(([slot, title]) => {
+      const items = list.filter(i => i.slot === slot), done = items.filter(i => log[i.id]).length;
+      return `<div class="lk-card${now === slot ? ' now' : ''}">
+        <div class="lk-card-head"><h4>${title}</h4>${now === slot ? '<span class="lk-now">Now</span>' : ''}<span class="lk-count">${done}/${items.length}</span></div>
+        <div class="lk-bar"><i style="width:${items.length ? done / items.length * 100 : 0}%;"></i></div>
+        ${items.map(i => {
+          const st = i.track ? lkStockOf(i) : '', warn = ['low', 'empty'].includes(st) ? LK_STOCK.find(x => x[0] === st) : null;
+          return `<div class="lk-item${log[i.id] ? ' done' : ''}" onclick="lkToggle('${i.id}')" role="checkbox" aria-checked="${!!log[i.id]}" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();lkToggle('${i.id}')}">
+            <div class="lk-check">${log[i.id] ? '✓' : ''}</div>
+            <div class="lk-item-body"><div class="lk-name">${escapeHtml(i.name)}</div>${i.detail ? `<div class="lk-detail">${escapeHtml(i.detail)}</div>` : ''}
+              <div class="lk-meta">${_lkChip(i.cat)}${warn ? `<span class="lk-chip" style="--lkc:${warn[2]};">${warn[1]}</span>` : ''}</div>
+              ${_lkOpenWhy[i.id] && i.notes ? `<div class="lk-why">${escapeHtml(i.notes)}</div>` : ''}</div>
+            ${i.notes ? `<button class="lk-info" title="Why?" onclick="event.stopPropagation();lkWhy('${i.id}')">ⓘ</button>` : ''}
+            <button class="lk-info" title="Edit" onclick="event.stopPropagation();lkOpenItem('${i.id}')">✏️</button></div>`;
+        }).join('') || '<div style="font-size:12.5px;color:var(--text-muted);padding:12px 4px;">Nothing scheduled.</div>'}
+        ${items.length && done < items.length ? `<button class="btn btn-secondary btn-sm lk-allbtn" onclick="lkAll('${slot}')">✓ Mark all done</button>` : items.length ? '<div style="text-align:center;font-size:12px;font-weight:700;color:var(--l-accent);margin-top:8px;">All done 🎉</div>' : ''}
+        <button class="btn-ghost lk-allbtn" style="font-size:12px;" onclick="lkOpenItem('', '${slot}')">+ Add to this part of the day</button></div>`;
+    }).join('')}</div>`;
+}
+function lkToggle(id) {
+  const d = lkData(); const day = d.log[_lkDate] = d.log[_lkDate] || {};
+  if (day[id]) delete day[id]; else day[id] = true;
+  save(); renderLooks();
+}
+function lkAll(slot) {
+  const d = lkData(); const day = d.log[_lkDate] = d.log[_lkDate] || {};
+  _lkScheduled(_lkDate).filter(i => i.slot === slot).forEach(i => { day[i.id] = true; });
+  save(); renderLooks();
+}
+function lkWhy(id) { _lkOpenWhy[id] = !_lkOpenWhy[id]; renderLooks(); }
+
+function _lkPlanHTML() {
+  const items = lkData().items.filter(i => !i.removed);
+  const dayLabel = i => !i.days.length || i.days.length === 7 ? 'Every day' : LK_DOW.filter(([n]) => i.days.includes(n)).map(([, l]) => l).join(', ');
+  return `<div class="lk-cols">${LK_SLOTS.map(([slot, title]) => {
+    const list = items.filter(i => i.slot === slot);
+    return `<div class="lk-card"><div class="lk-card-head"><h4>${title}</h4><span class="lk-count">${list.length}</span></div>
+      ${list.map((i, n) => `<div class="lk-plan-row"><div style="display:flex;flex-direction:column;">
+          <button class="lk-info" ${n === 0 ? 'disabled style="opacity:.25;"' : ''} onclick="lkMove('${i.id}',-1)" title="Move up">▲</button>
+          <button class="lk-info" ${n === list.length - 1 ? 'disabled style="opacity:.25;"' : ''} onclick="lkMove('${i.id}',1)" title="Move down">▼</button></div>
+        <div class="lk-item-body"><div class="lk-name">${escapeHtml(i.name)}</div><div class="lk-detail">${dayLabel(i)}${i.detail ? ' · ' + escapeHtml(i.detail) : ''}</div><div class="lk-meta">${_lkChip(i.cat)}</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="lkOpenItem('${i.id}')">Edit</button></div>`).join('') || '<div style="font-size:12.5px;color:var(--text-muted);">Nothing here yet.</div>'}
+      <button class="btn btn-secondary btn-sm lk-allbtn" onclick="lkOpenItem('', '${slot}')">+ Add</button></div>`;
+  }).join('')}</div>
+  <div class="lk-safe"><strong>Keep it safe.</strong> The habits that reliably help are the plain ones: sleep, sunscreen, gentle skin care, clean teeth, regular training and real food. Skip anything that promises to change your bone structure (mewing has no good evidence, and bone smashing causes injuries), and never take steroids, SARMs, peptides or diet pills from online sources. If thinking about your looks starts to affect your eating, mood or day, talk to your GP or someone you trust. In Ireland, Jigsaw (youth mental health) and Bodywhys (eating disorders) can help. This tab is a tracker, not medical advice.</div>`;
+}
+function lkMove(id, dir) {
+  const items = lkData().items, it = items.find(x => x.id === id); if (!it) return;
+  const same = items.filter(x => x.slot === it.slot && !x.removed), j = same.indexOf(it) + dir;
+  if (j < 0 || j >= same.length) return;
+  const a = items.indexOf(it), b = items.indexOf(same[j]);
+  [items[a], items[b]] = [items[b], items[a]];
+  save(); renderLooks();
+}
+
+// ---- add / edit ----
+function lkCheckSafety() {
+  const name = document.getElementById('lk-name').value, el = document.getElementById('lk-warning');
+  const hit = LK_WARNINGS.find(([re]) => re.test(name));
+  el.style.display = hit ? '' : 'none';
+  el.textContent = hit ? '⚠️ ' + hit[1] : '';
+}
+function _lkDayButtons(sel) {
+  document.getElementById('lk-days').innerHTML = LK_DOW.map(([n, l]) => `<button type="button" class="${sel.includes(n) ? 'on' : ''}" data-day="${n}" onclick="this.classList.toggle('on')">${l}</button>`).join('');
+}
+function lkOpenItem(id, slot) {
+  const it = id ? lkData().items.find(x => x.id === id) : null;
+  document.getElementById('lk-id').value = it ? it.id : '';
+  document.getElementById('lk-modal-title').textContent = it ? 'Edit item' : 'Add item';
+  document.getElementById('lk-cat').innerHTML = Object.entries(LK_CATS).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join('');
+  document.getElementById('lk-name').value = it ? it.name : '';
+  document.getElementById('lk-slot').value = it ? it.slot : (slot || 'morning');
+  document.getElementById('lk-cat').value = it ? it.cat : 'skin';
+  document.getElementById('lk-detail').value = it ? it.detail || '' : '';
+  document.getElementById('lk-notes').value = it ? it.notes || '' : '';
+  document.getElementById('lk-track').checked = it ? !!it.track : false;
+  _lkDayButtons(it && it.days.length ? it.days : [0, 1, 2, 3, 4, 5, 6]);
+  document.getElementById('lk-delete').style.display = it ? '' : 'none';
+  document.getElementById('lk-suggest-wrap').style.display = it ? 'none' : '';
+  const have = new Set(lkData().items.filter(i => !i.removed).map(i => i.name.toLowerCase()));
+  document.getElementById('lk-suggest').innerHTML = LK_SUGGEST.map((x, n) => have.has(x[2].toLowerCase()) ? '' : `<button type="button" onclick="lkUseSuggestion(${n})">+ ${escapeHtml(x[2])}</button>`).join('');
+  lkCheckSafety();
+  document.getElementById('lk-item-modal').classList.add('open');
+}
+function lkUseSuggestion(n) {
+  const [slot, cat, name, detail, track] = LK_SUGGEST[n];
+  document.getElementById('lk-name').value = name; document.getElementById('lk-slot').value = slot;
+  document.getElementById('lk-cat').value = cat; document.getElementById('lk-detail').value = detail;
+  document.getElementById('lk-track').checked = track; lkCheckSafety();
+}
+function lkSaveItem() {
+  const name = document.getElementById('lk-name').value.trim();
+  if (!name) { alert('Give it a name.'); return; }
+  const days = [...document.querySelectorAll('#lk-days button.on')].map(b => Number(b.dataset.day));
+  if (!days.length) { alert('Pick at least one day.'); return; }
+  const d = lkData(), id = document.getElementById('lk-id').value;
+  const track = document.getElementById('lk-track').checked;
+  const fields = { name, slot: document.getElementById('lk-slot').value, cat: document.getElementById('lk-cat').value, detail: document.getElementById('lk-detail').value.trim(), notes: document.getElementById('lk-notes').value.trim(), days: days.length === 7 ? [] : days, track };
+  if (id) { const it = d.items.find(x => x.id === id); Object.assign(it, fields); if (track && !it.stock) it.stock = 'full'; }
+  else d.items.push(Object.assign({ id: uid(), created: today(), removed: '', stock: track ? 'full' : '' }, fields));
+  save(); closeModal('lk-item-modal'); renderLooks();
+}
+function lkDeleteItem() {
+  const d = lkData(), id = document.getElementById('lk-id').value, it = d.items.find(x => x.id === id); if (!it) return;
+  if (!confirm(`Remove “${it.name}” from your routine? Past days keep their history.`)) return;
+  if (it.created >= today()) d.items = d.items.filter(x => x.id !== id); else it.removed = today();
+  save(); closeModal('lk-item-modal'); renderLooks();
+}
+
+// ---- product stock (linked to the Products page buy list) ----
+function _lkTrackedItems() { return lkData().items.filter(i => i.track && !i.removed); }
+function _lkProduct(it) { return it.product && DB.products[it.product.tab] ? DB.products[it.product.tab].find(p => p.id === it.product.id) || null : null; }
+function lkStockOf(it) { const p = _lkProduct(it); return (p && p.stock) || it.stock || 'full'; }
+function lkSetStock(id, stock) {
+  const it = lkData().items.find(x => x.id === id); if (!it) return;
+  it.stock = stock;
+  const p = _lkProduct(it); if (p) p.stock = stock;
+  save(); updateNavBuyBadge(countNeedToBuy()); renderLooks();
+}
+function lkAddToBuy(id) {
+  const it = lkData().items.find(x => x.id === id); if (!it) return;
+  const tab = it.cat === 'food' ? 'supps' : 'skincare';
+  let p = _lkProduct(it) || DB.products[tab].find(x => x.name.toLowerCase() === it.name.toLowerCase());
+  const stock = ['low', 'empty'].includes(lkStockOf(it)) ? lkStockOf(it) : 'low';
+  if (!p) { p = { id: uid(), name: it.name, brand: '', notes: 'Added from Looksmaxxing', stock }; if (tab === 'supps') p.dose = it.detail || ''; DB.products[tab].push(p); }
+  p.stock = stock; it.stock = stock;
+  it.product = { tab: DB.products.supps.includes(p) ? 'supps' : 'skincare', id: p.id };
+  save(); updateNavBuyBadge(countNeedToBuy()); renderLooks();
+}
+function _lkStockHTML() {
+  const list = _lkTrackedItems().sort((a, b) => ['empty', 'low', 'medium', 'full'].indexOf(lkStockOf(a)) - ['empty', 'low', 'medium', 'full'].indexOf(lkStockOf(b)));
+  if (!list.length) return `<div class="empty-state card"><p>No products tracked yet. Edit an item and tick “Track product stock”.</p></div>`;
+  return `<div class="lk-card">${list.map(i => {
+    const st = lkStockOf(i), p = _lkProduct(i), low = st === 'low' || st === 'empty';
+    return `<div class="lk-plan-row" style="flex-wrap:wrap;"><div class="lk-item-body" style="min-width:180px;"><div class="lk-name">${escapeHtml(i.name)}</div><div class="lk-meta">${_lkChip(i.cat)}</div></div>
+      <div class="lk-seg">${LK_STOCK.map(([k, l, c]) => `<button class="${st === k ? 'on' : ''}" style="${st === k ? 'background:' + c + ';' : ''}" onclick="lkSetStock('${i.id}','${k}')">${l}</button>`).join('')}</div>
+      <div style="width:150px;text-align:right;">${low ? (p ? '<span style="font-size:12px;font-weight:700;color:var(--l-accent);">✓ On buy list</span>' : `<button class="btn btn-primary btn-sm" onclick="lkAddToBuy('${i.id}')">🛒 Add to buy list</button>`) : ''}</div></div>`;
+  }).join('')}</div>
+  <div style="margin-top:12px;"><button class="btn btn-secondary btn-sm" onclick="showPage('l-products')">Open Products &amp; buy list →</button></div>`;
+}
+
+// ---- weekly check-in ----
+function _lkLastCheckin() { return [...lkData().checkins].sort((a, b) => b.date.localeCompare(a.date))[0] || null; }
+function _lkSpark(title, unit, points, color) {
+  if (!points.length) return `<div class="lk-card"><div class="lk-card-head"><h4>${title}</h4></div><div style="font-size:12.5px;color:var(--text-muted);">No entries yet.</div></div>`;
+  const w = 320, hgt = 76, pad = 8, vals = points.map(p => p.v);
+  let min = Math.min(...vals), max = Math.max(...vals); if (min === max) { min -= 1; max += 1; }
+  const x = i => points.length === 1 ? w / 2 : pad + i * (w - 2 * pad) / (points.length - 1);
+  const y = v => hgt - pad - (v - min) / (max - min) * (hgt - 2 * pad);
+  const last = points[points.length - 1], prev = points[points.length - 2];
+  const diff = prev ? Math.round((last.v - prev.v) * 10) / 10 : 0;
+  const nice = d => new Date(d + 'T12:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+  return `<div class="lk-card"><div class="lk-card-head"><h4>${title}</h4><span style="font-size:18px;font-weight:800;">${last.v}${unit}</span></div>
+    <div class="lk-detail">${prev ? (diff === 0 ? 'No change' : (diff > 0 ? '▲ ' : '▼ ') + Math.abs(diff) + unit) + ' since ' + nice(prev.date) : 'First entry'}</div>
+    <svg viewBox="0 0 ${w} ${hgt}" style="width:100%;height:76px;display:block;" role="img" aria-label="${title} trend">
+      ${points.length > 1 ? `<polyline points="${points.map((p, i) => x(i) + ',' + y(p.v)).join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+      ${points.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="${color}" stroke="var(--surface)" stroke-width="2"><title>${nice(p.date)}: ${p.v}${unit}</title></circle>`).join('')}
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-muted);"><span>${nice(points[0].date)}</span><span>${nice(last.date)}</span></div></div>`;
+}
+function _lkCheckinHTML() {
+  const all = [...lkData().checkins].sort((a, b) => a.date.localeCompare(b.date));
+  const series = k => all.filter(c => c[k] !== '' && c[k] != null).slice(-12).map(c => ({ date: c.date, v: c[k] }));
+  const scale = (id, low, high) => `<select id="${id}"><option value="">—</option>${[1, 2, 3, 4, 5].map(n => `<option value="${n}">${n}${n === 1 ? ' — ' + low : n === 5 ? ' — ' + high : ''}</option>`).join('')}</select>`;
+  return `<div class="lk-card" style="margin-bottom:16px;"><div class="lk-card-head"><h4>This week's check-in</h4></div>
+      <div class="form-row"><div class="form-group"><label>Date</label><input type="date" id="lk-c-date" value="${today()}" max="${today()}"></div>
+        <div class="form-group"><label>Average sleep (hours a night)</label><input type="number" id="lk-c-sleep" min="0" max="16" step="0.5" placeholder="e.g. 8"></div></div>
+      <div class="form-row lk-three"><div class="form-group"><label>Skin this week</label>${scale('lk-c-skin', 'rough', 'great')}</div>
+        <div class="form-group"><label>Energy</label>${scale('lk-c-energy', 'drained', 'great')}</div>
+        <div class="form-group"><label>Weight, kg (optional)</label><input type="number" id="lk-c-weight" min="0" step="0.1" placeholder="Leave blank if you like"></div></div>
+      <div class="form-group"><label>Notes</label><textarea id="lk-c-note" rows="2" placeholder="What changed? New product, breakouts, training, stress"></textarea></div>
+      <button class="btn btn-primary" onclick="lkSaveCheckin()">Save check-in</button></div>
+    <div class="lk-trends">${_lkSpark('Sleep', ' h', series('sleep'), '#4f46e5')}${_lkSpark('Skin', '/5', series('skin'), '#0d9488')}${_lkSpark('Energy', '/5', series('energy'), '#ea580c')}${_lkSpark('Weight', ' kg', series('weight'), '#6b7280')}</div>
+    ${all.length ? `<div class="lk-card"><div class="lk-card-head"><h4>History</h4></div>${[...all].reverse().map(c => `<div class="lk-plan-row"><div class="lk-item-body"><div class="lk-name">${new Date(c.date + 'T12:00:00').toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</div>
+      <div class="lk-detail">${[c.sleep !== '' ? c.sleep + ' h sleep' : '', c.skin !== '' ? 'skin ' + c.skin + '/5' : '', c.energy !== '' ? 'energy ' + c.energy + '/5' : '', c.weight !== '' ? c.weight + ' kg' : ''].filter(Boolean).join(' · ')}</div>${c.note ? `<div class="lk-why">${escapeHtml(c.note)}</div>` : ''}</div>
+      <button class="btn-ghost" onclick="lkDeleteCheckin('${c.id}')" title="Delete">🗑</button></div>`).join('')}</div>` : ''}`;
+}
+function lkSaveCheckin() {
+  const v = id => document.getElementById(id).value;
+  const num = id => v(id) === '' ? '' : Number(v(id));
+  const date = v('lk-c-date') || today();
+  const entry = { id: uid(), date, sleep: num('lk-c-sleep'), skin: num('lk-c-skin'), energy: num('lk-c-energy'), weight: num('lk-c-weight'), note: v('lk-c-note').trim() };
+  if (entry.sleep === '' && entry.skin === '' && entry.energy === '' && entry.weight === '' && !entry.note) { alert('Fill in at least one field.'); return; }
+  const d = lkData();
+  d.checkins = d.checkins.filter(c => c.date !== date).concat(entry);
+  save(); renderLooks();
+}
+function lkDeleteCheckin(id) { if (!confirm('Delete this check-in?')) return; const d = lkData(); d.checkins = d.checkins.filter(c => c.id !== id); save(); renderLooks(); }
+
 // ============================================================
 // ESSAY WORKSPACE (two-pane: list on the left, writing on the right)
 // ============================================================
