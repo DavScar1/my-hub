@@ -13506,6 +13506,7 @@ function restoreFromTrash(trashId){
   const [entry] = BZ.trash.splice(idx, 1);
   BZ[entry.collection] = BZ[entry.collection] || [];
   BZ[entry.collection].push(entry.item);
+  if (entry.collection === 'sales') takeSaleStock(entry.item);
   logActivity(`Restored ${TRASH_LABELS[entry.collection]||entry.collection}: ${entry.label}`);
   save();
   renderTrashModal();
@@ -13673,12 +13674,13 @@ function renderSales(){
 }
 
 function saleOrderLinkOptionsHTML(selectedKey){
+  syncOrderStockOnce();
   const options = ['<option value="">— Not linked to a supplier order —</option>'];
   [...BZ.orders].filter(o => o.status !== 'Cancelled').sort((a,b) => b.date.localeCompare(a.date)).forEach(o => {
     orderItems(o).forEach(it => {
-      const remaining = it.qty - orderItemSoldQty(o, it);
+      const remaining = orderItemRemaining(o, it);
       const key = `${o.id}::${it.id}`;
-      options.push(`<option value="${key}" ${key===selectedKey?'selected':''}>${escapeHtml(orderDisplayName(o))} — ${escapeHtml(it.item)} (${remaining}/${it.qty} left)</option>`);
+      options.push(`<option value="${key}" ${key===selectedKey?'selected':''}>${escapeHtml(orderDisplayName(o))} — ${escapeHtml(it.item)} (${remaining > it.qty ? remaining : remaining + '/' + it.qty} left)</option>`);
     });
   });
   return options.join('');
@@ -13729,7 +13731,7 @@ function openSaleModal(id, prefillItem, orderId, dealId, orderItemId){
       const o = BZ.orders.find(x => x.id === orderId);
       const item = o && (orderItems(o).find(it => it.id === orderItemId) || orderItems(o)[0]);
       if (o && item) {
-        const remaining = item.qty - orderItemSoldQty(o, item);
+        const remaining = orderItemRemaining(o, item);
         document.getElementById('sale-qty').value = Math.max(1, remaining);
       }
       populateSaleOrderLinkSelect(orderId, item ? item.id : orderItemId);
@@ -13789,7 +13791,7 @@ function saveSale(){
     const o = BZ.orders.find(x => x.id === orderId);
     const orderItem = o && (orderItems(o).find(it => it.id === orderItemId) || orderItems(o)[0]);
     if (o && orderItem) {
-      const remaining = orderItem.qty - orderItemSoldQty(o, orderItem);
+      const remaining = orderItemRemaining(o, orderItem);
       if (qty > remaining) { alert(`Only ${remaining} unit${remaining===1?'':'s'} left unsold on this order.`); return; }
     }
   }
@@ -13814,6 +13816,11 @@ function saveSale(){
 
   if (id) {
     const existing = BZ.sales.find(x => x.id === id);
+    if ((existing.item !== item || existing.qty !== qty) && !(existing.refunded && existing.refundRestocked)) {
+      const oldInv = BZ.inventory.find(i => i.name.toLowerCase() === existing.item.toLowerCase());
+      if (oldInv) oldInv.qty += existing.qty;
+      if (invItem) invItem.qty = Math.max(0, invItem.qty - qty);
+    }
     Object.assign(existing, data);
     logActivity(`Edited sale: ${item} × ${qty} — ${fmtMoney(data.price*qty)}`);
   } else {
@@ -13843,9 +13850,22 @@ function saveSale(){
   save();
 }
 
+function returnSaleStock(s){
+  if (s.refunded && s.refundRestocked) return; // already back in stock
+  const inv = BZ.inventory.find(i => i.name.toLowerCase() === s.item.toLowerCase());
+  if (inv) { inv.qty += s.qty; s.stockReturned = true; }
+}
+function takeSaleStock(s){
+  if (!s.stockReturned) return;
+  const inv = BZ.inventory.find(i => i.name.toLowerCase() === s.item.toLowerCase());
+  if (inv) inv.qty = Math.max(0, inv.qty - s.qty);
+  delete s.stockReturned;
+}
+
 function deleteSale(id){
   if (!confirm('Delete this sale? (You can restore it from Recently Deleted.)')) return;
   const s = BZ.sales.find(x => x.id === id);
+  returnSaleStock(s);
   softDelete('sales', id, `${s.item} × ${s.qty} — ${fmtDate(s.date)}`);
 }
 
@@ -14029,7 +14049,7 @@ function deleteSaleGroup(groupId){
   const members = BZ.sales.filter(s => s.groupId === groupId);
   if (!members.length) return;
   if (!confirm(`Delete all ${members.length} items in this sale? (You can restore them from Recently Deleted.)`)) return;
-  members.forEach(s => softDelete('sales', s.id, `${s.item} × ${s.qty} — ${fmtDate(s.date)}`));
+  members.forEach(s => { returnSaleStock(s); softDelete('sales', s.id, `${s.item} × ${s.qty} — ${fmtDate(s.date)}`); });
 }
 
 function toggleSaleGroup(groupId){
@@ -14201,6 +14221,7 @@ function saveInventoryItem(){
     BZ.inventory.push(data);
     logActivity(`Added inventory: ${name} (${data.qty} in stock)`);
   }
+  syncOrderStockToInventory(name);
   closeModal('inventory-modal');
   save();
 }
@@ -14335,6 +14356,7 @@ function orderMiniPipeline(o, stage){
 }
 
 function renderCashFlow(){
+  syncOrderStockOnce();
   const baselineDate = BZ.balanceBaselineDate;
   // Inclusive: a sale marked "received" today (cashInDate = today) must count even if the
   // baseline was also set today — otherwise money confirmed the same day it's set up would
@@ -14369,7 +14391,7 @@ function renderCashFlow(){
   const plannedValue = notYet.reduce((a,x) => a + orderTotalCost(x.o), 0);
   const cashOut = placedOrders.reduce((a,x) => a + orderTotalCost(x.o), 0);
   const transitValue = ordered.reduce((a,x) => a + orderTotalCost(x.o), 0);
-  const onHandValue = arrived.reduce((a,x) => a + orderItems(x.o).reduce((b,it) => b + (it.qty - orderItemSoldQty(x.o,it))*it.cost, 0), 0);
+  const onHandValue = arrived.reduce((a,x) => a + orderItems(x.o).reduce((b,it) => b + orderItemRemaining(x.o,it)*it.cost, 0), 0);
 
   // (Profit KPIs below are YOUR share: older sales count at their profitShare.)
   // Profit and Awaiting Payment are standalone performance figures computed from every sale
@@ -14461,7 +14483,7 @@ function renderCashFlow(){
     // "Arrived": one row per product still awaiting sale, each with its own Log Sale action.
     const itemsBreakdown = stage === 'arrived' ? orderItems(o).map(it => {
       const itSold = orderItemSoldQty(o, it);
-      const itRemaining = it.qty - itSold;
+      const itRemaining = orderItemRemaining(o, it);
       if (itRemaining <= 0) return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:12.5px;">
         <span>${escapeHtml(it.item)}</span><span style="color:var(--text-muted);">${itSold}/${it.qty} sold</span>
       </div>`;
@@ -14886,7 +14908,7 @@ function saveOrder(){
     const existingItems = orderItems(existing);
     const wasArrived = existing.status === 'Arrived';
     // Preserve existing line-item ids by position so already-linked sales stay matched.
-    data.items = items.map((it, i) => ({ id: existingItems[i] ? existingItems[i].id : uid(), ...it }));
+    data.items = items.map((it, i) => ({ id: existingItems[i] ? existingItems[i].id : uid(), ...it, stockAdjust: existingItems[i] ? num(existingItems[i].stockAdjust) : 0 }));
 
     // Editing an order that's already Arrived (new products added, or a quantity bumped up)
     // doesn't get a second trip through "Mark Arrived" -- sync just the difference into
@@ -14913,6 +14935,12 @@ function saveOrder(){
     data.items = items.map(it => ({ id: uid(), ...it }));
     data.loggedBy = currentUserEmail();
     BZ.orders.push(data);
+    // Logged as already Arrived: its units go into Inventory, same as pressing "Mark Arrived".
+    if (data.status === 'Arrived') data.items.forEach(it => {
+      const invItem = BZ.inventory.find(inv => inv.name.toLowerCase() === it.item.toLowerCase());
+      if (invItem) { invItem.qty += it.qty; invItem.cost = it.cost; }
+      else BZ.inventory.push({ id: uid(), name: it.item, category: 'Other', qty: it.qty, cost: it.cost, threshold: 0, supplier: data.supplier, notes: '' });
+    });
     logActivity(`Added order: ${orderDisplayName(data)} — ${supplier}`);
   }
   closeModal('order-modal');
@@ -14994,6 +15022,47 @@ function saleMatchesOrderItem(s, order, item){
   return orderItems(order).length === 1; // legacy sale linked before per-item tracking existed
 }
 
+// Units still to sell on an order line. stockAdjust holds hand edits made in Inventory, so the
+// quantity and cost you actually paid for are never rewritten.
+function orderItemRemaining(order, item){
+  return Math.max(0, item.qty + num(item.stockAdjust) - orderItemSoldQty(order, item));
+}
+
+// After Inventory is edited by hand, make the arrived order lines for that product add up to it:
+// extra units go on the newest order, missing units come off the oldest.
+function syncOrderStockToInventory(name){
+  const key = String(name || '').trim().toLowerCase();
+  const inv = BZ.inventory.filter(i => i.name.trim().toLowerCase() === key);
+  const lines = [];
+  BZ.orders.filter(o => o.status === 'Arrived').forEach(o => orderItems(o).forEach(it => {
+    if (String(it.item || '').trim().toLowerCase() === key) lines.push({ o, id: it.id });
+  }));
+  if (!inv.length || !lines.length) return;
+  lines.sort((a,b) => (a.o.arrival || a.o.date).localeCompare(b.o.arrival || b.o.date));
+  const lineItem = l => orderItems(l.o).find(x => x.id === l.id);
+  const left = l => orderItemRemaining(l.o, lineItem(l));
+  let diff = inv.reduce((a,i) => a + i.qty, 0) - lines.reduce((a,l) => a + left(l), 0);
+  const change = (l, n) => {
+    const target = left(l) + n;
+    if (!l.o.items || !l.o.items.length) l.o.items = orderItems(l.o).map(x => Object.assign({}, x));
+    const it = lineItem(l);
+    it.stockAdjust = target - (it.qty - orderItemSoldQty(l.o, it));
+  };
+  if (diff > 0) change([...lines].reverse().find(l => left(l) > 0) || lines[lines.length - 1], diff);
+  for (let i = 0; i < lines.length && diff < 0; i++) {
+    const take = Math.min(left(lines[i]), -diff);
+    if (take > 0) { change(lines[i], -take); diff += take; }
+  }
+}
+
+// One-off catch-up for quantities edited before orders followed Inventory.
+function syncOrderStockOnce(){
+  if (BZ.stockSynced) return;
+  [...new Set(BZ.inventory.map(i => i.name.trim().toLowerCase()))].forEach(syncOrderStockToInventory);
+  BZ.stockSynced = true;
+  window.save();
+}
+
 function orderItemSoldQty(order, item){
   // A refunded-and-restocked sale isn't really "sold" anymore -- the box is back in inventory
   // and available to sell again, so it shouldn't hold this order's remaining count down.
@@ -15018,7 +15087,7 @@ function orderRevenueProfit(o){
 }
 
 function orderFullySold(o){
-  return orderItems(o).every(it => orderItemSoldQty(o,it) >= it.qty);
+  return orderItems(o).every(it => orderItemRemaining(o,it) <= 0);
 }
 
 function findAvailableOrderItem(itemName, qty, saleDate){
@@ -15027,7 +15096,7 @@ function findAvailableOrderItem(itemName, qty, saleDate){
   BZ.orders.filter(o => o.status === 'Arrived' && (!saleDate || !o.arrival || saleDate >= o.arrival)).forEach(o => {
     orderItems(o).forEach(it => {
       if (it.item.trim().toLowerCase() === name) {
-        const remaining = it.qty - orderItemSoldQty(o, it);
+        const remaining = orderItemRemaining(o, it);
         if (remaining > 0) candidates.push({ o, it, remaining, date: o.arrival || o.date });
       }
     });
