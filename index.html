@@ -804,6 +804,57 @@ a:hover{text-decoration:underline;}
 .ins-row-fill{height:100%;border-radius:4px;}
 .ins-row-value{width:46px;flex-shrink:0;text-align:right;font-size:11.5px;font-weight:700;color:var(--text-muted);}
 
+/* Capsule wardrobe */
+.cap-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+.cap-hero{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px;}
+.cap-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;}
+.cap-stat span{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);}
+.cap-stat b{display:block;font-size:24px;font-weight:800;margin-top:4px;letter-spacing:-.5px;}
+.cap-stat small{display:block;font-size:11.5px;color:var(--text-secondary);margin-top:2px;}
+.cap-bar{height:6px;border-radius:3px;background:var(--border-light);overflow:hidden;margin-top:8px;}
+.cap-bar i{display:block;height:100%;background:var(--l-accent);}
+.cap-next{background:var(--l-accent-light);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.cap-next strong{font-size:12.5px;margin-right:4px;}
+.cap-next button{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:4px 11px 4px 5px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);}
+.cap-next i{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.15);display:inline-block;}
+.cap-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.cap-filters button{border:1.5px solid var(--border);background:var(--surface);border-radius:99px;padding:6px 14px;font-size:12.5px;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:inherit;}
+.cap-filters button.on{background:var(--l-accent);border-color:var(--l-accent);color:#fff;}
+.cap-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;}
+.cap-section-head{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.cap-section-head h3{margin:0;font-size:16px;font-weight:800;}
+.cap-count{font-size:12px;font-weight:700;color:var(--text-muted);}
+.cap-count.full{color:var(--green);}
+.cap-dots{display:flex;gap:4px;margin-left:4px;flex-wrap:wrap;}
+.cap-dots i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18);display:inline-block;}
+.cap-dots i.need{opacity:.28;border-style:dashed;}
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px;margin-top:14px;}
+.cap-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .15s,transform .15s;}
+.cap-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.cap-card.need{border-style:dashed;border-width:1.5px;}
+.cap-swatch{height:92px;position:relative;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08);}
+.cap-swatch img{width:100%;height:100%;object-fit:cover;display:block;}
+.cap-card.need .cap-swatch img{opacity:.55;}
+.cap-fill{position:absolute;inset:0;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 5px);}
+.cap-flag{position:absolute;top:7px;left:7px;font-size:10px;font-weight:800;border-radius:99px;padding:2px 8px;background:#fff;color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.18);}
+.cap-card.need .cap-flag{color:var(--text-muted);}
+.cap-star{position:absolute;top:5px;right:5px;width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.92);cursor:pointer;font-size:15px;color:#b8b2aa;box-shadow:0 1px 3px rgba(0,0,0,.18);}
+.cap-star.on{color:#d97706;}
+.cap-info{padding:9px 10px 4px;flex:1;}
+.cap-name{font-size:13px;font-weight:700;line-height:1.3;}
+.cap-meta{font-size:11px;color:var(--text-muted);margin-top:2px;min-height:15px;}
+.cap-price{font-size:12.5px;font-weight:800;margin-top:4px;}
+.cap-actions{display:flex;gap:6px;padding:6px 10px 10px;align-items:center;}
+.cap-toggle{flex:1;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:11.5px;font-weight:700;padding:6px;cursor:pointer;font-family:inherit;color:var(--text-secondary);}
+.cap-toggle:hover{border-color:var(--l-accent);color:var(--l-accent);}
+.cap-card:not(.need) .cap-toggle{background:var(--green-light);border-color:transparent;color:var(--green);}
+.cap-shop{font-size:11.5px;font-weight:700;color:var(--l-accent);text-decoration:none;white-space:nowrap;}
+.cap-add{border:1.5px dashed var(--border);border-radius:12px;background:none;cursor:pointer;color:var(--text-muted);font-size:12.5px;font-weight:700;min-height:150px;font-family:inherit;}
+.cap-add:hover{border-color:var(--l-accent);color:var(--l-accent);}
+.cap-swatches{display:flex;gap:7px;flex-wrap:wrap;}
+.cap-swatches button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(0,0,0,.12);cursor:pointer;padding:0;}
+.cap-swatches button.on{outline:2.5px solid var(--l-accent);outline-offset:2px;}
+@media(max-width:800px){.cap-hero{grid-template-columns:repeat(2,minmax(0,1fr));}.cap-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}.cap-section{padding:12px;}.cap-dots{display:none;}}
 /* Looksmaxxing */
 .lk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
 .lk-hero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;background:linear-gradient(135deg,var(--l-accent-light),var(--surface) 60%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:20px 24px;margin-bottom:16px;}
@@ -1353,6 +1404,7 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
       <span class="icon">🧴</span>Products
       <span class="nbadge" id="nav-buy-badge" style="display:none;"></span>
     </button>
+    <button class="nav-item" onclick="showPage('l-capsule')"><span class="icon">🗂️</span>Capsule Wardrobe</button>
     <button class="nav-item" onclick="showPage('l-wardrobe')"><span class="icon">👕</span>Wardrobe</button>
     <button class="nav-item" onclick="showPage('l-journal')"><span class="icon">📓</span>Journal</button>
 
@@ -2330,6 +2382,16 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
     <div id="lk-hero"></div>
     <div class="lk-tabs" id="lk-tabs"></div>
     <div id="lk-body"></div>
+  </div>
+
+  <div class="page" id="page-l-capsule">
+    <div class="page-header cap-head">
+      <div><h2>🗂️ Capsule Wardrobe</h2><p>The pieces you want in every colour: what you have, and what is still missing.</p></div>
+      <button class="btn btn-primary" onclick="capOpenType()">+ Clothing type</button>
+    </div>
+    <div id="cap-hero"></div>
+    <div class="cap-filters" id="cap-filters"></div>
+    <div id="cap-body"></div>
   </div>
 
   <div class="page" id="page-l-morning">
@@ -3497,6 +3559,57 @@ font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Hel
   </div>
 </div>
 
+<div class="modal-overlay" id="cap-piece-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="cap-piece-title">Add piece</div>
+      <button class="modal-close" onclick="closeModal('cap-piece-modal')">×</button>
+    </div>
+    <input type="hidden" id="cap-piece-id"><input type="hidden" id="cap-piece-cat">
+    <div class="form-group"><label>Colour</label><div class="cap-swatches" id="cap-swatches"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Name</label><input type="text" id="cap-name" placeholder="e.g. Light grey"></div>
+      <div class="form-group"><label>Exact colour</label><input type="color" id="cap-color" style="height:38px;padding:3px;"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label><select id="cap-status"><option value="need">Still need it</option><option value="have">Have it</option></select></div>
+      <div class="form-group"><label>Price (€)</label><input type="number" id="cap-price" min="0" step="0.01" placeholder="Estimate or paid"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Brand</label><input type="text" id="cap-brand" placeholder="e.g. Levi's"></div>
+      <div class="form-group"><label>Size</label><input type="text" id="cap-size" placeholder="e.g. W32 L32, M, UK 9"></div>
+    </div>
+    <div class="form-group"><label>Shop link</label><input type="url" id="cap-link" placeholder="https://…"></div>
+    <div class="form-group"><label>Photo link <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(paste an image address)</span></label><input type="url" id="cap-photo" placeholder="https://…"></div>
+    <div class="form-group"><label>Notes</label><textarea id="cap-notes" rows="2" placeholder="Fit, fabric, where you saw it"></textarea></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;text-transform:none;"><input type="checkbox" id="cap-next" style="width:auto;margin:0;"> ★ Buy next (adds it to your Products buy list)</label>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="capSavePiece()">Save</button>
+      <button class="btn btn-secondary" onclick="closeModal('cap-piece-modal')">Cancel</button>
+      <button class="btn btn-danger" id="cap-piece-delete" onclick="capDeletePiece()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cap-type-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="cap-type-title">Add clothing type</div>
+      <button class="modal-close" onclick="closeModal('cap-type-modal')">×</button>
+    </div>
+    <input type="hidden" id="cap-type-id">
+    <div class="form-row">
+      <div class="form-group"><label>Name</label><input type="text" id="cap-type-name" placeholder="e.g. Shirts, Shorts"></div>
+      <div class="form-group" style="max-width:90px;"><label>Icon</label><input type="text" id="cap-type-icon" maxlength="4" placeholder="👔"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="capSaveType()">Save</button>
+      <button class="btn btn-secondary" onclick="closeModal('cap-type-modal')">Cancel</button>
+      <button class="btn btn-danger" id="cap-type-delete" onclick="capDeleteType()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- Rec modal -->
 <div class="modal-overlay" id="rec-modal">
   <div class="modal">
@@ -4425,6 +4538,7 @@ function renderPage(id) {
   // Life pages (prefixed l-)
   if (id === 'l-today') renderToday();
   if (id === 'l-looks') renderLooks();
+  if (id === 'l-capsule') renderCapsule();
   if (id === 'l-todo') renderTodo();
   if (id === 'l-goals') renderGoals();
   if (id === 'l-timeline') renderTimeline();
@@ -7782,6 +7896,188 @@ function renderEssaysUpcoming() {
     </div>`;
 }
 // ============================================================
+// CAPSULE WARDROBE (Life) — every colour you want, per clothing type
+// ============================================================
+const CAP_COLOURS = [['White', '#f7f7f4'], ['Cream', '#ede3cc'], ['Beige', '#d3bd99'], ['Brown', '#6f4e37'], ['Black', '#1c1c1e'], ['Light grey', '#c6c9cd'], ['Dark grey', '#53575d'],
+  ['Light blue', '#9dbbd9'], ['Dark blue', '#2c4773'], ['Navy', '#1d2945'], ['Green', '#44573d'], ['Burgundy', '#6d2130']];
+// [type, icon, word added after the colour on the buy list, [[name, colour]]]
+const CAP_STARTER = [
+  ['Jeans', '👖', 'jeans', [['Light grey', '#c6c9cd'], ['Dark grey', '#53575d'], ['Light blue', '#9dbbd9'], ['Dark blue', '#2c4773'], ['Black', '#1c1c1e']]],
+  ['T-shirts', '👕', 't-shirt', [['White', '#f7f7f4'], ['Black', '#1c1c1e'], ['Light grey', '#c6c9cd'], ['Navy', '#1d2945'], ['Cream', '#ede3cc']]],
+  ['Hoodies', '🧥', 'hoodie', [['Grey', '#9a9da2'], ['Black', '#1c1c1e'], ['Navy', '#1d2945'], ['Cream', '#ede3cc']]],
+  ['Cardigans', '🧶', 'cardigan', [['Cream', '#ede3cc'], ['Dark grey', '#53575d'], ['Navy', '#1d2945'], ['Brown', '#6f4e37']]],
+  ['Sweaters', '🧵', 'sweater', [['Navy', '#1d2945'], ['Light grey', '#c6c9cd'], ['Cream', '#ede3cc'], ['Black', '#1c1c1e'], ['Green', '#44573d']]],
+  ['Shoes', '👟', '', [['White trainers', '#f7f7f4'], ['Black trainers', '#1c1c1e'], ['Running shoes', '#9a9da2'], ['Brown boots', '#6f4e37'], ['Black smart shoes', '#121214']]],
+  ['Jackets', '🧥', 'jacket', [['Black puffer', '#1c1c1e'], ['Blue denim', '#52759f'], ['Navy bomber', '#1d2945'], ['Brown leather', '#5c3b26'], ['Green rain', '#44573d']]],
+  ['Accessories', '⌚', '', [['Black belt', '#1c1c1e'], ['Brown belt', '#6f4e37'], ['Watch', '#b9bec5'], ['Cap', '#1d2945'], ['Beanie', '#2a2a2d'], ['Scarf', '#8d9095'], ['Sunglasses', '#232326'], ['Socks', '#f7f7f4']]],
+];
+let _capFilter = 'all', _capClosed = {};
+
+function capData() {
+  if (!DB.capsule) {
+    DB.capsule = { cats: CAP_STARTER.map(([name, icon, word, pieces]) => ({ id: uid(), name, icon, word, pieces: pieces.map(([n, color]) => ({ id: uid(), name: n, color, status: 'need', price: '', brand: '', size: '', link: '', photo: '', notes: '', buyId: '' })) })) };
+    save();
+  }
+  return DB.capsule;
+}
+function _capFind(id) {
+  for (const cat of capData().cats) { const p = cat.pieces.find(x => x.id === id); if (p) return { cat, p }; }
+  return null;
+}
+function _capUrl(u) { return /^https?:\/\//i.test(u || '') ? u : ''; }
+function _capColor(c) { return /^#[0-9a-f]{6}$/i.test(c || '') ? c : '#9a9da2'; }
+function _capEur(n) { return '€' + (Math.round(n * 100) / 100).toLocaleString('en-IE', { maximumFractionDigits: 2 }); }
+function _capFullName(cat, p) { return cat.word && !p.name.toLowerCase().includes(cat.word) ? `${p.name} ${cat.word}` : p.name; }
+
+// ---- link with the Products buy list ----
+function _capProduct(p) { return p.buyId ? DB.products.clothes.find(x => x.id === p.buyId) || null : null; }
+function _capIsNext(p) { return !!_capProduct(p); }
+function _capSetNext(cat, p, on) {
+  let prod = _capProduct(p);
+  if (!on) {
+    if (prod) DB.products.clothes = DB.products.clothes.filter(x => x.id !== prod.id);
+    p.buyId = '';
+    return;
+  }
+  const types = { Jeans: 'Jeans', 'T-shirts': 'T-Shirt', Hoodies: 'Hoodie', Jackets: 'Jacket', Shoes: 'Shoes', Accessories: 'Accessories' };
+  if (!prod) { prod = { id: uid(), priority: 'high', needBy: '' }; DB.products.clothes.push(prod); p.buyId = prod.id; }
+  Object.assign(prod, { name: _capFullName(cat, p), brand: p.brand || '', clothesType: types[cat.name] || 'Other', budget: p.price !== '' ? _capEur(p.price) : '', link: p.link || '',
+    notes: [p.size ? 'Size ' + p.size : '', p.notes || '', 'From Capsule Wardrobe'].filter(Boolean).join(' · ') });
+}
+// Called when something is marked Bought on the Products page.
+function capOwnedFromProduct(productId) {
+  if (!DB.capsule) return;
+  DB.capsule.cats.forEach(c => c.pieces.forEach(p => { if (p.buyId === productId) { p.status = 'have'; p.buyId = ''; } }));
+}
+
+// ---- rendering ----
+function renderCapsule() {
+  if (!document.getElementById('cap-body')) return;
+  const cats = capData().cats, all = cats.flatMap(c => c.pieces.map(p => ({ c, p })));
+  const have = all.filter(x => x.p.status === 'have'), need = all.filter(x => x.p.status !== 'have'), next = need.filter(x => _capIsNext(x.p));
+  const total = list => list.reduce((a, x) => a + (Number(x.p.price) || 0), 0);
+  const unpriced = need.filter(x => x.p.price === '').length;
+  const pct = all.length ? Math.round(have.length / all.length * 100) : 0;
+  document.getElementById('cap-hero').innerHTML = `<div class="cap-hero">
+      <div class="cap-stat"><span>Wardrobe complete</span><b>${pct}%</b><small>${have.length} of ${all.length} pieces</small><div class="cap-bar"><i style="width:${pct}%;"></i></div></div>
+      <div class="cap-stat"><span>Still to buy</span><b>${need.length}</b><small>${cats.filter(c => c.pieces.some(p => p.status !== 'have')).length} clothing types with gaps</small></div>
+      <div class="cap-stat"><span>Cost to finish</span><b>${_capEur(total(need))}</b><small>${unpriced ? unpriced + ' still without a price' : need.length ? 'every gap is priced' : 'nothing left to buy'}</small></div>
+      <div class="cap-stat"><span>Value you own</span><b>${_capEur(total(have))}</b><small>${next.length ? 'Next up costs ' + _capEur(total(next)) : 'Star pieces to buy next'}</small></div>
+    </div>` + (next.length ? `<div class="cap-next"><strong>★ Buy next</strong>${next.map(x => `<button onclick="capOpenPiece('${x.p.id}')"><i style="background:${_capColor(x.p.color)};"></i>${escapeHtml(_capFullName(x.c, x.p))}${x.p.price !== '' ? ' · ' + _capEur(x.p.price) : ''}</button>`).join('')}</div>` : '');
+  document.getElementById('cap-filters').innerHTML = [['all', `All (${all.length})`], ['need', `Still need (${need.length})`], ['have', `Have (${have.length})`], ['next', `★ Buy next (${next.length})`]]
+    .map(([k, l]) => `<button class="${_capFilter === k ? 'on' : ''}" onclick="capSetFilter('${k}')">${l}</button>`).join('');
+  const match = p => _capFilter === 'all' ? true : _capFilter === 'next' ? p.status !== 'have' && _capIsNext(p) : _capFilter === 'have' ? p.status === 'have' : p.status !== 'have';
+  const html = cats.map(c => {
+    const list = c.pieces.filter(match);
+    if (_capFilter !== 'all' && !list.length) return '';
+    const own = c.pieces.filter(p => p.status === 'have').length, open = !_capClosed[c.id], full = c.pieces.length && own === c.pieces.length;
+    return `<section class="cap-section">
+      <div class="cap-section-head" onclick="capToggleSection('${c.id}')">
+        <span style="font-size:10px;color:var(--text-muted);display:inline-block;transform:rotate(${open ? 90 : 0}deg);">▶</span>
+        <h3>${escapeHtml(c.icon || '👕')} ${escapeHtml(c.name)}</h3>
+        <span class="cap-count${full ? ' full' : ''}">${full ? '✓ ' : ''}${own}/${c.pieces.length}</span>
+        <div class="cap-dots">${c.pieces.map(p => `<i class="${p.status === 'have' ? '' : 'need'}" style="background:${_capColor(p.color)};" title="${escapeHtml(p.name)}: ${p.status === 'have' ? 'have' : 'need'}"></i>`).join('')}</div>
+        <span style="flex:1;"></span>
+        <button class="btn-ghost" onclick="event.stopPropagation();capOpenType('${c.id}')" title="Edit this clothing type">✏️</button>
+      </div>
+      ${open ? `<div class="cap-grid">${list.map(p => _capCard(c, p)).join('')}${_capFilter === 'all' ? `<button class="cap-add" onclick="capOpenPiece('', '${c.id}')">+ Add colour</button>` : ''}</div>` : ''}
+    </section>`;
+  }).join('');
+  document.getElementById('cap-body').innerHTML = html || `<div class="empty-state card"><p>${_capFilter === 'next' ? 'Nothing starred yet. Tap ★ on a piece you want to buy next.' : _capFilter === 'have' ? 'Nothing marked as owned yet. Tap “I have it” on the pieces already in your wardrobe.' : cats.length ? '🎉 Nothing missing.' : 'No clothing types yet. Add one to start.'}</p></div>`;
+}
+function _capCard(c, p) {
+  const owned = p.status === 'have', next = !owned && _capIsNext(p), photo = _capUrl(p.photo), link = _capUrl(p.link);
+  return `<div class="cap-card${owned ? '' : ' need'}" onclick="capOpenPiece('${p.id}')">
+    <div class="cap-swatch"><div class="cap-fill" style="background-color:${_capColor(p.color)};"></div>
+      ${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(_capFullName(c, p))}" style="position:relative;" onerror="this.remove()">` : ''}
+      <span class="cap-flag">${owned ? '✓ Have' : 'Need'}</span>
+      ${owned ? '' : `<button class="cap-star${next ? ' on' : ''}" title="${next ? 'Remove from Buy next' : 'Buy next'}" aria-pressed="${next}" onclick="event.stopPropagation();capToggleNext('${p.id}')">★</button>`}</div>
+    <div class="cap-info"><div class="cap-name">${escapeHtml(p.name)}</div>
+      <div class="cap-meta">${escapeHtml([p.brand, p.size].filter(Boolean).join(' · '))}</div>
+      <div class="cap-price">${p.price !== '' ? _capEur(p.price) : ''}</div></div>
+    <div class="cap-actions"><button class="cap-toggle" onclick="event.stopPropagation();capToggleHave('${p.id}')">${owned ? '✓ Owned' : 'I have it'}</button>
+      ${link ? `<a class="cap-shop" href="${escapeHtml(link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Shop ↗</a>` : ''}</div></div>`;
+}
+function capSetFilter(f) { _capFilter = f; renderCapsule(); }
+function capToggleSection(id) { _capClosed[id] = !_capClosed[id]; renderCapsule(); }
+function _capDone() { save(); updateNavBuyBadge(countNeedToBuy()); renderCapsule(); }
+function capToggleHave(id) {
+  const f = _capFind(id); if (!f) return;
+  f.p.status = f.p.status === 'have' ? 'need' : 'have';
+  if (f.p.status === 'have') _capSetNext(f.cat, f.p, false);
+  _capDone();
+}
+function capToggleNext(id) { const f = _capFind(id); if (!f) return; _capSetNext(f.cat, f.p, !_capIsNext(f.p)); _capDone(); }
+
+// ---- add / edit a piece ----
+function capPickColour(i) {
+  const [name, hex] = CAP_COLOURS[i], nameEl = document.getElementById('cap-name');
+  document.getElementById('cap-color').value = hex;
+  if (!nameEl.value.trim() || CAP_COLOURS.some(c => c[0] === nameEl.value.trim())) nameEl.value = name;
+  document.querySelectorAll('#cap-swatches button').forEach((b, n) => b.classList.toggle('on', n === i));
+}
+function capOpenPiece(id, catId) {
+  const f = id ? _capFind(id) : null, p = f ? f.p : null, cat = f ? f.cat : capData().cats.find(c => c.id === catId);
+  if (!cat) return;
+  const set = (k, v) => { document.getElementById(k).value = v; };
+  set('cap-piece-id', p ? p.id : ''); set('cap-piece-cat', cat.id);
+  document.getElementById('cap-piece-title').textContent = p ? `${_capFullName(cat, p)}` : `Add to ${cat.name}`;
+  set('cap-name', p ? p.name : ''); set('cap-color', p ? _capColor(p.color) : '#9a9da2');
+  set('cap-status', p ? p.status : 'need'); set('cap-price', p ? p.price : '');
+  ['brand', 'size', 'link', 'photo', 'notes'].forEach(k => set('cap-' + k, p ? p[k] || '' : ''));
+  document.getElementById('cap-next').checked = p ? _capIsNext(p) : false;
+  document.getElementById('cap-swatches').innerHTML = CAP_COLOURS.map(([n, hex], i) => `<button type="button" class="${p && p.color === hex ? 'on' : ''}" style="background:${hex};" title="${n}" aria-label="${n}" onclick="capPickColour(${i})"></button>`).join('');
+  document.getElementById('cap-piece-delete').style.display = p ? '' : 'none';
+  document.getElementById('cap-piece-modal').classList.add('open');
+}
+function capSavePiece() {
+  const v = k => document.getElementById(k).value.trim();
+  if (!v('cap-name')) { alert('Give it a name, like a colour.'); return; }
+  const cat = capData().cats.find(c => c.id === v('cap-piece-cat')); if (!cat) return;
+  let p = cat.pieces.find(x => x.id === v('cap-piece-id'));
+  if (!p) { p = { id: uid(), buyId: '' }; cat.pieces.push(p); }
+  Object.assign(p, { name: v('cap-name'), color: v('cap-color'), status: v('cap-status'), price: v('cap-price') === '' ? '' : Math.max(0, Number(v('cap-price'))),
+    brand: v('cap-brand'), size: v('cap-size'), link: v('cap-link'), photo: v('cap-photo'), notes: v('cap-notes') });
+  _capSetNext(cat, p, p.status !== 'have' && document.getElementById('cap-next').checked);
+  closeModal('cap-piece-modal'); _capDone();
+}
+function capDeletePiece() {
+  const f = _capFind(document.getElementById('cap-piece-id').value); if (!f) return;
+  if (!confirm(`Remove “${_capFullName(f.cat, f.p)}” from your capsule wardrobe?`)) return;
+  _capSetNext(f.cat, f.p, false);
+  f.cat.pieces = f.cat.pieces.filter(x => x.id !== f.p.id);
+  closeModal('cap-piece-modal'); _capDone();
+}
+
+// ---- clothing types ----
+function capOpenType(id) {
+  const c = id ? capData().cats.find(x => x.id === id) : null;
+  document.getElementById('cap-type-id').value = c ? c.id : '';
+  document.getElementById('cap-type-title').textContent = c ? 'Edit clothing type' : 'Add clothing type';
+  document.getElementById('cap-type-name').value = c ? c.name : '';
+  document.getElementById('cap-type-icon').value = c ? c.icon : '';
+  document.getElementById('cap-type-delete').style.display = c ? '' : 'none';
+  document.getElementById('cap-type-modal').classList.add('open');
+}
+function capSaveType() {
+  const name = document.getElementById('cap-type-name').value.trim();
+  if (!name) { alert('Please enter a name.'); return; }
+  const id = document.getElementById('cap-type-id').value, icon = document.getElementById('cap-type-icon').value.trim() || '👕';
+  const c = capData().cats.find(x => x.id === id);
+  const word = name.toLowerCase().replace(/([^s])s$/, '$1');
+  if (c) { if (c.name !== name && c.word) c.word = word; c.name = name; c.icon = icon; }
+  else capData().cats.push({ id: uid(), name, icon, word, pieces: [] });
+  closeModal('cap-type-modal'); _capDone();
+}
+function capDeleteType() {
+  const c = capData().cats.find(x => x.id === document.getElementById('cap-type-id').value); if (!c) return;
+  if (!confirm(`Delete ${c.name} and its ${c.pieces.length} piece${c.pieces.length === 1 ? '' : 's'}?`)) return;
+  c.pieces.forEach(p => _capSetNext(c, p, false));
+  capData().cats = capData().cats.filter(x => x.id !== c.id);
+  closeModal('cap-type-modal'); _capDone();
+}
+
+// ============================================================
 // LOOKSMAXXING (Life) — daily stack, streaks, product stock, weekly check-in
 // ============================================================
 const LK_SLOTS = [['morning', '☀️ Morning'], ['day', '🌤️ During the day'], ['evening', '🌙 Evening']];
@@ -9832,7 +10128,7 @@ function moveToBuying(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[
 function moveToWishlist(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.buying=false;p.ordered=false;save();renderProducts(); }
 function markOrdered(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.ordered=true;p.buying=false;save();renderProducts(); }
 function markArrived(tab,id,e) { if(e)e.stopPropagation(); const p=DB.products[tab].find(p=>p.id===id);if(!p)return; p.ordered=false;p.buying=false; if(p.stock!==undefined)p.stock='full'; save();renderProducts(); }
-function markBought(tab,id,e) { if(e)e.stopPropagation(); if(!confirm('Mark as bought and remove from list?'))return; DB.products[tab]=DB.products[tab].filter(p=>p.id!==id);save();renderProducts(); }
+function markBought(tab,id,e) { if(e)e.stopPropagation(); if(!confirm('Mark as bought and remove from list?'))return; if(tab==='clothes')capOwnedFromProduct(id); DB.products[tab]=DB.products[tab].filter(p=>p.id!==id);save();renderProducts(); }
 
 function _prodNeedByChip(needBy, isUrgent) {
   if(!needBy) return '';
